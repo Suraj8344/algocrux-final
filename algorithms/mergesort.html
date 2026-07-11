@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merge Sort — Divide & Conquer</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0c2624;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  /* HEADER */
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; background: var(--surface); }
+  .badge { background: var(--teal-bg); color: var(--teal); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; border: 1px solid #0e3d38; }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  /* CONCEPT */
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--teal); line-height: 2; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0e3d38; }
+  .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  /* ANIM PANEL */
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  @media(max-width:700px){ .anim-panel.pinned{ top: 8px; max-height: calc(100vh - 16px); } }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── VISUALIZER ── */
+  #vis-container { width: 100%; overflow-x: auto; padding-bottom: .5rem; }
+  #vis-svg { display: block; min-width: 340px; }
+
+  /* PHASE LABEL */
+  .phase-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 1rem; }
+  .phase-badge.divide { background: var(--accent-bg); color: var(--accent); border: 1px solid #2a3875; }
+  .phase-badge.merge  { background: var(--green-bg);  color: var(--green);  border: 1px solid #1a4a2e; }
+  .phase-badge.done   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0e3d38; }
+  .phase-badge.idle   { background: var(--surface2);  color: var(--muted);  border: 1px solid var(--border); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--accent)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+  .stat-box.teal .val  { color: var(--teal); }
+  .stat-box.green .val { color: var(--green); }
+  .stat-box.amber .val { color: var(--amber); }
+  .stat-box.purple .val{ color: var(--purple); }
+
+  /* LOG */
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi  { color: var(--text);   font-weight: 500; }
+  .log-box .pos { color: var(--green);  font-weight: 600; }
+  .log-box .neg { color: var(--red);    font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .tea { color: var(--teal);   font-weight: 600; }
+  .log-box .amb { color: var(--amber);  font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+
+  /* CONTROLS */
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 5px; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #133330; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--green-bg); color: var(--green); border: 1px solid #1a4a2e; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+
+  /* WALKTHROUGH */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .tbl-wrap { overflow-x: auto; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .c-acc { color: var(--accent); } .c-green { color: var(--green); }
+  .c-red  { color: var(--red);   } .c-amb  { color: var(--amber); }
+  .c-tea  { color: var(--teal);  } .c-pur  { color: var(--purple); }
+  .c-txt  { color: var(--text);  }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+
+  /* COMPLEXITY */
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Sorting</span>
+      <h1>Merge Sort</h1>
+    </div>
+    <p>Divide & Conquer — O(n log n) time · O(n) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sort an array of elements efficiently. Merge Sort recursively <strong style="color:var(--text)">divides</strong> the array into halves until each piece has one element (inherently sorted), then <strong style="color:var(--text)">merges</strong> them back in sorted order.</p>
+      <p style="margin-top:.75rem">It is <strong style="color:var(--text)">stable</strong> (equal elements keep their original order) and guaranteed O(n log n) — unlike Quick Sort which can degrade to O(n²).</p>
+    </div>
+    <div>
+      <h2>The two phases</h2>
+      <div class="formula">
+        <span class="comment">// ① Divide: split until size 1</span><br>
+        <span class="keyword">mergeSort</span>(arr, l, r):<br>
+        &nbsp;&nbsp;mid = (l + r) / 2<br>
+        &nbsp;&nbsp;mergeSort(arr, l, mid)<br>
+        &nbsp;&nbsp;mergeSort(arr, mid+1, r)<br>
+        &nbsp;&nbsp;<span class="comment">// ② Merge sorted halves</span><br>
+        &nbsp;&nbsp;<span class="keyword">merge</span>(arr, l, mid, r)
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(n log n)</div>
+      <p>log n levels of recursion × O(n) merge work per level. Guaranteed for all inputs.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(n)</div>
+      <p>A temporary array of size n is needed during each merge step.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Classic unsorted <span class="tag tag-classic">standard</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Already sorted <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Reverse sorted <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(3,this)">All same values <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(4,this)">Two elements <span class="tag tag-edge">edge</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> Active subarray (dividing)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> Being merged / placed</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> Comparing elements</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> Fully sorted segment</span>
+    </div>
+
+    <!-- Phase badge -->
+    <div id="phase-badge" class="phase-badge idle">⏸ Waiting to start</div>
+
+    <!-- SVG visualizer -->
+    <div id="vis-container">
+      <svg id="vis-svg" height="260"></svg>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box teal">
+        <div class="lbl">Phase</div>
+        <div class="val" id="s-phase">—</div>
+        <div class="sub" id="s-phase-sub">—</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="lbl">Subarray</div>
+        <div class="val" id="s-range">—</div>
+        <div class="sub" id="s-range-sub">—</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Comparisons</div>
+        <div class="val" id="s-comps">0</div>
+        <div class="sub">so far</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">Merges done</div>
+        <div class="val" id="s-merges">0</div>
+        <div class="sub">completed</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Sorted!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr>
+            <th>Step</th><th>Phase</th><th>Subarray [l..r]</th>
+            <th>Action</th><th>Array state</th><th>Note</th>
+          </tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>merge_sort.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">merge</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">int</span> l, <span class="kw">int</span> mid, <span class="kw">int</span> r) {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; tmp;
+    <span class="kw">int</span> i = l, j = mid + <span class="nm">1</span>;
+
+    <span class="cm">// Pick smaller element from left or right half</span>
+    <span class="kw">while</span> (i &lt;= mid &amp;&amp; j &lt;= r) {
+        <span class="kw">if</span> (arr[i] &lt;= arr[j]) tmp.push_back(arr[i++]);
+        <span class="kw">else</span>                   tmp.push_back(arr[j++]);
+    }
+    <span class="cm">// Drain remaining elements</span>
+    <span class="kw">while</span> (i &lt;= mid) tmp.push_back(arr[i++]);
+    <span class="kw">while</span> (j &lt;= r)   tmp.push_back(arr[j++]);
+
+    <span class="cm">// Copy merged result back</span>
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nm">0</span>; k &lt; (<span class="kw">int</span>)tmp.size(); k++)
+        arr[l + k] = tmp[k];
+}
+
+<span class="kw">void</span> <span class="fn">mergeSort</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">int</span> l, <span class="kw">int</span> r) {
+    <span class="kw">if</span> (l &gt;= r) <span class="kw">return</span>;          <span class="cm">// base case: 1 element</span>
+    <span class="kw">int</span> mid = l + (r - l) / <span class="nm">2</span>;
+    <span class="fn">mergeSort</span>(arr, l, mid);       <span class="cm">// sort left half</span>
+    <span class="fn">mergeSort</span>(arr, mid + <span class="nm">1</span>, r);  <span class="cm">// sort right half</span>
+    <span class="fn">merge</span>(arr, l, mid, r);        <span class="cm">// merge sorted halves</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; arr = {<span class="nm">38</span>, <span class="nm">27</span>, <span class="nm">43</span>, <span class="nm">3</span>, <span class="nm">9</span>, <span class="nm">82</span>, <span class="nm">10</span>};
+    <span class="fn">mergeSort</span>(arr, <span class="nm">0</span>, arr.size() - <span class="nm">1</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> x : arr) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>;  <span class="cm">// 3 9 10 27 38 43 82</span>
+}</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { arr:[38,27,43,3,9,82,10], desc:`<strong style="color:var(--text)">Classic example</strong> — 7 unsorted elements. Watch the array split into halves recursively (Divide phase), then watch sorted halves get merged back together (Merge phase). Final result: <code style="color:var(--teal)">[3, 9, 10, 27, 38, 43, 82]</code>.` },
+  { arr:[1,2,3,4,5,6], desc:`<strong style="color:var(--text)">Edge case: already sorted.</strong> Merge Sort still does O(n log n) work — it still divides and merges every subarray. However, every merge comparison picks the left element, so no swaps occur. Result is unchanged: <code style="color:var(--teal)">[1,2,3,4,5,6]</code>.` },
+  { arr:[9,7,5,3,1], desc:`<strong style="color:var(--text)">Edge case: reverse sorted.</strong> Worst-case comparisons — every merge step must pick from the right half every time. Despite this, time complexity stays O(n log n). Result: <code style="color:var(--teal)">[1,3,5,7,9]</code>.` },
+  { arr:[4,4,4,4], desc:`<strong style="color:var(--text)">Edge case: all same values.</strong> Since the merge condition uses ≤ (not <), equal elements from the left half are always picked first — this is what makes Merge Sort <strong style="color:var(--teal)">stable</strong>. No real movement; result: <code style="color:var(--teal)">[4,4,4,4]</code>.` },
+  { arr:[8,3], desc:`<strong style="color:var(--text)">Edge case: two elements.</strong> One divide step (trivial), one merge step that compares both elements and places the smaller first. Minimum non-trivial case. Result: <code style="color:var(--teal)">[3,8]</code>.` }
+];
+
+const SPEEDS = [1800,1200,700,380,180];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+let origArr = [], steps = [], cursor = -1, playing = false, timer = null;
+
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+/* ── STEP BUILDER ── */
+function buildSteps(inputArr) {
+  const arr = [...inputArr];
+  const n = arr.length;
+  const stps = [];
+  let compCount = 0, mergeCount = 0;
+
+  function addStep(type, l, r, mid, arr, note, extra={}) {
+    stps.push({ type, l, r, mid: mid !== undefined ? mid : -1,
+      arr: [...arr], note, compCount, mergeCount, ...extra });
+  }
+
+  function merge(arr, l, mid, r) {
+    addStep('merge-start', l, r, mid, arr, `Merging [${l}..${mid}] and [${mid+1}..${r}]`);
+    const left  = arr.slice(l, mid+1);
+    const right = arr.slice(mid+1, r+1);
+    let i=0, j=0, k=l;
+    while (i < left.length && j < right.length) {
+      compCount++;
+      if (left[i] <= right[j]) {
+        addStep('compare', l, r, mid, arr, `Compare ${left[i]} ≤ ${right[j]}: pick ${left[i]} (left)`, {ci:l+i, cj:mid+1+j, picked:arr[k]=left[i], pickIdx:k});
+        arr[k++] = left[i++];
+      } else {
+        addStep('compare', l, r, mid, arr, `Compare ${left[i]} > ${right[j]}: pick ${right[j]} (right)`, {ci:l+i, cj:mid+1+j, picked:arr[k]=right[j], pickIdx:k});
+        arr[k++] = right[j++];
+      }
+      addStep('place', l, r, mid, arr, `Placed into position ${k-1}`);
+    }
+    while (i < left.length) {
+      arr[k++] = left[i++];
+      addStep('drain-left', l, r, mid, arr, `Drain remaining left: ${arr[k-1]} → pos ${k-1}`);
+    }
+    while (j < right.length) {
+      arr[k++] = right[j++];
+      addStep('drain-right', l, r, mid, arr, `Drain remaining right: ${arr[k-1]} → pos ${k-1}`);
+    }
+    mergeCount++;
+    addStep('merge-done', l, r, mid, arr, `Subarray [${l}..${r}] merged & sorted`, {sortedL:l, sortedR:r});
+  }
+
+  function mergeSort(arr, l, r, depth) {
+    if (l >= r) {
+      addStep('base', l, r, -1, arr, `Base case: [${l}..${r}] is a single element (${arr[l]})`);
+      return;
+    }
+    const mid = Math.floor((l + r) / 2);
+    addStep('divide', l, r, mid, arr, `Divide [${l}..${r}] → left [${l}..${mid}], right [${mid+1}..${r}]`, {depth});
+    mergeSort(arr, l, mid, depth+1);
+    mergeSort(arr, mid+1, r, depth+1);
+    merge(arr, l, mid, r);
+  }
+
+  mergeSort(arr, 0, n-1, 0);
+  addStep('sorted', 0, n-1, -1, arr, `Array fully sorted!`, {final:true});
+  return stps;
+}
+
+/* ── SVG DRAWING ── */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const COLORS = {
+  default:    { fill:'#22263a', stroke:'#3d4266', text:'#8b90b8' },
+  divide:     { fill:'#1a2140', stroke:'#6c8fff', text:'#6c8fff' },
+  active:     { fill:'#1a2140', stroke:'#6c8fff', text:'#e8eaf6' },
+  compare:    { fill:'#2a1e06', stroke:'#fbbf24', text:'#fbbf24' },
+  place:      { fill:'#0d2318', stroke:'#4ade80', text:'#4ade80' },
+  sorted:     { fill:'#0c2624', stroke:'#2dd4bf', text:'#2dd4bf' },
+  base:       { fill:'#0c2624', stroke:'#2dd4bf', text:'#2dd4bf' },
+};
+
+function drawState(idx) {
+  const svg = document.getElementById('vis-svg');
+  const container = document.getElementById('vis-container');
+  const W = Math.max(container.clientWidth - 8, 340);
+  svg.setAttribute('width', W);
+
+  if (idx < 0) {
+    // draw initial array
+    const arr = origArr;
+    const n = arr.length;
+    const CW = Math.min(62, Math.floor((W - 32) / n));
+    const CH = 54, SX = (W - CW*n) / 2, SY = 20;
+    svg.setAttribute('height', CH + 60);
+    svg.innerHTML = '';
+    arr.forEach((v, i) => drawCell(svg, SX + i*CW, SY, CW-4, CH, v, i, COLORS.default));
+    return;
+  }
+
+  const s = steps[idx];
+  const arr = s.arr;
+  const n = arr.length;
+  const CW = Math.min(62, Math.floor((W - 32) / n));
+  const CH = 54;
+
+  // figure out rows to show: original + levels of recursion tree
+  // we show 3 rows: original (top), current split view (middle), current array (bottom)
+  const totalH = CH * 3 + 80;
+  svg.setAttribute('height', totalH);
+  svg.innerHTML = '';
+
+  // Row 1: original array (greyed)
+  const SY1 = 10;
+  origArr.forEach((v, i) => {
+    const col = (i >= s.l && i <= s.r) ? COLORS.active : COLORS.default;
+    drawCell(svg, (W - CW*n)/2 + i*CW, SY1, CW-4, CH, v, i, col);
+  });
+  addSvgText(svg, W/2, SY1 + CH + 14, 'original', '#3d4266', 10);
+
+  // Row 2: active subarray zoomed in
+  const subLen = s.r - s.l + 1;
+  const subCW  = Math.min(70, Math.floor((W - 48) / Math.max(subLen, 1)));
+  const SY2 = SY1 + CH + 30;
+  const SX2 = (W - subCW * subLen) / 2;
+
+  if (s.type !== 'sorted') {
+    for (let i = s.l; i <= s.r; i++) {
+      let col = COLORS.active;
+      if (s.type === 'divide' && s.mid >= 0) {
+        col = i <= s.mid ? { fill:'#1a2140', stroke:'#6c8fff', text:'#a5b4fc' }
+                         : { fill:'#1e0f33', stroke:'#c084fc', text:'#c084fc' };
+      }
+      if ((s.type === 'compare' || s.type === 'place') && (i === s.ci || i === s.cj)) col = COLORS.compare;
+      if (s.type === 'merge-done' && i >= s.sortedL && i <= s.sortedR) col = COLORS.sorted;
+      if (s.type === 'place' && i === s.pickIdx) col = COLORS.place;
+      if (s.type === 'drain-left' || s.type === 'drain-right') col = COLORS.place;
+      drawCell(svg, SX2 + (i-s.l)*subCW, SY2, subCW-4, CH, arr[i], i, col);
+    }
+    // midpoint separator
+    if (s.mid >= 0 && s.l < s.r && (s.type === 'divide' || s.type === 'merge-start' || s.type === 'compare' || s.type === 'place' || s.type === 'drain-left' || s.type === 'drain-right' || s.type === 'merge-done')) {
+      const sepX = SX2 + (s.mid - s.l + 1) * subCW - subCW*0.08;
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', sepX); line.setAttribute('y1', SY2 - 4);
+      line.setAttribute('x2', sepX); line.setAttribute('y2', SY2 + CH + 4);
+      line.setAttribute('stroke', '#3d4266'); line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-dasharray', '4,3');
+      svg.appendChild(line);
+      addSvgText(svg, SX2 + (s.mid-s.l)*subCW*0.5 + subCW*0.5, SY2 + CH + 18, 'left', '#6c8fff', 10);
+      addSvgText(svg, SX2 + (s.mid-s.l+1)*subCW + (s.r-s.mid-1)*subCW*0.5 + subCW*0.5, SY2 + CH + 18, 'right', '#c084fc', 10);
+    }
+    if (s.type !== 'base') addSvgText(svg, W/2, SY2 + CH + (s.mid>=0?24:14), `[${s.l}..${s.r}]`, '#5a5f80', 10);
+  }
+
+  // Row 3: full current array state
+  const SY3 = SY2 + CH + 46;
+  arr.forEach((v, i) => {
+    let col = COLORS.default;
+    if (s.type === 'merge-done' && i >= s.sortedL && i <= s.sortedR) col = COLORS.sorted;
+    if (s.type === 'sorted') col = COLORS.sorted;
+    drawCell(svg, (W - CW*n)/2 + i*CW, SY3, CW-4, CH, v, i, col);
+  });
+  addSvgText(svg, W/2, SY3 + CH + 14, 'current state', '#3d4266', 10);
+}
+
+function drawCell(svg, x, y, w, h, val, idx, col) {
+  const g = document.createElementNS(SVG_NS, 'g');
+  const rect = document.createElementNS(SVG_NS, 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', 7); rect.setAttribute('ry', 7);
+  rect.setAttribute('fill', col.fill);
+  rect.setAttribute('stroke', col.stroke);
+  rect.setAttribute('stroke-width', '1.5');
+  const vText = document.createElementNS(SVG_NS, 'text');
+  vText.setAttribute('x', x + w/2); vText.setAttribute('y', y + h/2 + 1);
+  vText.setAttribute('text-anchor', 'middle'); vText.setAttribute('dominant-baseline', 'middle');
+  vText.setAttribute('fill', col.text);
+  vText.setAttribute('font-size', Math.min(16, w*0.38));
+  vText.setAttribute('font-weight', '600');
+  vText.setAttribute('font-family', 'Fira Code, Consolas, monospace');
+  vText.textContent = val;
+  const iText = document.createElementNS(SVG_NS, 'text');
+  iText.setAttribute('x', x + w/2); iText.setAttribute('y', y + h + 12);
+  iText.setAttribute('text-anchor', 'middle');
+  iText.setAttribute('fill', '#3d4266'); iText.setAttribute('font-size', 9);
+  iText.setAttribute('font-family', 'Fira Code, Consolas, monospace');
+  iText.textContent = idx;
+  g.appendChild(rect); g.appendChild(vText); g.appendChild(iText);
+  svg.appendChild(g);
+}
+
+function addSvgText(svg, x, y, text, color, size) {
+  const t = document.createElementNS(SVG_NS, 'text');
+  t.setAttribute('x', x); t.setAttribute('y', y);
+  t.setAttribute('text-anchor', 'middle'); t.setAttribute('fill', color);
+  t.setAttribute('font-size', size); t.setAttribute('font-family', 'Inter, system-ui, sans-serif');
+  t.textContent = text;
+  svg.appendChild(t);
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx) {
+  drawState(idx);
+  document.getElementById('done-pill').style.display = 'none';
+
+  // reset table highlights
+  steps.forEach((_,i) => { const tr=document.getElementById('tr-'+i); if(tr) tr.classList.remove('highlighted'); });
+
+  if (idx < 0) {
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('step-label').textContent = 'Step — of —';
+    ['s-phase','s-range','s-range-sub'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('s-comps').textContent = '0';
+    document.getElementById('s-merges').textContent = '0';
+    document.getElementById('s-phase-sub').textContent = '—';
+    document.getElementById('log').innerHTML = 'Press <strong style="color:var(--text)">Play</strong> to begin.';
+    setPhase('idle');
+    return;
+  }
+
+  const s = steps[idx];
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('s-comps').textContent  = s.compCount;
+  document.getElementById('s-merges').textContent = s.mergeCount;
+  document.getElementById('s-range').textContent  = `[${s.l}..${s.r}]`;
+  document.getElementById('s-range-sub').textContent = `size ${s.r-s.l+1}`;
+
+  // phase
+  const isDivide = ['divide','base'].includes(s.type);
+  const isMerge  = ['merge-start','compare','place','drain-left','drain-right','merge-done'].includes(s.type);
+  if (s.type === 'sorted') {
+    setPhase('done'); document.getElementById('s-phase').textContent='Done'; document.getElementById('s-phase-sub').textContent='fully sorted';
+  } else if (isDivide) {
+    setPhase('divide'); document.getElementById('s-phase').textContent='Divide'; document.getElementById('s-phase-sub').textContent=s.type==='base'?'base case':'splitting';
+  } else {
+    setPhase('merge'); document.getElementById('s-phase').textContent='Merge'; document.getElementById('s-phase-sub').textContent=s.type==='merge-done'?'complete':'in progress';
+  }
+
+  // log
+  let msg = '';
+  const stepNum = `<span class="hi">Step ${idx+1}.</span> `;
+  if (s.type==='divide')      msg = `${stepNum}📂 <span class="acc">Divide</span> subarray <span class="amb">[${s.l}..${s.r}]</span> at midpoint ${s.mid} → left <span class="acc">[${s.l}..${s.mid}]</span> and right <span class="sol">[${s.mid+1}..${s.r}]</span>.`;
+  else if (s.type==='base')   msg = `${stepNum}✅ <span class="pos">Base case</span>: subarray <span class="amb">[${s.l}..${s.l}]</span> has 1 element (${s.arr[s.l]}) — trivially sorted.`;
+  else if (s.type==='merge-start') msg = `${stepNum}🔀 <span class="tea">Merge</span> left <span class="acc">[${s.l}..${s.mid}]</span> and right <span class="sol">[${s.mid+1}..${s.r}]</span> into sorted order.`;
+  else if (s.type==='compare') msg = `${stepNum}⚖️ <span class="amb">Compare</span>: ${s.note}.`;
+  else if (s.type==='place')   msg = `${stepNum}<span class="pos">Placed</span> element into position — array updated.`;
+  else if (s.type==='drain-left'||s.type==='drain-right') msg = `${stepNum}<span class="acc">Draining</span> remaining: ${s.note}.`;
+  else if (s.type==='merge-done') msg = `${stepNum}<span class="tea">✓ Merged!</span> Subarray <span class="amb">[${s.l}..${s.r}]</span> is now sorted: [${s.arr.slice(s.l,s.r+1).join(', ')}].`;
+  else if (s.type==='sorted')  msg = `${stepNum}<span class="pos">🎉 Fully sorted!</span> Final array: <span class="tea">[${s.arr.join(', ')}]</span>. Total comparisons: <span class="amb">${s.compCount}</span>, merges: <span class="sol">${s.mergeCount}</span>.`;
+
+  if (idx === steps.length-1) { document.getElementById('done-pill').style.display='inline-block'; }
+  document.getElementById('log').innerHTML = msg;
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function setPhase(type) {
+  const b = document.getElementById('phase-badge');
+  b.className = 'phase-badge ' + type;
+  if (type==='divide') b.textContent = '📂 Divide Phase';
+  else if (type==='merge') b.textContent = '🔀 Merge Phase';
+  else if (type==='done') b.textContent = '✅ Sorted!';
+  else b.textContent = '⏸ Waiting to start';
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps) {
+  document.getElementById('step-tbody').innerHTML = stps.map((s,i)=>{
+    const phaseLabel =
+      s.type==='divide'      ? `<span class="c-acc">Divide</span>` :
+      s.type==='base'        ? `<span class="c-tea">Base</span>` :
+      s.type==='merge-start' ? `<span class="c-pur">Merge↓</span>` :
+      s.type==='compare'     ? `<span class="c-amb">Compare</span>` :
+      s.type==='place'||s.type==='drain-left'||s.type==='drain-right' ? `<span class="c-green">Place</span>` :
+      s.type==='merge-done'  ? `<span class="c-tea">Merged✓</span>` :
+                               `<span class="c-green">✓ Sorted</span>`;
+    const arrStr = '['+s.arr.map((v,j)=> (j>=s.l&&j<=s.r)?`<strong>${v}</strong>`:v ).join(',')+']';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td>
+      <td>${phaseLabel}</td>
+      <td class="c-amb">[${s.l}..${s.r}]</td>
+      <td class="c-txt" style="font-size:11px">${s.note}</td>
+      <td style="font-size:11px">${arrStr}</td>
+      <td class="c-pur" style="font-size:11px">cmp:${s.compCount} merge:${s.mergeCount}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadExample(n, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  origArr = [...EXAMPLES[n].arr];
+  document.getElementById('example-desc').innerHTML = EXAMPLES[n].desc;
+  steps = buildSteps(origArr);
+  buildTable(steps);
+  cursor = -1;
+  applyState(-1);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const isPinned=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',isPinned);
+  btn.textContent=isPinned?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+window.addEventListener('resize',()=>{ if(cursor>=0)drawState(cursor); else drawState(-1); });
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

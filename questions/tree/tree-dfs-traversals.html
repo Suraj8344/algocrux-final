@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree DFS — Preorder, Inorder, Postorder</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3a4a7a;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace; --sans: 'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.easy { background: var(--green-bg); color: var(--green); border: 1px solid #1a6b3a; }
+  .badge.tr { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; } .formula .keyword { color: var(--purple); }
+  .mode-row { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+  .mode-btn { flex: 1; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: all .15s; text-align: center; }
+  .mode-btn:hover { color: var(--text); border-color: var(--muted); }
+  .mode-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .mode-btn small { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 1px; } .mode-btn.active small { color: var(--teal); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge { background: var(--purple-bg); color: var(--purple); } .tag-classic { background: var(--accent-bg); color: var(--accent); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); } .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .tree-wrap { margin-bottom: 1.1rem; }
+  .tree-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .tree-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; overflow-x: auto; display:flex; justify-content:center; }
+  svg { display: block; }
+  .edge { stroke: var(--border2); stroke-width: 2; }
+  .edge.trav { stroke: var(--amber); stroke-width: 2.5; }
+  .node-c { fill: var(--surface); stroke: var(--border2); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
+  .node-c.stack { fill: var(--accent-bg); stroke: var(--accent); }
+  .node-c.active { fill: var(--amber-bg); stroke: var(--amber); stroke-width: 3; }
+  .node-c.emitted { fill: var(--teal-bg); stroke: var(--teal); }
+  .node-t { font-family: var(--mono); font-weight: 700; font-size: 14px; fill: var(--text); text-anchor: middle; dominant-baseline: central; }
+  .node-t.stack { fill: var(--accent); } .node-t.active { fill: var(--amber); } .node-t.emitted { fill: var(--teal); }
+  .node-order { font-family: var(--mono); font-size: 9px; fill: var(--purple); text-anchor: middle; }
+  .out-section { margin-bottom: 1.1rem; }
+  .out-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .out-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .out-chip { border: 1.5px solid var(--teal); background: var(--teal-bg); color: var(--teal); border-radius: 8px; padding: .35rem .7rem; font-family: var(--mono); font-size: 14px; font-weight: 700; transition: transform .2s; }
+  .out-chip.new { transform: translateY(-3px); box-shadow: 0 0 0 3px rgba(45,212,191,.22); }
+  .out-empty { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .stack-section { margin-bottom: 1.1rem; }
+  .stack-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .stack-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; min-height: 54px; overflow-x:auto; }
+  .stack-row { display: flex; gap: 6px; align-items: center; min-width:max-content; }
+  .stack-empty { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .st-end { font-size: 10px; color: var(--muted); font-family: var(--mono); padding: 0 4px; }
+  .st-node { border: 1.5px solid var(--border2); border-radius: 8px; background: var(--surface); padding: .4rem .7rem; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); transition: all .2s; }
+  .st-node.top { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+  .alloc-section { margin-bottom: 1.1rem; } .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono); display: flex; flex-direction: column; gap: 3px; min-width: 116px; }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; } .alloc-card .ac-books { color: var(--text); } .alloc-card .ac-sum { font-weight: 700; }
+  .alloc-card.amberc { border-color: var(--amber); background: var(--amber-bg); } .alloc-card.amberc .ac-sum { color: var(--amber); }
+  .alloc-card.tealc { border-color: var(--teal); background: var(--teal-bg); } .alloc-card.tealc .ac-sum { color: var(--teal); }
+  .alloc-card.accentc { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.accentc .ac-sum { color: var(--accent); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.info .ac-sum { color: var(--accent); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; } .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-lo { color: var(--amber); } .tp-hi { color: var(--accent); } .tp-mid { color: var(--purple); } .tp-ans { color: var(--teal); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; } .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; } .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber .val { color: var(--amber); } .stat-box.accent .val { color: var(--accent); } .stat-box.purple .val { color: var(--purple); } .stat-box.teal .val { color: var(--teal); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; } .log-box .pos { color: var(--green); font-weight: 600; } .log-box .neg { color: var(--red); font-weight: 600; } .log-box .acc { color: var(--accent); font-weight: 600; } .log-box .amb { color: var(--amber); font-weight: 600; } .log-box .sol { color: var(--purple); font-weight: 600; } .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); } .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); } .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); } .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s} .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px} .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s} .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)} .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none} .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)} .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px} .notes-footer .save-status.saved{color:var(--green)} .notes-footer .save-status.saving{color:var(--amber)} .notes-footer .save-status.error{color:var(--red)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;} .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);} .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode 144/94/145 · Classic</span>
+      <span class="badge tr">Tree · DFS Traversal</span>
+      <span class="badge easy">Easy</span>
+    </div>
+    <h1>Tree DFS — Preorder, Inorder, Postorder</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">The three depth-first orders differ only in <b>when you record the node</b> relative to its subtrees.</div>
+      <a href="https://leetcode.com/problems/binary-tree-inorder-traversal/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>One recursive skeleton, three orders: record the node before, between, or after visiting its children — O(N) time</p>
+  </div>
+</header>
+
+<main>
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Depth-first traversal walks as deep as possible before backtracking. The three classic orders visit the same nodes but <strong style="color:var(--teal)">record them at different moments</strong>:</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--amber)">Preorder</strong> = node, then left, then right (root first). <strong style="color:var(--teal)">Inorder</strong> = left, node, right (sorted order for a BST). <strong style="color:var(--purple)">Postorder</strong> = left, right, then node (children before parent, used for deletion &amp; bottom-up sums). All are <strong style="color:var(--teal)">O(N)</strong>, visiting each node once.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula" id="idea-formula"></div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time complexity</div><div class="big">O(N)</div><p>Every node is visited exactly once regardless of order. The recursion tree mirrors the actual tree.</p></div>
+    <div class="complex-card"><div class="lbl">Space complexity</div><div class="big">O(H)</div><p>The call stack (or explicit stack) is as deep as the tree height H, up to O(N) for a skewed tree.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="mode-pre" onclick="setMode('pre')">Preorder<small>node · left · right</small></button>
+    <button class="mode-btn" id="mode-in" onclick="setMode('in')">Inorder<small>left · node · right</small></button>
+    <button class="mode-btn" id="mode-post" onclick="setMode('post')">Postorder<small>left · right · node</small></button>
+  </div>
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[1,2,3,4,5,null,6] <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">BST [4,2,6,1,3,5,7] <span class="tag tag-classic">bst</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Left skew <span class="tag tag-edge">skewed</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[1] <span class="tag tag-edge">single</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[1,2,3,4] <span class="tag tag-edge">small</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title" id="anim-title">Live animation — preorder</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> on the call stack</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> active node</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> recorded (output)</span>
+    </div>
+    <div class="tree-wrap">
+      <div class="tree-label">Binary tree (small purple number = output position)</div>
+      <div class="tree-outer"><svg id="tree-svg" width="600" height="300"></svg></div>
+    </div>
+    <div class="stack-section">
+      <div class="stack-label">Call stack (recursion depth)</div>
+      <div class="stack-outer"><div class="stack-row" id="stack-row"><span class="stack-empty">empty</span></div></div>
+    </div>
+    <div class="out-section">
+      <div class="out-label">Traversal output</div>
+      <div class="out-row" id="out-row"><span class="out-empty">none yet</span></div>
+    </div>
+    <div class="alloc-section"><div class="alloc-label">Current step detail</div><div class="alloc-row" id="need-row"></div></div>
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-lo">at = —</span>
+      <span class="tracker-pill tp-hi" id="pill-hi">depth = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">action = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">output = —</span>
+    </div>
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl">active node</div><div class="val" id="s-lo">—</div><div class="sub" id="s-lo-sub">current</div></div>
+      <div class="stat-box accent"><div class="lbl">stack depth</div><div class="val" id="s-hi">—</div><div class="sub">recursion</div></div>
+      <div class="stat-box purple"><div class="lbl">action</div><div class="val" id="s-mid" style="font-size:13px">—</div><div class="sub" id="s-mid-sub">enter/record/return</div></div>
+      <div class="stat-box teal"><div class="lbl">recorded</div><div class="val" id="s-ans">—</div><div class="sub" id="s-ans-sub">of total</div></div>
+    </div>
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speed" min="1" max="5" value="3" step="1"><span id="spd-lbl" style="min-width:50px">Medium</span></div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table"><thead><tr><th>Step</th><th>action</th><th>node</th><th>depth</th><th>stack</th><th>output</th></tr></thead><tbody id="step-tbody"></tbody></table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span id="code-name">preorder.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"></pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader"><h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3><span class="toggle-icon" id="toggleIcon">&#x25BC;</span></div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm..."></textarea>
+      <div class="notes-footer"><span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span><span id="charCount">0 chars</span></div>
+    </div>
+  </div>
+
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="tree-dfs-traversals"></div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { t:[1,2,3,4,5,null,6], desc:`<strong style="color:var(--text)">Tree [1,2,3,4,5,null,6].</strong> Root 1, children 2 &amp; 3, then 4,5 under 2 and 6 under 3. Switch orders to see how the output reshuffles while the tree stays the same.` },
+  { t:[4,2,6,1,3,5,7], desc:`<strong style="color:var(--text)">Balanced BST [4,2,6,1,3,5,7].</strong> Here <em>inorder</em> gives 1,2,3,4,5,6,7 — sorted! That's the signature property of a BST inorder walk.` },
+  { t:[1,2,null,3,null,4,null], desc:`<strong style="color:var(--text)">Left-skewed tree.</strong> Each node has only a left child, so the recursion stack grows to full height. DFS becomes a straight line down.` },
+  { t:[1], desc:`<strong style="color:var(--text)">Single node.</strong> All three orders produce just [1]. The base case: record the one node.` },
+  { t:[1,2,3,4], desc:`<strong style="color:var(--text)">Small tree [1,2,3,4].</strong> 1 with children 2,3; 4 under 2's left. A compact case to compare the three orders side by side.` }
+];
+const IDEA={
+  pre:`<span class="comment">// preorder: node BEFORE children</span><br><span class="keyword">dfs</span>(n):<br>&nbsp;&nbsp;<span class="keyword">if</span> !n: return<br>&nbsp;&nbsp;visit(n)      <span class="comment"># record here</span><br>&nbsp;&nbsp;dfs(n.left)<br>&nbsp;&nbsp;dfs(n.right)`,
+  in:`<span class="comment">// inorder: node BETWEEN children</span><br><span class="keyword">dfs</span>(n):<br>&nbsp;&nbsp;<span class="keyword">if</span> !n: return<br>&nbsp;&nbsp;dfs(n.left)<br>&nbsp;&nbsp;visit(n)      <span class="comment"># record here</span><br>&nbsp;&nbsp;dfs(n.right)`,
+  post:`<span class="comment">// postorder: node AFTER children</span><br><span class="keyword">dfs</span>(n):<br>&nbsp;&nbsp;<span class="keyword">if</span> !n: return<br>&nbsp;&nbsp;dfs(n.left)<br>&nbsp;&nbsp;dfs(n.right)<br>&nbsp;&nbsp;visit(n)      <span class="comment"># record here</span>`
+};
+const CODE={
+  pre:`<span class="kw">void</span> <span class="fn">preorder</span>(TreeNode* n, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; out) {\n    <span class="kw">if</span> (!n) <span class="kw">return</span>;\n    out.push_back(n-&gt;val);   <span class="cm">// record BEFORE children</span>\n    <span class="fn">preorder</span>(n-&gt;left, out);\n    <span class="fn">preorder</span>(n-&gt;right, out);\n}`,
+  in:`<span class="kw">void</span> <span class="fn">inorder</span>(TreeNode* n, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; out) {\n    <span class="kw">if</span> (!n) <span class="kw">return</span>;\n    <span class="fn">inorder</span>(n-&gt;left, out);\n    out.push_back(n-&gt;val);   <span class="cm">// record BETWEEN children (BST → sorted)</span>\n    <span class="fn">inorder</span>(n-&gt;right, out);\n}`,
+  post:`<span class="kw">void</span> <span class="fn">postorder</span>(TreeNode* n, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; out) {\n    <span class="kw">if</span> (!n) <span class="kw">return</span>;\n    <span class="fn">postorder</span>(n-&gt;left, out);\n    <span class="fn">postorder</span>(n-&gt;right, out);\n    out.push_back(n-&gt;val);   <span class="cm">// record AFTER children</span>\n}`
+};
+const SPEEDS=[1600,1000,600,300,120]; const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input',function(){document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];});
+let MODE='pre', TREE=null, ORDERMAP={}, steps=[], cursor=-1, playing=false, timer=null;
+
+function buildTree(arr){
+  const map={};
+  for(let i=0;i<arr.length;i++){if(arr[i]!==null&&arr[i]!==undefined)map[i]={idx:i,val:arr[i],left:null,right:null,depth:0,x:0,y:0};}
+  for(let i=0;i<arr.length;i++){if(!map[i])continue;const li=2*i+1,ri=2*i+2;if(map[li]){map[i].left=map[li];map[li].depth=map[i].depth+1;}if(map[ri]){map[i].right=map[ri];map[ri].depth=map[i].depth+1;}}
+  const maxD=Math.max(0,...Object.values(map).map(n=>n.depth));const W=600,H=Math.max(200,(maxD+1)*80);
+  for(const k in map){const n=map[k];const rowStart=Math.pow(2,n.depth)-1;const posInRow=n.idx-rowStart;const rowCount=Math.pow(2,n.depth);n.x=(posInRow+0.5)/rowCount*W;n.y=40+n.depth*((H-60)/(maxD||1));}
+  return {root:map[0]||null,map,W,H};
+}
+function buildSteps(arr,mode){
+  const tree=buildTree(arr);TREE=tree;const stps=[];const out=[];const order={};
+  const total=Object.keys(tree.map).length;
+  function dfs(node,stack){
+    if(!node)return;
+    const st=[...stack,node.idx];
+    // enter
+    stps.push({action:'enter',node:node.idx,stack:[...st],out:[...out],msg:`<span class="hi">Enter node ${node.val}</span> (depth ${st.length-1}). Pushed onto the call stack.`});
+    if(mode==='pre'){order[node.idx]=out.length;out.push(node.val);stps.push({action:'record',node:node.idx,stack:[...st],out:[...out],msg:`<span class="hi">Preorder records ${node.val} now</span> — before visiting children. Output → [${out.join(', ')}].`});}
+    if(node.left)dfs(node.left,st);
+    if(mode==='in'){order[node.idx]=out.length;out.push(node.val);stps.push({action:'record',node:node.idx,stack:[...st],out:[...out],msg:`<span class="hi">Inorder records ${node.val} now</span> — after left, before right. Output → [${out.join(', ')}].`});}
+    if(node.right)dfs(node.right,st);
+    if(mode==='post'){order[node.idx]=out.length;out.push(node.val);stps.push({action:'record',node:node.idx,stack:[...st],out:[...out],msg:`<span class="hi">Postorder records ${node.val} now</span> — after both children. Output → [${out.join(', ')}].`});}
+    stps.push({action:'return',node:node.idx,stack:[...stack],out:[...out],msg:`<span class="hi">Done with ${node.val}, return.</span> Popped off the stack.`});
+  }
+  stps.unshift({action:'init',node:null,stack:[],out:[],msg:`<span class="hi">${mode==='pre'?'Preorder':mode==='in'?'Inorder':'Postorder'} DFS.</span> Record each node ${mode==='pre'?'before':mode==='in'?'between':'after'} its children. Walk deep first, backtrack on return.`});
+  dfs(tree.root,[]);
+  ORDERMAP=order;
+  stps.push({action:'done',node:null,stack:[],out:[...out],order:{...order},msg:`<span class="hi">Traversal complete.</span> <span class="pos">${mode} order: [${out.join(', ')}]</span>.`});
+  // attach total
+  stps.forEach(s=>s.total=total);
+  return stps;
+}
+function buildTableRows(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    let a= s.action==='init'?'<span style="color:var(--muted)">init</span>':s.action==='enter'?'<span style="color:var(--accent)">enter</span>':s.action==='record'?'<span style="color:var(--teal)">record</span>':s.action==='return'?'<span style="color:var(--amber)">return</span>':'<span style="color:var(--purple)">done</span>';
+    const nd= s.node!==null?TREE.map[s.node].val:'—';
+    return `<tr id="tr-${i}"><td>${i+1}</td><td>${a}</td><td style="color:var(--amber)">${nd}</td><td style="color:var(--accent)">${s.stack.length?s.stack.length-1:'—'}</td><td style="color:var(--accent)">[${s.stack.map(x=>TREE.map[x].val).join(',')}]</td><td style="color:var(--teal)">[${s.out.join(',')}]</td></tr>`;
+  }).join('');
+}
+function renderTree(st){
+  const svg=document.getElementById('tree-svg');if(!TREE.root){svg.innerHTML='';return;}
+  svg.setAttribute('width',TREE.W);svg.setAttribute('height',TREE.H);
+  const stackSet=new Set(st.stack);const outSet=new Set();
+  // recorded nodes = those whose order index < out.length
+  const recordedIdx=new Set();for(const k in ORDERMAP){if(ORDERMAP[k]<st.out.length)recordedIdx.add(Number(k));}
+  let edges='',circles='';
+  for(const k in TREE.map){const n=TREE.map[k];
+    const activeChild=st.node;
+    if(n.left)edges+=`<line class="edge${activeChild===n.left.idx&&st.action==='enter'?' trav':''}" x1="${n.x}" y1="${n.y}" x2="${n.left.x}" y2="${n.left.y}"/>`;
+    if(n.right)edges+=`<line class="edge${activeChild===n.right.idx&&st.action==='enter'?' trav':''}" x1="${n.x}" y1="${n.y}" x2="${n.right.x}" y2="${n.right.y}"/>`;
+  }
+  for(const k in TREE.map){const n=TREE.map[k];let cls='node-c',tcls='node-t';
+    if(st.node===n.idx&&(st.action==='enter'||st.action==='record'||st.action==='return')){cls+=' active';tcls+=' active';}
+    else if(recordedIdx.has(n.idx)){cls+=' emitted';tcls+=' emitted';}
+    else if(stackSet.has(n.idx)){cls+=' stack';tcls+=' stack';}
+    circles+=`<circle class="${cls}" cx="${n.x}" cy="${n.y}" r="20"/><text class="${tcls}" x="${n.x}" y="${n.y}">${n.val}</text>`;
+    if(ORDERMAP[n.idx]!==undefined&&ORDERMAP[n.idx]<st.out.length)circles+=`<text class="node-order" x="${n.x+22}" y="${n.y-16}">#${ORDERMAP[n.idx]+1}</text>`;
+  }
+  svg.innerHTML=edges+circles;
+}
+function renderStack(st){
+  const row=document.getElementById('stack-row');
+  if(!st.stack.length){row.innerHTML='<span class="stack-empty">empty</span>';return;}
+  let html='<span class="st-end">bottom→</span>';
+  st.stack.forEach((idx,i)=>{html+=`<div class="st-node${i===st.stack.length-1?' top':''}">${TREE.map[idx].val}</div>`;});
+  html+='<span class="st-end">←top</span>';
+  row.innerHTML=html;
+}
+function renderOut(st){
+  const row=document.getElementById('out-row');
+  if(!st.out.length){row.innerHTML='<span class="out-empty">none yet</span>';return;}
+  row.innerHTML=st.out.map((v,i)=>`<div class="out-chip ${i===st.out.length-1&&st.action==='record'?'new':''}">${v}</div>`).join('');
+}
+function renderNeed(st){
+  const row=document.getElementById('need-row');
+  if(st.action==='init'){row.innerHTML=`<div class="alloc-card info"><div class="ac-head">order</div><div class="ac-books">${MODE}</div><div class="ac-sum">record ${MODE==='pre'?'first':MODE==='in'?'middle':'last'}</div></div>`;return;}
+  if(st.action==='done'){row.innerHTML=`<div class="alloc-card tealc"><div class="ac-head">${MODE} output</div><div class="ac-books">[${st.out.join(', ')}]</div><div class="ac-sum">done ✓</div></div>`;return;}
+  const nv=TREE.map[st.node].val;
+  if(st.action==='enter')row.innerHTML=`<div class="alloc-card accentc"><div class="ac-head">enter</div><div class="ac-books">node ${nv}</div><div class="ac-sum">push stack</div></div>`;
+  else if(st.action==='record')row.innerHTML=`<div class="alloc-card tealc"><div class="ac-head">record</div><div class="ac-books">${nv}</div><div class="ac-sum">→ output</div></div>`;
+  else row.innerHTML=`<div class="alloc-card amberc"><div class="ac-head">return</div><div class="ac-books">node ${nv}</div><div class="ac-sum">pop stack</div></div>`;
+}
+function applyState(idx){
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('done-pill').style.display='none';
+  if(idx<0){
+    renderTree({node:null,stack:[],out:[],action:'idle'});renderStack({stack:[]});renderOut({out:[]});renderNeed({action:'init'});
+    document.getElementById('pill-lo').textContent='at = —';document.getElementById('pill-hi').textContent='depth = —';document.getElementById('pill-mid').textContent='action = —';document.getElementById('pill-ans').textContent='output = —';
+    document.getElementById('s-lo').textContent='—';document.getElementById('s-hi').textContent='0';document.getElementById('s-mid').textContent='—';document.getElementById('s-ans').textContent='0';document.getElementById('s-ans-sub').textContent=`of ${TREE&&TREE.root?Object.keys(TREE.map).length:0}`;
+    document.getElementById('step-label').textContent='Step — of —';document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+  const s=steps[idx];renderTree(s);renderStack(s);renderOut(s);renderNeed(s);
+  document.getElementById('pill-lo').textContent=`at = ${s.node!==null?TREE.map[s.node].val:'—'}`;
+  document.getElementById('pill-hi').textContent=`depth = ${s.stack.length?s.stack.length-1:'—'}`;
+  document.getElementById('pill-mid').textContent=`action = ${s.action}`;
+  document.getElementById('pill-ans').textContent=`output = ${s.out.length}`;
+  document.getElementById('s-lo').textContent=s.node!==null?TREE.map[s.node].val:'—';
+  document.getElementById('s-hi').textContent=s.stack.length;
+  document.getElementById('s-mid').textContent=s.action;
+  document.getElementById('s-ans').textContent=s.out.length;document.getElementById('s-ans-sub').textContent=`of ${s.total}`;
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML=s.msg;
+  if(s.action==='done'){const p=document.getElementById('done-pill');p.textContent=`✓ [${s.out.join(', ')}]`;p.style.display='inline-block';}
+  const tr=document.getElementById('tr-'+idx);if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+let CURRENT_ARR=[];
+function rebuild(){steps=buildSteps(CURRENT_ARR,MODE);buildTableRows(steps);cursor=-1;applyState(-1);}
+function setMode(m){
+  if(MODE===m)return;stopPlay();MODE=m;
+  document.getElementById('mode-pre').classList.toggle('active',m==='pre');
+  document.getElementById('mode-in').classList.toggle('active',m==='in');
+  document.getElementById('mode-post').classList.toggle('active',m==='post');
+  document.getElementById('anim-title').textContent='Live animation — '+(m==='pre'?'preorder':m==='in'?'inorder':'postorder');
+  document.getElementById('idea-formula').innerHTML=IDEA[m];
+  document.getElementById('code-name').textContent=m+'order.cpp';
+  document.getElementById('code-block').innerHTML=CODE[m];
+  rebuild();
+}
+function loadExample(i,btn){
+  stopPlay();document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');
+  CURRENT_ARR=EXAMPLES[i].t;
+  document.getElementById('example-desc').innerHTML=EXAMPLES[i].desc;
+  rebuild();
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){if(playing){stopPlay();return;}if(cursor>=steps.length-1){cursor=-1;applyState(-1);}playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();}
+function tick(){if(!playing)return;if(cursor>=steps.length-1){stopPlay();return;}cursor++;applyState(cursor);timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);}
+function togglePin(){const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');const p=panel.classList.toggle('pinned');btn.classList.toggle('active',p);btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+document.getElementById('idea-formula').innerHTML=IDEA.pre;
+document.getElementById('code-block').innerHTML=CODE.pre;
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const algoName=document.title.replace(' - AlgoCrux','');
+  let currentUser=null,isCompleted=false;
+  const trackerUI=document.createElement('div');
+  trackerUI.innerHTML=`<div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div><div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div></div><button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button><div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div></div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn=document.getElementById('markCompleteBtn'),trackerStatus=document.getElementById('trackerStatus'),trackerIcon=document.getElementById('trackerIcon'),trackerLogin=document.getElementById('trackerLogin');
+  function setCompletedState(){isCompleted=true;markBtn.innerHTML='<span>&#x2705; Completed</span>';markBtn.style.background='#0d2318';markBtn.style.borderColor='#1a6b3a';markBtn.style.color='#4ade80';markBtn.style.cursor='default';trackerStatus.textContent='Completed!';trackerStatus.style.color='#4ade80';trackerIcon.innerHTML='&#x2705;';trackerIcon.style.background='#0d2318';trackerIcon.style.border='1px solid #1a6b3a';trackerIcon.style.color='#4ade80';}
+  function setLoggedOutState(){markBtn.style.display='none';trackerLogin.style.display='block';trackerStatus.textContent='Sign in to track';}
+  onAuthStateChanged(auth,async(user)=>{if(!user){setLoggedOutState();return;}currentUser=user;markBtn.style.display='flex';trackerLogin.style.display='none';const userDoc=await getDoc(doc(db,'users',user.uid));if(userDoc.exists()&&(userDoc.data().completedAnimations||[]).includes(algoId))setCompletedState();});
+  markBtn.addEventListener('click',async()=>{if(!currentUser||isCompleted)return;markBtn.disabled=true;markBtn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';try{const userRef=doc(db,'users',currentUser.uid);const userDoc=await getDoc(userRef);const today=(function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();if(userDoc.exists())await updateDoc(userRef,{completedAnimations:arrayUnion(algoId),lastActive:new Date().toISOString(),['activityMap.'+today]:increment(1)});else await setDoc(userRef,{name:currentUser.displayName||currentUser.email.split('@')[0],email:currentUser.email,createdAt:new Date().toISOString(),completedAnimations:[algoId],totalTimeSpent:0,lastActive:new Date().toISOString(),activityMap:{[today]:1}});setCompletedState();}catch(err){markBtn.disabled=false;markBtn.innerHTML='<span>Mark as Complete</span>';}});
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth=getAuth();const db=getFirestore();const btn=document.getElementById('algoBookmark');
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');let isBookmarked=false;
+  auth.onAuthStateChanged(async(user)=>{if(!user)return;const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()){const bm=snap.data().bookmarks||[];isBookmarked=bm.includes(algoId);btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);}});
+  btn.addEventListener('click',async()=>{const user=auth.currentUser;if(!user)return;const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const data=snap.exists()?snap.data():{};const bm=new Set(data.bookmarks||[]);if(bm.has(algoId))bm.delete(algoId);else bm.add(algoId);await setDoc(ref,{bookmarks:Array.from(bm)},{merge:true});isBookmarked=!isBookmarked;btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);});
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const LOCAL_KEY='algocrux_notes_'+algoId;
+  const notesHeader=document.getElementById('notesHeader'),notesBody=document.getElementById('notesBody'),toggleIcon=document.getElementById('toggleIcon'),textarea=document.getElementById('notesTextarea'),saveStatus=document.getElementById('saveStatus'),saveText=document.getElementById('saveText'),saveDot=document.getElementById('saveDot'),charCount=document.getElementById('charCount'),noteIndicator=document.getElementById('noteIndicator');
+  let currentUser=null,saveTimer=null,isSaving=false;
+  notesHeader.addEventListener('click',()=>{const isOpen=notesBody.classList.toggle('open');notesHeader.classList.toggle('open',isOpen);toggleIcon.innerHTML=isOpen?'&#x25B2;':'&#x25BC;';if(isOpen)textarea.focus();});
+  textarea.addEventListener('input',()=>{const len=textarea.value.length;charCount.textContent=len+' char'+(len!==1?'s':'');setSaveStatus('unsaved');clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNotes(),1500);});
+  function setSaveStatus(s){saveStatus.className='save-status '+s;if(s==='saved'){saveText.textContent='Saved';saveDot.innerHTML='&#x2705;';noteIndicator.classList.add('visible');}else if(s==='saving'){saveText.textContent='Saving...';saveDot.innerHTML='&#x23F3;';}else if(s==='error'){saveText.textContent='Error saving';saveDot.innerHTML='&#x274C;';}else{saveText.textContent='Unsaved changes';saveDot.innerHTML='&#x25CF;';}}
+  async function saveNotes(){if(isSaving)return;isSaving=true;setSaveStatus('saving');try{if(currentUser){const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);await setDoc(notesRef,{text:textarea.value,updatedAt:new Date().toISOString()},{merge:true});}localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('saved');}catch(err){localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('error');}finally{isSaving=false;}}
+  async function loadNotes(){let text='';if(currentUser){try{const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);const snap=await getDoc(notesRef);if(snap.exists())text=snap.data().text||'';}catch(err){}}if(!text)text=localStorage.getItem(LOCAL_KEY)||'';textarea.value=text;const len=text.length;charCount.textContent=len+' char'+(len!==1?'s':'');if(text.trim()){noteIndicator.classList.add('visible');setSaveStatus('saved');}else setSaveStatus('unsaved');}
+  onAuthStateChanged(auth,async(user)=>{currentUser=user;await loadNotes();});
+  window.addEventListener('beforeunload',()=>{if(textarea.value.trim()){localStorage.setItem(LOCAL_KEY,textarea.value);if(currentUser&&!isSaving)saveNotes();}});
+</script>
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

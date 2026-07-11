@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<style>.design-ui-credit{position:fixed;bottom:12px;right:12px;font:11px/1 system-ui,sans-serif;color:rgba(128,128,128,0.5);pointer-events:none;z-index:2147483647;transition:opacity .4s ease;user-select:none;letter-spacing:.02em}@media(hover:none){.design-ui-credit{display:none}}@media print{*{transition:none!important;animation:none!important;box-shadow:none!important}.design-ui-credit{display:none!important}}</style>
+<script>(function(){function m(){document.body.classList.add('artifact-editable')}function c(){if(!matchMedia('(hover:hover)').matches)return;var d=document.createElement('div');d.className='design-ui-credit';d.setAttribute('aria-hidden','true');d.innerHTML='\u{1F49C} by ClickUp Brain';document.body.appendChild(d);var t=null,f=function(o){d.style.opacity=o?'0':''};f(true);var s=function(){f(false);clearTimeout(t);t=setTimeout(function(){f(true)},3000)};document.addEventListener('mousemove',s);s()}function i(){m();c()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',i);else i()})();</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Minimum Platforms / Meeting Rooms — Resource Allocation</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--muted2:#5c6189;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0d2522;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}.badge-row{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}.badge{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}.badge.gfg{background:var(--accent-bg);color:var(--accent);border:1px solid #1a2a60}.badge.px{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155}.badge.med{background:var(--amber-bg);color:var(--amber);border:1px solid #5c4a1a}header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}@media(max-width:640px){.concept{grid-template-columns:1fr}}.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--amber);line-height:2.1}.formula .comment{color:var(--muted);font-style:italic}.formula .keyword{color:var(--purple)}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:6px}.dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.events-row{display:flex;gap:4px;flex-wrap:wrap;margin:1rem 0;align-items:flex-end}.event-chip{padding:5px 10px;border-radius:7px;border:1.5px solid var(--border2);background:var(--surface2);font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);transition:all .25s;min-width:44px;text-align:center}.event-chip.arrival{border-color:var(--green);color:var(--green);background:var(--green-bg)}.event-chip.departure{border-color:var(--red);color:var(--red);background:var(--red-bg)}.event-chip.current{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);transform:translateY(-2px)}.event-chip.processed{opacity:.5}
+.platform-viz{display:flex;gap:8px;flex-wrap:wrap;margin:1rem 0}.platform-box{min-width:60px;height:40px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--muted2);transition:all .3s}.platform-box.active{border-color:var(--teal);background:var(--teal-bg);color:var(--teal)}.platform-box.peak{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:6px}.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width .3s ease;width:0%}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}@media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}.stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}.stat-box.purple .val{color:var(--purple)}.stat-box.amber .val{color:var(--amber)}.stat-box.teal .val{color:var(--teal)}.stat-box.green .val{color:var(--green)}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.25rem;line-height:1.65}.log-box .hi{color:var(--text);font-weight:500}.log-box .pos{color:var(--green);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .sol{color:var(--purple);font-weight:600}.log-box .tl{color:var(--teal);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}.done-pill{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans)}.copy-btn:hover{color:var(--text)}pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}
+.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}@media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}.complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}.complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}.notes-header:hover{background:var(--border)}.notes-header h3{font-size:.95rem;font-weight:600}.notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}.notes-header.open .toggle-icon{transform:rotate(180deg)}.notes-body{padding:1.25rem;display:none}.notes-body.open{display:block}.notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;resize:vertical;outline:none}
+.lc-banner{display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,#1a2140,#0c2624);border:1px solid #343a57;border-radius:12px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:14px}.lc-banner .lc-icon{width:36px;height:36px;border-radius:8px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;flex-shrink:0}.lc-banner .lc-text{flex:1;color:#8a8fb5;line-height:1.5}.lc-banner .lc-text b{color:#eef0fa;font-weight:600}.lc-banner .lc-btn{background:linear-gradient(135deg,#6c8fff,#2dd4bf);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;transition:all .2s ease;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}.lc-banner .lc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,143,255,.4)}@media(max-width:640px){.lc-banner{flex-direction:column;align-items:flex-start;gap:.6rem}.lc-banner .lc-btn{width:100%;justify-content:center}}
+</style>
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+<header><div><div class="badge-row"><span class="badge gfg">Greedy / Resource Allocation</span><span class="badge px">Minimum Platforms</span><span class="badge med">Medium</span></div><h1>Minimum Platforms / Meeting Rooms</h1><p>Find the minimum number of platforms (or rooms) needed so no two overlapping events conflict. O(N log N).</p></div></header>
+<main>
+  <div class="lc-banner"><div class="lc-icon">LC</div><div class="lc-text">Practice on <b>LeetCode 253: Meeting Rooms II</b></div><a href="https://leetcode.com/problems/meeting-rooms-ii/" target="_blank" rel="noopener" class="lc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open Problem</a></div>
+
+  <div class="concept"><div><h2>Key Insight</h2><p>Create <strong style="color:var(--green)">arrival</strong> and <strong style="color:var(--red)">departure</strong> events. Sort all events by time. Sweep through: arrivals need a platform (+1), departures free one (-1). The peak concurrent count is the answer.</p></div><div><h2>Algorithm</h2><div class="formula"><span class="keyword">events</span> = merge(arrivals as +1, departures as -1)<br><span class="keyword">sort</span> events by time<br><span class="keyword">platforms</span> = 0, maxPlatforms = 0<br><span class="keyword">for</span> each event:<br>&nbsp;&nbsp;platforms += event.type<br>&nbsp;&nbsp;maxPlatforms = max(maxPlatforms, platforms)</div></div></div>
+
+  <div class="anim-panel" id="panel"><div class="anim-panel-head"><span class="title">Interactive Visualization</span></div>
+    <div class="legend"><span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Arrival (+1)</span><span><div class="dot" style="background:var(--red-bg);border-color:var(--red)"></div> Departure (-1)</span><span><div class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></div> Peak</span></div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Sorted Events</div>
+    <div class="events-row" id="events-row"></div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;margin-top:1rem">Active Platforms</div>
+    <div class="platform-viz" id="platform-viz"></div>
+    <div class="step-label" id="step-label">Step 0 of 0</div><div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+    <div class="stats-row"><div class="stat-box teal"><div class="lbl">Current</div><div class="val" id="s-cur">0</div></div><div class="stat-box amber"><div class="lbl">Peak (Answer)</div><div class="val" id="s-peak">0</div></div><div class="stat-box green"><div class="lbl">Arrivals</div><div class="val" id="s-arr">0</div></div><div class="stat-box purple"><div class="lbl">Departures</div><div class="val" id="s-dep">0</div></div></div>
+    <div class="log-box" id="log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.</div>
+    <div class="controls"><button class="btn" onclick="stepBack()">← Prev</button><button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button><button class="btn" onclick="stepFwd()">Next →</button><button class="btn" onclick="reset()">↺ Reset</button><button class="btn" onclick="randData()">Random</button><span class="done-pill" id="done-pill">✓ Done</span><div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="spd"></div></div>
+  </div>
+  <div class="code-section"><div class="code-header"><span>C++ — Minimum Platforms</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">int</span> <span class="fn">minPlatforms</span>(<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; dep) {
+    <span class="fn">sort</span>(arr.<span class="fn">begin</span>(), arr.<span class="fn">end</span>());
+    <span class="fn">sort</span>(dep.<span class="fn">begin</span>(), dep.<span class="fn">end</span>());
+
+    <span class="kw">int</span> plat = <span class="nm">0</span>, maxPlat = <span class="nm">0</span>;
+    <span class="kw">int</span> i = <span class="nm">0</span>, j = <span class="nm">0</span>, n = arr.<span class="fn">size</span>();
+
+    <span class="kw">while</span> (i &lt; n &amp;&amp; j &lt; n) {
+        <span class="kw">if</span> (arr[i] &lt;= dep[j]) {
+            plat++; i++;          <span class="cm">// arrival</span>
+            maxPlat = <span class="fn">max</span>(maxPlat, plat);
+        } <span class="kw">else</span> {
+            plat--; j++;          <span class="cm">// departure</span>
+        }
+    }
+    <span class="kw">return</span> maxPlat;
+}</pre></div>
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid"><div class="complex-card"><div class="lbl">Time</div><div class="big">O(N log N)</div><p>Sorting two arrays.</p></div><div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>Two pointer sweep.</p></div></div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes..."></textarea></div></div>
+</main>
+<script>
+let trains=[{a:900,d:910},{a:940,d:1200},{a:950,d:1120},{a:1100,d:1130},{a:1500,d:1900},{a:1800,d:2000}];
+const S={steps:[],idx:-1,playing:false,timer:null};
+function spd(){return[1800,1200,750,400,180][parseInt(document.getElementById('spd').value)-1]}
+function randData(){const n=5+Math.floor(Math.random()*4);trains=[];for(let i=0;i<n;i++){const a=Math.floor(Math.random()*20)*100+Math.floor(Math.random()*60);trains.push({a,d:a+30+Math.floor(Math.random()*200)})}reset()}
+function gen(){const arr=[...trains.map(t=>t.a)].sort((a,b)=>a-b);const dep=[...trains.map(t=>t.d)].sort((a,b)=>a-b);
+const events=[];for(const a of arr)events.push({time:a,type:1,label:'A:'+a});for(const d of dep)events.push({time:d,type:-1,label:'D:'+d});events.sort((a,b)=>a.time-b.time||(a.type-b.type));
+const steps=[];let plat=0,peak=0,arrC=0,depC=0;const eSt=new Array(events.length).fill('default');
+steps.push({events:[...events],eSt:[...eSt],plat:0,peak:0,arrC:0,depC:0,curIdx:-1,log:`<span class="hi">${trains.length} trains</span>. ${events.length} events (arrivals + departures) sorted by time.`});
+for(let i=0;i<events.length;i++){const ev=events[i];plat+=ev.type;if(ev.type===1){arrC++;eSt[i]='arrival'}else{depC++;eSt[i]='departure'}
+  if(plat>peak)peak=plat;
+  steps.push({events:[...events],eSt:[...eSt],plat,peak,arrC,depC,curIdx:i,log:`Time <span class="sol">${ev.time}</span>: ${ev.type===1?'<span class="pos">Arrival</span> (+1)':'<span class="neg">Departure</span> (-1)'}. Active: <span class="tl">${plat}</span>. Peak: <span class="amb">${peak}</span>.`})}
+steps.push({events:[...events],eSt:[...eSt],plat,peak,arrC,depC,curIdx:-1,log:`✓ <span class="pos">Done!</span> Minimum platforms needed: <span class="amb">${peak}</span>.`});
+return steps}
+function render(){const s=S.steps[S.idx];if(!s)return;
+let eh='';for(let i=0;i<s.events.length;i++){const ev=s.events[i];let cls='event-chip';if(s.curIdx===i)cls+=' current';else if(s.eSt[i]==='arrival')cls+=' arrival processed';else if(s.eSt[i]==='departure')cls+=' departure processed';else cls+='';eh+=`<div class="${cls}">${ev.label}</div>`}document.getElementById('events-row').innerHTML=eh;
+let ph='';for(let p=0;p<Math.max(s.peak,1);p++){let cls='platform-box';if(p<s.plat)cls+=' active';if(s.plat===s.peak&&p<s.plat)cls+=' peak';ph+=`<div class="${cls}">P${p+1}</div>`}document.getElementById('platform-viz').innerHTML=ph;
+document.getElementById('s-cur').textContent=s.plat;document.getElementById('s-peak').textContent=s.peak;document.getElementById('s-arr').textContent=s.arrC;document.getElementById('s-dep').textContent=s.depC;
+document.getElementById('log').innerHTML=s.log;const t=S.steps.length-1;document.getElementById('pf').style.width=(t>0?(S.idx/t)*100:0)+'%';document.getElementById('step-label').textContent=`Step ${S.idx+1} of ${S.steps.length}`;document.getElementById('done-pill').style.display=S.idx===S.steps.length-1?'inline-block':'none'}
+function stepFwd(){if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx<S.steps.length-1){S.idx++;render()}}
+function stepBack(){if(S.idx>0){S.idx--;render()}}
+function togglePlay(){if(S.playing){S.playing=false;clearTimeout(S.timer);document.getElementById('play-btn').textContent='▶ Play';return}if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx>=S.steps.length-1)S.idx=-1;S.playing=true;document.getElementById('play-btn').textContent='⏸ Pause';(function go(){if(!S.playing)return;if(S.idx>=S.steps.length-1){S.playing=false;document.getElementById('play-btn').textContent='▶ Play';return}S.idx++;render();S.timer=setTimeout(go,spd())})()}
+function reset(){S.playing=false;clearTimeout(S.timer);S.steps=[];S.idx=-1;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('done-pill').style.display='none';document.getElementById('events-row').innerHTML='';document.getElementById('platform-viz').innerHTML='';document.getElementById('pf').style.width='0%';document.getElementById('step-label').textContent='Step 0 of 0';document.getElementById('s-cur').textContent='0';document.getElementById('s-peak').textContent='0';document.getElementById('s-arr').textContent='0';document.getElementById('s-dep').textContent='0';document.getElementById('log').innerHTML='Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.'}
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight')stepFwd();if(e.key==='ArrowLeft')stepBack();if(e.key===' '){e.preventDefault();togglePlay()}if(e.key==='r')reset()});
+document.addEventListener('DOMContentLoaded',reset);
+</script></body></html>

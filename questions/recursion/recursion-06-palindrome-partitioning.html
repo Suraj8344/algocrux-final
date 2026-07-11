@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palindrome Partitioning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--teal:#2dd4bf;--purple:#c084fc;--amber:#fbbf24;--green:#4ade80;--red:#f87171;--accent:#6c8fff;--text:#e6e8ef;--muted:#8b90a5;--dim:#5c6076;--mono:'Fira Code',ui-monospace,monospace;--sans:'Inter',system-ui,sans-serif;--border:rgba(255,255,255,.07);}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;padding:0 20px 80px;background-image:radial-gradient(circle at 20% -10%,rgba(108,143,255,.08),transparent 40%),radial-gradient(circle at 90% 0%,rgba(192,132,252,.06),transparent 35%);}
+.wrap{max-width:1080px;margin:0 auto}::selection{background:var(--accent);color:#fff}
+.practice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding:14px 20px;background:linear-gradient(90deg,rgba(45,212,191,.12),rgba(108,143,255,.10));border:1px solid var(--border);border-radius:14px;font-size:14px}
+.practice .tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:rgba(45,212,191,.12);padding:4px 10px;border-radius:6px}
+.practice a{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px solid var(--dim);transition:border-color .2s}
+.practice a:hover{border-color:var(--accent)}.practice .sep{color:var(--dim)}
+header{margin-top:34px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.badge.b-teal{color:var(--teal);background:rgba(45,212,191,.10)}.badge.b-purple{color:var(--purple);background:rgba(192,132,252,.10)}.badge.b-amber{color:var(--amber);background:rgba(251,191,36,.10)}.badge.b-accent{color:var(--accent);background:rgba(108,143,255,.10)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1}h1 .accent{color:var(--teal)}
+.subtitle{color:var(--muted);font-size:18px;margin-top:10px;max-width:70ch}
+section{margin-top:44px}
+.section-label{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.concept-card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.concept-card h3 .dot{width:9px;height:9px;border-radius:50%}
+.concept-card p{color:var(--muted);font-size:15px}.concept-card p b{color:var(--text);font-weight:600}
+.concept-card code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:5px;color:var(--teal)}
+.concept-card ul{list-style:none;margin-top:10px}.concept-card li{color:var(--muted);font-size:14.5px;padding:5px 0 5px 20px;position:relative}
+.concept-card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:4px}
+.io-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.io-row label{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.io-row input[type=text]{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);width:130px}
+.io-row input[type=text]:focus{outline:none;border-color:var(--accent)}
+.mini-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 14px;cursor:pointer;transition:.18s}
+.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stage{display:flex;justify-content:center;padding:6px 0;overflow-x:auto}svg{max-width:100%;height:auto}
+.tnode rect,.tedge{transition:fill .3s,stroke .3s,stroke-width .3s,opacity .3s}
+.tlabel{font-family:var(--mono);font-size:12px;font-weight:700;pointer-events:none}
+.str-bar{display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px;min-height:44px}
+.sl{font-family:var(--mono);font-weight:700;font-size:18px;width:36px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--muted);border:1px solid var(--border);transition:.25s}
+.sl.testing{background:rgba(251,191,36,.2);color:var(--amber);border-color:rgba(251,191,36,.4)}
+.sl.committed{background:rgba(108,143,255,.16);color:var(--accent);border-color:rgba(108,143,255,.3)}
+.sl.sep{width:3px;background:var(--green);border:none;border-radius:2px;height:40px}
+.res-row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px;min-height:30px}
+.res-chip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:7px;background:rgba(74,222,128,.14);color:var(--green);border:1px solid rgba(74,222,128,.3);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(1.1)}
+.kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:var(--muted)}
+.speed-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:5px;background:var(--surface2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,143,255,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.progress-track{height:7px;background:var(--surface2);border-radius:7px;margin-top:22px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:7px;transition:width .3s ease}
+.progress-caption{text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:16px}
+.stat .label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.stat .val{font-size:24px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.stat.s-teal .val{color:var(--teal)}.stat.s-green .val{color:var(--green)}.stat.s-red .val{color:var(--red)}.stat.s-amber .val{color:var(--amber)}.stat.s-purple .val{color:var(--purple)}
+.log-box{margin-top:22px;background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:16px 18px;font-family:var(--mono);font-size:13px;height:150px;overflow-y:auto}
+.log-box div{padding:2px 0;color:var(--muted)}
+.log-box .l-teal{color:var(--teal)}.log-box .l-amber{color:var(--amber)}.log-box .l-red{color:var(--red)}.log-box .l-green{color:var(--green)}.log-box .l-purple{color:var(--purple)}
+.log-box::-webkit-scrollbar{width:8px}.log-box::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px}
+.code-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-block pre{margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.tok-key{color:var(--purple)}.tok-type{color:var(--teal)}.tok-fn{color:var(--accent)}.tok-num{color:var(--amber)}.tok-str{color:var(--green)}.tok-com{color:var(--dim);font-style:italic}
+.copy-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.18s}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}.copy-btn.done{color:var(--green);border-color:var(--green)}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.cx-card .label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cx-card .big{font-family:var(--mono);font-size:22px;font-weight:700;margin:8px 0;color:var(--amber)}.cx-card .big.good{color:var(--green)}
+.cx-card p{font-size:13px;color:var(--muted)}
+.notes{background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(108,143,255,.05));border:1px solid var(--border);border-radius:16px;padding:26px}
+.notes ul{list-style:none}.notes li{padding:8px 0 8px 26px;position:relative;color:var(--muted);font-size:15px}
+.notes li::before{content:'✦';position:absolute;left:0;color:var(--purple)}.notes li b{color:var(--text);font-weight:600}
+footer{margin-top:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){h1{font-size:30px}.concept-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cx-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="practice">
+    <span class="tag">Practice</span>
+    <a href="https://leetcode.com/problems/palindrome-partitioning/" target="_blank">LeetCode 131 · Palindrome Partitioning</a>
+    <span class="sep">·</span>
+    <a href="https://www.geeksforgeeks.org/palindrome-partitioning-dp-17/" target="_blank">GFG · Palindrome Partitioning</a>
+  </div>
+  <header>
+    <div class="badges"><span class="badge b-teal">Recursion</span><span class="badge b-accent">Backtracking</span><span class="badge b-purple">Partition</span><span class="badge b-amber">Palindrome</span></div>
+    <h1>Palindrome Partitioning</h1>
+    <p class="subtitle">Split a string so every piece reads the same forwards and back. At each position, try every prefix, keep only the palindromic ones, and recurse on the rest.</p>
+  </header>
+  <section>
+    <div class="section-label">Concept</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--teal)"></span>Cut at every valid prefix</h3>
+        <p>From index <code>start</code>, try each prefix <code>s[start..end]</code>. If it's a palindrome, <b>commit that cut</b>, add the piece to the path, and recurse from <code>end+1</code>. Undo the cut to try a longer prefix.</p>
+      </div>
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--purple)"></span>The palindrome prune</h3>
+        <ul>
+          <li>Non-palindromic prefix → skip that branch</li>
+          <li>Palindromic → recurse on the remainder</li>
+          <li><code>start == n</code> → the whole string is partitioned</li>
+          <li>Only palindromic-prefix branches survive</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Interactive</div>
+    <h2>Partition into palindromes</h2>
+    <div class="panel">
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>Committed piece</span>
+        <span><i class="sw" style="background:var(--amber)"></i>Testing prefix</span>
+        <span><i class="sw" style="background:var(--green)"></i>Valid cut</span>
+        <span><i class="sw" style="background:var(--red)"></i>Not a palindrome</span>
+      </div>
+      <div class="io-row">
+        <label>String</label>
+        <input type="text" id="strInput" value="aab">
+        <button class="mini-btn" id="loadBtn">Build tree</button>
+      </div>
+      <div class="stage"><svg id="tree" viewBox="0 0 640 360" width="640"></svg></div>
+      <div class="str-bar" id="strBar"></div>
+      <div class="res-row" id="resRow"></div>
+      <div class="controls">
+        <button class="btn" id="prevBtn">◀ Prev <span class="kbd">←</span></button>
+        <button class="btn primary" id="playBtn">▶ Play <span class="kbd">space</span></button>
+        <button class="btn" id="nextBtn">Next ▶ <span class="kbd">→</span></button>
+        <button class="btn" id="resetBtn">↺ Reset <span class="kbd">R</span></button>
+      </div>
+      <div class="speed-row"><span>slow</span><input type="range" id="speed" min="120" max="1200" value="520" step="40"><span>fast</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-caption" id="progCaption">Step 0</div>
+      <div class="stats">
+        <div class="stat s-teal"><div class="label">Prefixes tested</div><div class="val" id="statTested">0</div></div>
+        <div class="stat s-green"><div class="label">Partitions found</div><div class="val" id="statSol">0</div></div>
+        <div class="stat s-red"><div class="label">Rejected cuts</div><div class="val" id="statRej">0</div></div>
+        <div class="stat s-amber"><div class="label">Depth</div><div class="val" id="statDepth">0</div></div>
+      </div>
+      <div class="log-box" id="log"></div>
+    </div>
+  </section>
+  <section>
+    <div class="code-head">
+      <div><div class="section-label" style="margin-bottom:4px">Implementation</div><h2 style="margin:0">C++</h2></div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block">
+<pre><code id="codeText"><span class="tok-key">bool</span> <span class="tok-fn">isPal</span>(string&amp; s, <span class="tok-type">int</span> l, <span class="tok-type">int</span> r) {
+    <span class="tok-key">while</span> (l &lt; r) <span class="tok-key">if</span> (s[l++] != s[r--]) <span class="tok-key">return</span> <span class="tok-key">false</span>;
+    <span class="tok-key">return</span> <span class="tok-key">true</span>;
+}
+
+<span class="tok-key">void</span> <span class="tok-fn">dfs</span>(<span class="tok-type">int</span> start, string&amp; s,
+         vector&lt;string&gt;&amp; path, vector&lt;vector&lt;string&gt;&gt;&amp; out) {
+    <span class="tok-key">if</span> (start == s.size()) {         <span class="tok-com">// whole string consumed</span>
+        out.push_back(path);
+        <span class="tok-key">return</span>;
+    }
+    <span class="tok-key">for</span> (<span class="tok-type">int</span> end = start; end &lt; s.size(); end++) {
+        <span class="tok-key">if</span> (!<span class="tok-fn">isPal</span>(s, start, end)) <span class="tok-key">continue</span>;  <span class="tok-com">// prune: not a palindrome</span>
+        path.push_back(s.substr(start, end - start + <span class="tok-num">1</span>));  <span class="tok-com">// CHOOSE</span>
+        <span class="tok-fn">dfs</span>(end + <span class="tok-num">1</span>, s, path, out);   <span class="tok-com">// EXPLORE remainder</span>
+        path.pop_back();                <span class="tok-com">// UNCHOOSE</span>
+    }
+}
+
+vector&lt;vector&lt;string&gt;&gt; <span class="tok-fn">partition</span>(string s) {
+    vector&lt;vector&lt;string&gt;&gt; out; vector&lt;string&gt; path;
+    <span class="tok-fn">dfs</span>(<span class="tok-num">0</span>, s, path, out);
+    <span class="tok-key">return</span> out;
+}</code></pre>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Complexity</div>
+    <div class="cx-grid">
+      <div class="cx-card"><div class="label">Time</div><div class="big">O(2ⁿ · n)</div><p>Up to 2ⁿ⁻¹ ways to cut, each palindrome check O(n).</p></div>
+      <div class="cx-card"><div class="label">Space</div><div class="big good">O(n)</div><p>Recursion depth and the current partition path.</p></div>
+      <div class="cx-card"><div class="label">Prune</div><div class="big good">isPal</div><p>Only palindromic prefixes spawn a subtree, killing most branches.</p></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Notes</div>
+    <div class="notes">
+      <ul>
+        <li><b>The cut points are the choices.</b> Between every pair of characters you either cut or don't, that's the 2ⁿ⁻¹ decision space, filtered by the palindrome test.</li>
+        <li>Precompute an <code style="font-family:var(--mono);color:var(--teal)">isPal[i][j]</code> DP table to make each check O(1) instead of O(n).</li>
+        <li>Single characters are always palindromes, so a valid partition always exists (worst case, all singletons).</li>
+        <li><b>Min cuts</b> (LC 132) is the optimization variant, solved with DP rather than enumerating every partition.</li>
+        <li>Same "try every prefix" shape appears in word break and IP-address restoration.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Palindrome Partitioning — arrow keys to step · space to play/pause · R to reset</footer>
+</div>
+<script>
+(function(){
+  const svg=document.getElementById('tree'),logEl=document.getElementById('log'),NS='http://www.w3.org/2000/svg';
+  let steps=[],idx=0,playing=false,timer=null,nodes=[],edges=[],S='';
+  function isPal(str){for(let l=0,r=str.length-1;l<r;l++,r--)if(str[l]!==str[r])return false;return true;}
+  function buildTree(s){
+    nodes=[];edges=[];let id=0,leafX=0;
+    const XGAP=76,YGAP=84,XOFF=44,YOFF=36;
+    // node: represents state at index `start`, reached by committing `piece`
+    function make(start,path,parent,piece){
+      const node={id:id++,start,path:[...path],parent,piece,depth:path.length,leaf:false,children:[],rejects:[],x:0,y:0};
+      nodes.push(node);if(parent!==null)edges.push({from:parent,to:node.id});
+      if(start===s.length){node.leaf=true;return node;}
+      for(let end=start;end<s.length;end++){
+        const sub=s.substring(start,end+1);
+        if(!isPal(sub)){node.rejects.push({sub,start,end});continue;}
+        const ch=make(end+1,[...path,sub],node.id,sub);node.children.push(ch.id);
+      }
+      return node;
+    }
+    make(0,[],null,null);
+    const byId={};nodes.forEach(n=>byId[n.id]=n);
+    function layout(n){if(n.children.length===0){n.x=leafX*XGAP+XOFF;leafX++;}else{n.children.forEach(cid=>layout(byId[cid]));const cs=n.children.map(cid=>byId[cid]);n.x=(cs[0].x+cs[cs.length-1].x)/2;}n.y=n.depth*YGAP+YOFF;}
+    layout(byId[0]);
+    const vw=Math.max(640,leafX*XGAP+XOFF),vh=(s.length+1)*YGAP+YOFF;
+    svg.setAttribute('viewBox',`0 0 ${vw} ${vh}`);svg.setAttribute('width',Math.min(vw,900));
+    return byId;
+  }
+  function buildSteps(s){
+    S=s;const byId=buildTree(s);const ev=[];
+    function gen(n){
+      const lg=n.piece===null?`Root: partition "${s}" from index 0.`:`Commit palindrome "${n.piece}" → path [${n.path.join('|')}], continue from index ${n.start}.`;
+      ev.push({id:n.id,state:'active',path:n.path,start:n.start,depth:n.depth,testing:null,log:{cls:'l-amber',txt:lg}});
+      if(n.leaf){ev.push({id:n.id,state:'leaf',path:n.path,start:n.start,depth:n.depth,testing:null,keep:n.path,log:{cls:'l-green',txt:`Reached end → record partition [${n.path.join(' | ')}].`}});return;}
+      // walk end pointer: rejects and children interleaved by end index
+      let ci=0,ri=0;
+      const events=[];
+      for(let end=n.start;end<s.length;end++){
+        const rej=n.rejects.find(x=>x.end===end);
+        if(rej){ev.push({id:n.id,state:'active',path:n.path,start:n.start,depth:n.depth,testing:{start:n.start,end,ok:false},log:{cls:'l-red',txt:`Test "${rej.sub}" → not a palindrome, skip.`}});}
+        else{const cid=n.children.find(id2=>byId[id2].piece===s.substring(n.start,end+1));if(cid!==undefined){const c=byId[cid];
+          ev.push({id:n.id,state:'active',path:n.path,start:n.start,depth:n.depth,testing:{start:n.start,end,ok:true},log:{cls:'l-teal',txt:`Test "${c.piece}" → palindrome ✓, recurse.`}});
+          gen(c);}}
+      }
+      ev.push({id:n.id,state:'done',path:n.path,start:n.start,depth:n.depth,testing:null,log:{cls:'l-purple',txt:`Exhausted cuts at index ${n.start} → backtrack.`}});
+    }
+    gen(byId[0]);return ev;
+  }
+  function computeState(upto){
+    const st={},revealed=new Set();let active=null;const kept=[];let tested=0,sol=0,rej=0;
+    for(let i=0;i<=upto;i++){const e=steps[i];revealed.add(e.id);st[e.id]=e.state;if(e.state==='active')active=e.id;if(e.testing){tested++;if(!e.testing.ok)rej++;}if(e.state==='leaf'){sol++;kept.push(e.keep);}}
+    return {st,revealed,active,kept,tested,sol,rej,cur:steps[upto]};
+  }
+  function nodeFill(state,active,id){if(state==='leaf')return '#4ade80';if(id===active||state==='active')return '#fbbf24';if(state==='done')return '#4a5578';return '#3a3f57';}
+  function render(cs){
+    svg.innerHTML='';const byId={};nodes.forEach(n=>byId[n.id]=n);
+    edges.forEach(ed=>{if(!cs.revealed.has(ed.to))return;const a=byId[ed.from],b=byId[ed.to];
+      const line=document.createElementNS(NS,'line');line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+      const onPath=(ed.to===cs.active);line.setAttribute('stroke',onPath?'#fbbf24':'#333849');line.setAttribute('stroke-width',onPath?2.6:1.4);line.setAttribute('class','tedge');svg.appendChild(line);});
+    nodes.forEach(n=>{if(!cs.revealed.has(n.id))return;const g=document.createElementNS(NS,'g');g.setAttribute('class','tnode');
+      const w=Math.max(30,(n.piece?n.piece.length:1)*11+16);
+      const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',n.x-w/2);rect.setAttribute('y',n.y-14);rect.setAttribute('width',w);rect.setAttribute('height',28);rect.setAttribute('rx',8);
+      rect.setAttribute('fill',nodeFill(cs.st[n.id],cs.active,n.id));rect.setAttribute('stroke',n.id===cs.active?'#fff':'rgba(255,255,255,.14)');rect.setAttribute('stroke-width',n.id===cs.active?2.6:1.2);g.appendChild(rect);
+      const st=cs.st[n.id],dark=(st==='leaf'||n.id===cs.active||st==='active');
+      const t=document.createElementNS(NS,'text');t.setAttribute('x',n.x);t.setAttribute('y',n.y+4);t.setAttribute('text-anchor','middle');t.setAttribute('class','tlabel');t.setAttribute('fill',dark?'#0f1117':'#c4c8d4');
+      t.textContent=n.piece===null?'∅':n.piece;g.appendChild(t);svg.appendChild(g);});
+  }
+  function renderStr(cs){
+    const sb=document.getElementById('strBar');sb.innerHTML='';
+    const cur=cs.cur;const committedLen=(cur.path||[]).join('').length;
+    const test=cur.testing;
+    for(let i=0;i<S.length;i++){
+      const c=document.createElement('div');c.className='sl';
+      if(i<committedLen)c.className+=' committed';
+      if(test&&i>=test.start&&i<=test.end)c.className='sl testing';
+      c.textContent=S[i];
+      sb.appendChild(c);
+      // separators between committed pieces
+    }
+  }
+  function renderRes(cs){const rr=document.getElementById('resRow');rr.innerHTML='';cs.kept.forEach(k=>{const c=document.createElement('div');c.className='res-chip';c.textContent=k.join(' | ');rr.appendChild(c);});}
+  function renderLog(upto){logEl.innerHTML='';for(let i=0;i<=upto;i++){const d=document.createElement('div');d.className=steps[i].log.cls;d.textContent=steps[i].log.txt;logEl.appendChild(d);}logEl.scrollTop=logEl.scrollHeight;}
+  function update(){
+    const cs=computeState(idx);render(cs);renderStr(cs);renderRes(cs);renderLog(idx);
+    document.getElementById('statTested').textContent=cs.tested;
+    document.getElementById('statSol').textContent=cs.sol;
+    document.getElementById('statRej').textContent=cs.rej;
+    document.getElementById('statDepth').textContent=cs.cur.depth;
+    const pct=steps.length>1?(idx/(steps.length-1))*100:0;document.getElementById('progress').style.width=pct+'%';
+    document.getElementById('progCaption').textContent=`Step ${idx} / ${steps.length-1}`;
+    document.getElementById('prevBtn').disabled=idx===0;document.getElementById('nextBtn').disabled=idx===steps.length-1;
+  }
+  function next(){if(idx<steps.length-1){idx++;update();}else pause();}
+  function prev(){if(idx>0){idx--;update();}}
+  function reset(){pause();idx=0;update();}
+  function play(){if(idx>=steps.length-1)idx=0;playing=true;document.getElementById('playBtn').innerHTML='❚❚ Pause <span class="kbd">space</span>';const spd=+document.getElementById('speed').value;timer=setInterval(()=>{if(idx<steps.length-1)next();else pause();},spd);}
+  function pause(){playing=false;document.getElementById('playBtn').innerHTML='▶ Play <span class="kbd">space</span>';clearInterval(timer);}
+  function togglePlay(){playing?pause():play();}
+  function load(){try{const s=document.getElementById('strInput').value.trim().toLowerCase().replace(/[^a-z]/g,'').slice(0,5);if(!s)throw 0;steps=buildSteps(s);idx=0;pause();update();}catch(e){logEl.innerHTML='<div class="l-red">Give a short lowercase string (up to 5 letters).</div>';}}
+  document.getElementById('nextBtn').onclick=next;document.getElementById('prevBtn').onclick=prev;document.getElementById('resetBtn').onclick=reset;document.getElementById('playBtn').onclick=togglePlay;document.getElementById('loadBtn').onclick=load;
+  document.getElementById('speed').oninput=()=>{if(playing){pause();play();}};
+  document.getElementById('copyBtn').onclick=function(){const txt=document.getElementById('codeText').innerText;navigator.clipboard.writeText(txt).then(()=>{this.textContent='Copied ✓';this.classList.add('done');setTimeout(()=>{this.textContent='Copy';this.classList.remove('done');},1600);});};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){e.preventDefault();pause();next();}else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}else if(e.key===' '){e.preventDefault();togglePlay();}else if(e.key==='r'||e.key==='R'){e.preventDefault();reset();}});
+  load();
+})();
+</script>
+</body>
+</html>

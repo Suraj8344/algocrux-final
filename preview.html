@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview - AlgoCrux</title>
+<meta name="description" content="Preview 3 free algorithm animations. Sign in to access all 38 animations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc; --purple-bg:#1e0f33;
+    --red:#f87171; --red-bg:#2a1111;
+    --green:#4ade80; --green-bg:#0d2318;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+    --font-smooth: antialiased;
+    --font-feature: "cv02","cv03","cv04","cv11";
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65; min-height:100vh; overflow-x:hidden;
+    -webkit-font-smoothing: var(--font-smooth);
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: var(--font-feature);
+    text-rendering: optimizeLegibility;
+  }
+  a{color:inherit; text-decoration:none}
+  ::selection{background:var(--accent-dim); color:#fff}
+
+  /* ===== NAV ===== */
+  nav{
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 2.5rem; backdrop-filter:blur(20px) saturate(1.2);
+    background:rgba(10,11,16,.82); border-bottom:1px solid var(--border);
+    transition: background 0.3s ease;
+  }
+  nav.scrolled{
+    background:rgba(10,11,16,.95);
+    box-shadow: 0 4px 30px rgba(0,0,0,.3);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-0.03em; text-shadow: 0 0 20px rgba(108,143,255,.15);}
+  .brand .mark{
+    width:30px; height:30px; position:relative; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    border-radius:8px; transform:rotate(12deg);
+    box-shadow:0 4px 16px rgba(108,143,255,.35);
+  }
+  .brand .mark::after{
+    content:''; position:absolute; inset:5px; border-radius:4px;
+    background:var(--bg); transform:rotate(-12deg) scale(.85);
+  }
+  .nav-right{display:flex; align-items:center; gap:1rem}
+  .nav-right a{color:var(--muted); font-size:14px; font-weight:500; transition:color .2s; padding:4px 0; position:relative;}
+  .nav-right a:hover{color:var(--text);}
+  .nav-right a::after{content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--teal)); border-radius:2px; transition:width .3s;}
+  .nav-right a:hover::after{width:100%;}
+
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:14px; padding:.9rem 1.6rem; border-radius:12px;
+    border:1px solid transparent; cursor:pointer; transition:all .2s cubic-bezier(.2,.8,.2,1);
+    display:inline-flex; align-items:center; gap:8px; letter-spacing:0.01em;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff;
+    box-shadow:0 6px 24px rgba(108,143,255,.3); border:none; position:relative; overflow:hidden;
+  }
+  .btn-primary::before{content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); transition:left .5s;}
+  .btn-primary:hover::before{left:100%;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px rgba(108,143,255,.45)}
+  .btn-ghost{background:var(--surface); border-color:var(--border2); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent); transform:translateY(-2px)}
+  .btn-large{padding:1rem 2rem; font-size:15px;}
+
+  /* ===== HERO ===== */
+  .hero{
+    max-width:1180px; margin:0 auto; padding:5rem 2.5rem 3rem;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
+    color:var(--teal); background:var(--teal-bg); border:1px solid #0e3d38;
+    padding:6px 14px; border-radius:24px; margin-bottom:1.5rem; font-weight:500; letter-spacing:0.04em;
+  }
+  .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal)}
+  .hero h1{
+    font-family:var(--display); font-weight:700; font-size:clamp(2.4rem,5vw,3.6rem);
+    line-height:1.08; letter-spacing:-0.04em; margin-bottom:1.25rem; text-wrap: balance;
+  }
+  .hero h1 .grad{background:linear-gradient(120deg,var(--accent),var(--teal) 70%); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero p.lead{color:var(--muted); font-size:17px; max-width:560px; margin:0 auto 2rem; line-height:1.7; font-weight:400;}
+  .hero-ctas{display:flex; gap:.9rem; flex-wrap:wrap; justify-content:center; margin-bottom:2.5rem}
+
+  /* ===== LOCKED BANNER ===== */
+  .locked-banner{
+    max-width:640px; margin:0 auto 3rem;
+    background:linear-gradient(135deg, var(--accent-bg), var(--purple-bg));
+    border:1px solid var(--border2); border-radius:18px;
+    padding:1.5rem 2rem; display:flex; align-items:center; gap:1.25rem;
+    position:relative; overflow:hidden;
+  }
+  .locked-banner::before{
+    content:''; position:absolute; top:-50%; right:-10%; width:300px; height:300px;
+    background:radial-gradient(circle, rgba(108,143,255,.1), transparent 70%);
+    pointer-events:none;
+  }
+  .locked-icon{
+    width:48px; height:48px; border-radius:14px;
+    background:var(--surface); border:1px solid var(--border2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0; z-index:1;
+  }
+  .locked-text{flex:1; z-index:1;}
+  .locked-text h3{font-family:var(--display); font-size:1.1rem; font-weight:600; margin-bottom:.3rem; letter-spacing:-0.01em;}
+  .locked-text p{color:var(--muted); font-size:13.5px; line-height:1.55;}
+  .locked-banner .btn{z-index:1; flex-shrink:0;}
+
+  /* ===== PREVIEW GRID ===== */
+  .container{max-width:1180px; margin:0 auto; padding:0 2.5rem 4rem}
+  .section-head{text-align:center; margin-bottom:2.5rem}
+  .section-tag{font-family:var(--mono); font-size:12px; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; margin-bottom:.6rem; display:block; font-weight:500;}
+  .section-head h2{font-family:var(--display); font-weight:700; font-size:clamp(1.7rem,3.2vw,2.3rem); letter-spacing:-0.03em; margin-bottom:.6rem; text-wrap: balance;}
+  .section-head .sub{color:var(--muted); font-size:15.5px; line-height:1.65; max-width:500px; margin:0 auto;}
+
+  .preview-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:3rem;
+  }
+  @media(max-width:900px){.preview-grid{grid-template-columns:1fr}}
+
+  .preview-card{
+    display:block; background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:2rem; position:relative; transition:all .3s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d; overflow:hidden;
+  }
+  .preview-card::before{
+    content:''; position:absolute; inset:0; opacity:0; transition:opacity .3s;
+    background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%), rgba(108,143,255,.08), transparent 60%);
+    pointer-events:none;
+  }
+  .preview-card:hover::before{opacity:1}
+  .preview-card:hover{
+    border-color:var(--accent-dim); box-shadow:0 24px 50px -20px rgba(108,143,255,.35), 0 0 0 1px rgba(108,143,255,.1);
+    transform:translateY(-6px);
+  }
+  .preview-card .tags{display:flex; gap:6px; margin-bottom:1rem}
+  .tag{font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:20px}
+  .tag-sort{background:var(--teal-bg); color:var(--teal)}
+  .tag-array{background:var(--accent-bg); color:var(--accent)}
+  .tag-dp{background:var(--amber-bg); color:var(--amber)}
+  .diff{font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px}
+  .diff-e{background:var(--green-bg); color:var(--green)}
+  .diff-m{background:var(--amber-bg); color:var(--amber)}
+  .preview-card h3{font-family:var(--display); font-weight:600; font-size:1.25rem; margin-bottom:.6rem; letter-spacing:-0.02em;}
+  .preview-card p{font-size:14px; color:var(--muted); margin-bottom:1.5rem; line-height:1.65; font-weight:400;}
+  .preview-card .go{font-family:var(--mono); font-size:13px; color:var(--accent); display:flex; align-items:center; gap:6px; font-weight:500;}
+  .preview-card .go svg{transition:transform .2s}
+  .preview-card:hover .go svg{transform:translateX(4px)}
+
+  .preview-thumb{
+    height:140px; border-radius:12px; background:var(--bg2); border:1px solid var(--border);
+    margin-bottom:1.25rem; display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .preview-thumb .play-btn{
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 30px rgba(108,143,255,.4);
+    transition:transform .3s, box-shadow .3s;
+    cursor:pointer; border:none; color:#fff; font-size:20px;
+  }
+  .preview-card:hover .play-btn{transform:scale(1.1); box-shadow:0 12px 40px rgba(108,143,255,.55);}
+
+  /* Mini visualizations inside cards */
+  .viz-kadane{display:flex; align-items:flex-end; gap:4px; height:80px; padding:0 1rem;}
+  .viz-kadane .bar{width:18px; border-radius:3px 3px 0 0; transition:height .3s;}
+  .viz-kadane .bar.pos{background:var(--green); opacity:.7;}
+  .viz-kadane .bar.neg{background:var(--red); opacity:.5;}
+  .viz-kadane .bar.max{background:var(--accent); opacity:1; box-shadow:0 0 8px var(--accent);}
+
+  .viz-bubble{display:flex; align-items:flex-end; gap:5px; height:80px; padding:0 1rem;}
+  .viz-bubble .bar{width:16px; border-radius:3px 3px 0 0; background:var(--teal); opacity:.6;}
+  .viz-bubble .bar.sorted{background:var(--green); opacity:1;}
+
+  .viz-perm{display:flex; align-items:center; justify-content:center; gap:6px; height:80px;}
+  .viz-perm .num{width:32px; height:32px; border-radius:8px; background:var(--accent-bg); border:1px solid var(--accent-dim);
+    color:var(--accent); font-family:var(--mono); font-size:13px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .viz-perm .num.active{background:var(--accent); color:#fff; box-shadow:0 0 12px rgba(108,143,255,.4);}
+
+  /* ===== CTA BOTTOM ===== */
+  .cta-bottom{
+    max-width:640px; margin:0 auto; text-align:center; padding:3rem 2rem;
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    position:relative; overflow:hidden;
+  }
+  .cta-bottom::before{
+    content:''; position:absolute; top:-50%; left:50%; transform:translateX(-50%);
+    width:400px; height:400px;
+    background:radial-gradient(circle, rgba(108,143,255,.08), transparent 70%);
+    pointer-events:none;
+  }
+  .cta-bottom h2{font-family:var(--display); font-size:1.6rem; font-weight:700; margin-bottom:.5rem; letter-spacing:-0.02em; position:relative; z-index:1;}
+  .cta-bottom p{color:var(--muted); font-size:15px; margin-bottom:1.5rem; line-height:1.6; position:relative; z-index:1;}
+  .cta-bottom .btn-group{display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; position:relative; z-index:1;}
+
+  /* ===== FOOTER ===== */
+  footer{max-width:1180px; margin:0 auto; padding:3rem 2.5rem 2.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; color:var(--muted2); font-size:13.5px; border-top:1px solid var(--border); margin-top:3rem; letter-spacing:0.01em;}
+
+  /* ===== ANIMATED BG PARTICLES ===== */
+  .particles{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
+  .particle{
+    position:absolute; width:3px; height:3px; border-radius:50%;
+    background:var(--accent); opacity:.15; animation:float 20s infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0) translateX(0); opacity:.15}
+    25%{transform:translateY(-30px) translateX(15px); opacity:.08}
+    50%{transform:translateY(-15px) translateX(-10px); opacity:.12}
+    75%{transform:translateY(-40px) translateX(5px); opacity:.06}
+  }
+
+  .spinner{
+    width:20px; height:20px; border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Toast notification */
+  .toast{
+    position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--surface2); border:1px solid var(--border2); border-radius:12px;
+    padding:1rem 1.5rem; display:flex; align-items:center; gap:.75rem;
+    box-shadow:0 20px 50px rgba(0,0,0,.5); z-index:300;
+    transition:transform .4s cubic-bezier(.2,.8,.2,1); font-size:14px; color:var(--text);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast-icon{width:28px; height:28px; border-radius:8px; background:var(--accent-bg); display:flex; align-items:center; justify-content:center; font-size:14px;}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch.png">
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<nav>
+  <a href="index.html" class="brand"><span class="mark"></span>AlgoCrux</a>
+  <div class="nav-right">
+    <a href="login.html">Sign In</a>
+    <a href="register.html" class="btn btn-primary" style="padding:.5rem 1.1rem;font-size:13px">Get Started</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <span class="eyebrow">Free Preview - 3 Animations</span>
+  <h1>Try AlgoCrux <span class="grad">before you commit.</span></h1>
+  <p class="lead">Watch 3 hand-picked algorithm animations completely free. Sign in to unlock all 38 interactive walkthroughs, track your progress, and build your streak.</p>
+  <div class="hero-ctas">
+    <a href="register.html" class="btn btn-primary btn-large">Create Free Account &rarr;</a>
+    <a href="login.html" class="btn btn-ghost btn-large">Already have an account? Sign In</a>
+  </div>
+
+  <div class="locked-banner">
+    <div class="locked-icon">&#x1F512;</div>
+    <div class="locked-text">
+      <h3>38 animations locked</h3>
+      <p>Sign in to unlock the full library including Sorting, Arrays, Linked Lists, Backtracking, DP, Stack, and Hash Table animations.</p>
+    </div>
+    <a href="register.html" class="btn btn-primary" style="padding:.6rem 1.2rem;font-size:13px">Unlock All</a>
+  </div>
+</header>
+
+<!-- ============ PREVIEW GRID ============ -->
+<div class="container">
+  <div class="section-head">
+    <span class="section-tag">Free Preview</span>
+    <h2>3 animations to get you started</h2>
+    <p class="sub">These are some of our most popular animations. Click any card to watch the full walkthrough.</p>
+  </div>
+
+  <div class="preview-grid">
+
+    <!-- KADANE ALGORITHM -->
+    <a class="preview-card" href="algorithms/kadanes-algorithm.html" data-id="kadanes-algorithm">
+      <div class="tags"><span class="tag tag-dp">DP</span><span class="diff diff-m">Medium</span></div>
+      <div class="preview-thumb">
+        <div class="viz-kadane">
+          <div class="bar neg" style="height:25%"></div>
+          <div class="bar pos" style="height:55%"></div>
+          <div class="bar pos max" style="height:80%"></div>
+          <div class="bar neg" style="height:30%"></div>
+          <div class="bar pos" style="height:60%"></div>
+          <div class="bar pos max" style="height:95%"></div>
+          <div class="bar neg" style="height:20%"></div>
+        </div>
+        <div class="play-btn">&#9654;</div>
+      </div>
+      <h3>Kadane Algorithm</h3>
+      <p>Find the maximum sum contiguous subarray in one pass by tracking a running local maximum. A classic DP pattern every interviewer expects.</p>
+      <span class="go">Watch animation <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6h8M7 2l4 4-4 4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span>
+    </a>
+
+    <!-- BUBBLE SORT -->
+    <a class="preview-card" href="algorithms/bubble-sort.html" data-id="bubble-sort">
+      <div class="tags"><span class="tag tag-sort">Sorting</span><span class="diff diff-e">Easy</span></div>
+      <div class="preview-thumb">
+        <div class="viz-bubble">
+          <div class="bar" style="height:30%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar sorted" style="height:80%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar sorted" style="height:90%"></div>
+          <div class="bar" style="height:20%"></div>
+          <div class="bar" style="height:65%"></div>
+        </div>
+        <div class="play-btn">&#9654;</div>
+      </div>
+      <h3>Bubble Sort</h3>
+      <p>Repeatedly swap adjacent out-of-order pairs until the largest values bubble to the end. The simplest sorting algorithm to visualize and understand.</p>
+      <span class="go">Watch animation <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6h8M7 2l4 4-4 4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span>
+    </a>
+
+    <!-- NEXT PERMUTATION -->
+    <a class="preview-card" href="algorithms/next-permutation.html" data-id="next-permutation">
+      <div class="tags"><span class="tag tag-array">Array</span><span class="diff diff-m">Medium</span></div>
+      <div class="preview-thumb">
+        <div class="viz-perm">
+          <div class="num">1</div>
+          <div class="num">2</div>
+          <div class="num active">3</div>
+          <div class="num">5</div>
+          <div class="num">4</div>
+        </div>
+        <div class="play-btn">&#9654;</div>
+      </div>
+      <h3>Next Permutation</h3>
+      <p>Rearrange numbers into the lexicographically next greater permutation, in place. A beautiful two-pointer technique with a clever reversal step.</p>
+      <span class="go">Watch animation <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6h8M7 2l4 4-4 4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span>
+    </a>
+
+  </div>
+
+  <div class="cta-bottom">
+    <h2>Ready for more?</h2>
+    <p>Join thousands of learners who use AlgoCrux to master algorithms through interactive animations. Track progress, earn streaks, and never forget a pattern again.</p>
+    <div class="btn-group">
+      <a href="register.html" class="btn btn-primary btn-large">Create Free Account &rarr;</a>
+      <a href="login.html" class="btn btn-ghost btn-large">Sign In</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="brand" style="font-size:1rem"><span class="mark" style="width:22px;height:22px"></span>AlgoCrux</div>
+  <div>Free preview available. Full library requires sign in.</div>
+</footer>
+
+<div class="toast" id="toast">
+  <div class="toast-icon">&#x1F389;</div>
+  <span id="toastMsg">Animation marked as watched!</span>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // If user IS logged in, redirect to index.html (full library)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.location.href = 'index.html';
+    }
+  });
+
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 20) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // Particle background
+  const particlesContainer = document.getElementById('particles');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = (Math.random() * 20) + 's';
+    p.style.animationDuration = (15 + Math.random() * 15) + 's';
+    const colors = ['var(--accent)', 'var(--teal)', 'var(--purple)'];
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    particlesContainer.appendChild(p);
+  }
+
+  // Tilt effect on cards
+  document.querySelectorAll('.preview-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      card.style.setProperty('--mx', x + 'px');
+      card.style.setProperty('--my', y + 'px');
+    });
+  });
+
+  // Toast for watched animations (localStorage tracking for guests)
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  let toastTimeout;
+
+  function showToast(msg) {
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Track which preview animations were watched (guest mode)
+  const previewIds = ['kadanes-algorithm', 'bubble-sort', 'next-permutation'];
+  previewIds.forEach(id => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (card) {
+      card.addEventListener('click', () => {
+        const watched = JSON.parse(localStorage.getItem('previewWatched') || '[]');
+        if (!watched.includes(id)) {
+          watched.push(id);
+          localStorage.setItem('previewWatched', JSON.stringify(watched));
+          showToast('Great choice! Sign in to track all your progress.');
+        }
+      });
+    }
+  });
+
+  // Check if all 3 watched and show encouragement
+  const watched = JSON.parse(localStorage.getItem('previewWatched') || '[]');
+  if (watched.length >= 3) {
+    setTimeout(() => {
+      showToast('You\'ve watched all 3! Create an account to unlock 35 more.');
+    }, 1500);
+  }
+</script>
+</body>
+</html>

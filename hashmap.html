@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Tables — Complete DSA Hash Table Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}.insight.red{background:var(--red-bg);border-color:#5a2020}.insight.red strong{color:var(--red)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.ht-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto}
+.ht-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.ht-idx{min-width:56px;height:38px;border-radius:7px;border:1.5px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;transition:all .25s}
+.ht-idx.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.3)}
+.ht-idx.hit{border-color:var(--teal);color:var(--teal)}
+.ht-chain{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:38px}
+.ht-node{min-width:40px;height:34px;padding:0 8px;border-radius:7px;border:1.5px solid var(--green);background:var(--green-bg);color:var(--green);font-family:var(--mono);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.ht-node.new{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);animation:pop .3s}
+.ht-node.collide{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
+.ht-node.found{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);box-shadow:0 0 10px rgba(45,212,191,.35)}
+.ht-arrow{color:#5c6189;font-size:14px}
+.ht-empty{color:#5c6189;font-family:var(--mono);font-size:11px;padding-top:8px}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.acc .val{color:var(--accent)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.txt-input,.num-input{padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}.txt-input:focus,.num-input:focus{border-color:var(--teal)}
+.num-input{width:70px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="badges"><span class="badge b-ds">Data Structure</span><span class="badge b-cpp">Hash Table</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span></div>
+  <h1>Hash Tables — Complete DSA Hash Table Theory</h1>
+  <p>Interactive visualization of hashing, collision resolution (chaining &amp; probing), load factor, and interview patterns.</p>
+</header>
+<main>
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → collision handling → the interactive bucket visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div><h2>What is a Hash Table?</h2>
+      <p>A <strong style="color:var(--teal)">Hash Table</strong> maps keys to values using a <strong style="color:var(--text)">hash function</strong> that turns a key into an array index (a <em>bucket</em>). Done well, insert, delete, and lookup are <strong style="color:var(--teal)">O(1) average</strong>.</p>
+      <p>The catch is <strong style="color:var(--amber)">collisions</strong>: two keys hashing to the same bucket. How you resolve them (chaining vs open addressing) and your <strong style="color:var(--text)">load factor</strong> decide real-world performance.</p>
+    </div>
+    <div><h2>The hash function</h2>
+      <div class="formula">
+        <span class="cm">// map key → bucket index</span><br>
+        index = hash(key) % capacity<br><br>
+        <span class="cm">// good hash: fast, uniform, deterministic</span><br>
+        <span class="cm">// load factor α = n / capacity</span><br>
+        <span class="cm">// resize (rehash) when α &gt; ~0.75</span>
+      </div>
+    </div>
+  </div>
+  <div class="insight purple"><strong>Why Hash Tables?</strong> They turn O(n) lookups into O(1): the single most common way to speed up an algorithm. Two Sum, frequency counts, dedup, caches, sets, symbol tables — all hash tables underneath.</div>
+
+  <div class="section-label">Collision Resolution</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">🔗</div><div class="tc-name">Separate Chaining</div><div class="tc-def">Each bucket holds a linked list (or vector) of entries that hash there.</div><div class="tc-use">Use: simple, handles high load factor. std::unordered_map.</div></div>
+    <div class="type-card"><div class="tc-icon">➡️</div><div class="tc-name">Linear Probing</div><div class="tc-def">On collision, step to the next slot (i+1, i+2…) until an empty one.</div><div class="tc-use">Use: cache-friendly, but clustering.</div></div>
+    <div class="type-card"><div class="tc-icon">🔢</div><div class="tc-name">Quadratic / Double Hash</div><div class="tc-def">Probe by i², or use a second hash for the step, reducing clustering.</div><div class="tc-use">Use: open addressing with better spread.</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Hash Function</div><div class="ic-desc">Maps a key to an integer index, ideally uniformly.</div></div>
+    <div class="info-card"><div class="ic-title">Bucket / Slot</div><div class="ic-desc">An array cell where entries hashing to that index live.</div></div>
+    <div class="info-card"><div class="ic-title">Collision</div><div class="ic-desc">Two distinct keys mapping to the same bucket.</div></div>
+    <div class="info-card"><div class="ic-title">Load Factor (α)</div><div class="ic-desc">n / capacity. High α → more collisions → slower ops.</div></div>
+    <div class="info-card"><div class="ic-title">Rehashing</div><div class="ic-desc">Growing the table and re-inserting all keys when α gets high.</div></div>
+    <div class="info-card"><div class="ic-title">Clustering</div><div class="ic-desc">Consecutive filled slots in probing, hurting performance.</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Insert</div><div class="big">O(1)*</div><p>Average; O(n) worst with bad hashing.</p></div>
+    <div class="cx-card"><div class="lbl">Search</div><div class="big">O(1)*</div><p>Average; O(n) if all keys collide.</p></div>
+    <div class="cx-card"><div class="lbl">Delete</div><div class="big">O(1)*</div><p>Average constant time.</p></div>
+    <div class="cx-card"><div class="lbl">Rehash</div><div class="big">O(n)</div><p>Occasional, amortized into O(1) inserts.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n)</div><p>Plus empty-slot overhead (α &lt; 1).</p></div>
+    <div class="cx-card"><div class="lbl">Ordered iterate</div><div class="big">✗</div><p>No sorted order (use a BST/map for that).</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>O(1) average insert, search, delete.</li>
+      <li>Turns nested-loop O(n²) into single-pass O(n).</li>
+      <li>Flexible keys (strings, tuples with custom hashers).</li>
+      <li>Foundation of sets, maps, caches, dedup.</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>No ordering — can't do range queries or sorted iteration.</li>
+      <li>Worst case O(n) with adversarial keys / bad hash.</li>
+      <li>Extra memory for empty slots (load factor &lt; 1).</li>
+      <li>Rehash pauses; poor cache locality with chaining.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>hash_stl.cpp · unordered_map &amp; unordered_set</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    unordered_map&lt;string,<span class="kw">int</span>&gt; freq;   <span class="cm">// key→value, O(1) avg</span>
+    freq[<span class="st">"apple"</span>]++;
+    freq[<span class="st">"apple"</span>]++;
+    <span class="kw">if</span> (freq.<span class="fn">count</span>(<span class="st">"apple"</span>)) cout &lt;&lt; freq[<span class="st">"apple"</span>]; <span class="cm">// 2</span>
+
+    unordered_set&lt;<span class="kw">int</span>&gt; seen;          <span class="cm">// membership, O(1) avg</span>
+    seen.<span class="fn">insert</span>(<span class="nm">5</span>);
+    <span class="kw">bool</span> has = seen.<span class="fn">count</span>(<span class="nm">5</span>);       <span class="cm">// true</span>
+
+    freq.<span class="fn">reserve</span>(<span class="nm">1000</span>);              <span class="cm">// pre-size to avoid rehash</span>
+    cout &lt;&lt; freq.<span class="fn">load_factor</span>();       <span class="cm">// current α</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>patterns.cpp · Two Sum &amp; frequency</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="cm">// Two Sum — O(n) with a hash map</span>
+vector&lt;<span class="kw">int</span>&gt; <span class="fn">twoSum</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> target){
+    unordered_map&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt; seen;   <span class="cm">// value → index</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; a.size(); i++) {
+        <span class="kw">int</span> need = target - a[i];
+        <span class="kw">if</span> (seen.count(need)) <span class="kw">return</span> {seen[need], i};
+        seen[a[i]] = i;
+    }
+    <span class="kw">return</span> {};
+}
+
+<span class="cm">// Chaining hash set (illustrative)</span>
+<span class="kw">struct</span> <span class="fn">HashSet</span> {
+    <span class="kw">static const int</span> B = <span class="nm">769</span>;   <span class="cm">// prime capacity</span>
+    vector&lt;<span class="kw">int</span>&gt; bucket[B];
+    <span class="kw">int</span> <span class="fn">idx</span>(<span class="kw">int</span> k){ <span class="kw">return</span> (k % B + B) % B; }
+    <span class="kw">void</span> <span class="fn">add</span>(<span class="kw">int</span> k){ <span class="kw">auto</span>&amp; c = bucket[<span class="fn">idx</span>(k)];
+        <span class="kw">if</span> (find(c.begin(),c.end(),k)==c.end()) c.push_back(k); }
+    <span class="kw">bool</span> <span class="fn">has</span>(<span class="kw">int</span> k){ <span class="kw">auto</span>&amp; c = bucket[<span class="fn">idx</span>(k)];
+        <span class="kw">return</span> find(c.begin(),c.end(),k)!=c.end(); }
+};</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive Hash Table Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="insert">Insert (chaining)</button>
+    <button class="tab" data-op="search">Search</button>
+    <button class="tab" data-op="probe">Insert (linear probing)</button>
+    <button class="tab" data-op="build">Build from list</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive Hash Table Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Bucket</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Target bucket</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Entry</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Collision</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Found</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="ht-wrap" id="htWrap"></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">hash(key) % ${'cap'}</div><div class="val" id="opHash">—</div></div>
+        <div class="op-card"><div class="lbl">Load factor α</div><div class="val" id="opLoad">0.00</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Entries</div><div class="val" id="sN">0</div><div class="sub">stored</div></div>
+      <div class="stat-box amber"><div class="lbl">Collisions</div><div class="val" id="sColl">0</div><div class="sub">so far</div></div>
+      <div class="stat-box green"><div class="lbl">Buckets</div><div class="val" id="sCap">7</div><div class="sub">capacity</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>. hash(k) = k mod capacity.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — integer keys, capacity is a small prime</div>
+      <label style="font-size:12px;color:var(--muted)">Keys: <input type="text" class="txt-input" id="keyInput" value="15,22,8,29,1" style="width:170px"></label>
+      <label style="font-size:12px;color:var(--muted)">Capacity: <input type="number" class="num-input" id="capInput" value="7"></label>
+      <label style="font-size:12px;color:var(--muted)">Key: <input type="number" class="num-input" id="argInput" value="22"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>Key</th><th>Bucket</th><th>Action</th><th>Collisions</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>Hash map = O(1) lookup.</strong> The universal speedup: replace "search the array again" (O(n) inner loop) with a hash map lookup (O(1)). Two Sum, subarray-sum-equals-k, longest consecutive sequence, group anagrams all use this.</div>
+  <div class="insight"><strong>Frequency counting.</strong> <code>map[x]++</code> in one pass gives you counts for anagrams, majority element, top-K, and first-unique problems. For a small fixed alphabet, an int[26]/int[128] array is even faster.</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Structure</th><th>Search</th><th>Ordered?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>unordered_map / set</td><td class="qcol">O(1) avg</td><td>No</td><td>Hash table; fastest lookup</td></tr>
+      <tr><td>map / set</td><td class="scol">O(log n)</td><td>Yes</td><td>Balanced BST; sorted iteration</td></tr>
+      <tr><td>Frequency array</td><td>O(1)</td><td>By index</td><td>int[26]/int[128] for small alphabets</td></tr>
+      <tr><td>Chaining</td><td>O(1+α)</td><td>No</td><td>Lists per bucket, handles high α</td></tr>
+      <tr><td>Open addressing</td><td>O(1) avg</td><td>No</td><td>Probing; cache-friendly, clusters</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>Hashing Basics</h4><p>Hash functions, buckets, index = hash % capacity, load factor, why O(1) average.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>Collision Resolution</h4><p>Separate chaining, linear/quadratic probing, double hashing, rehashing.</p></div><span class="rm-time">~3 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>STL Maps &amp; Sets</h4><p>unordered_map/set vs map/set tradeoffs, custom hashers, reserve/rehash.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Hashing Patterns</h4><p>Two Sum, frequency count, dedup, subarray sum = k, group anagrams, LRU cache.</p></div><span class="rm-time">~4 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Two Sum</div><div class="ic-a">One pass; for each element check if (target − x) is already in the map. O(n)/O(n).</div><div class="ic-tag">Hash Map</div></div>
+    <div class="int-card"><div class="ic-q">Group Anagrams</div><div class="ic-a">Key each word by its sorted form or char-count signature into a map of lists. O(n·k log k).</div><div class="ic-tag">Hashing</div></div>
+    <div class="int-card"><div class="ic-q">Subarray Sum Equals K</div><div class="ic-a">Prefix sum + map of prefix→count; add count of (sum − k) seen so far. O(n).</div><div class="ic-tag">Prefix + Hash</div></div>
+    <div class="int-card"><div class="ic-q">LRU Cache</div><div class="ic-a">Hash map for O(1) lookup + doubly linked list for O(1) recency updates.</div><div class="ic-tag">Hash + List</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Two Sum</span><span class="ptag">Hash Map</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Contains Duplicate</span><span class="ptag">Hash Set</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Valid Anagram</span><span class="ptag">Frequency</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Group Anagrams</span><span class="ptag">Hashing</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Top K Frequent Elements</span><span class="ptag">Bucket</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Subarray Sum Equals K</span><span class="ptag">Prefix + Hash</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Longest Consecutive Sequence</span><span class="ptag">Hash Set</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">LRU Cache</span><span class="ptag">Hash + List</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">⚡</span><span><strong style="color:var(--text)">O(1) average:</strong> hash(key) % capacity picks a bucket. Insert, search, delete are constant time when the hash spreads keys well.</span></div>
+    <div class="take"><span class="tk-ic">💥</span><span><strong style="color:var(--text)">Collisions are inevitable:</strong> resolve with chaining (lists per bucket) or open addressing (probing). Keep load factor below ~0.75 and rehash.</span></div>
+    <div class="take"><span class="tk-ic">🚀</span><span><strong style="color:var(--text)">The universal speedup:</strong> a hash map turns O(n²) nested loops into O(n) — Two Sum, frequency counts, dedup, prefix-sum tricks.</span></div>
+    <div class="take"><span class="tk-ic">📐</span><span><strong style="color:var(--text)">No ordering:</strong> need sorted iteration or range queries? Reach for a balanced BST (std::map) instead — O(log n) but ordered.</span></div>
+  </div>
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={keys:[15,22,8,29,1],cap:7,op:'insert',arg:22,steps:[],idx:-1,playing:false,timer:null};
+const els={wrap:document.getElementById('htWrap'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opHash:document.getElementById('opHash'),opLoad:document.getElementById('opLoad'),sSteps:document.getElementById('sSteps'),sN:document.getElementById('sN'),sColl:document.getElementById('sColl'),sCap:document.getElementById('sCap'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {insert:'Insert (chaining)',search:'Search',probe:'Insert (probing)',build:'Build from list'}[op]||op;}
+function hsh(k){return ((k%V.cap)+V.cap)%V.cap;}
+
+function emptyBuckets(){const b=[];for(let i=0;i<V.cap;i++)b.push([]);return b;}
+function cloneB(b){return b.map(x=>[...x]);}
+
+function gen(){
+  const steps=[];const buckets=emptyBuckets();let n=0,coll=0;
+  const snap=(e)=>({buckets:cloneB(buckets),n,coll,...e});
+  const insertChain=(k,tag)=>{const idx=hsh(k);const collide=buckets[idx].length>0;steps.push(snap({active:idx,hashVal:idx,key:k,phase:'visiting',log:`hash(${k}) = ${k} mod ${V.cap} = <span class="acc">${idx}</span>.${collide?' Bucket occupied → <span class="amb">collision</span>, append to chain.':' Empty bucket.'}`}));if(collide)coll++;buckets[idx].push(k);n++;steps.push(snap({active:idx,newKey:k,phase:collide?'traversing':'done',log:`Stored <span class="pos">${k}</span> in bucket ${idx}. Chain: [${buckets[idx].join(' → ')}].`}));};
+  steps.push(snap({phase:'idle',log:`Start <span class="tea">${opLabel(V.op)}</span>. Capacity = ${V.cap}. hash(k) = k mod ${V.cap}.`}));
+
+  if(V.op==='insert'){insertChain(V.arg);steps.push(snap({phase:'done',done:true,log:`<span class="pos">Insert complete.</span> α = ${(n/V.cap).toFixed(2)}.`}));}
+  else if(V.op==='build'){for(const k of V.keys)insertChain(k);steps.push(snap({phase:'done',done:true,log:`<span class="pos">Built table</span> with ${n} keys. α = ${(n/V.cap).toFixed(2)}. Collisions: ${coll}.`}));}
+  else if(V.op==='search'){
+    for(const k of V.keys){const idx=hsh(k);if(!buckets[idx].includes(k)){if(buckets[idx].length)coll++;buckets[idx].push(k);n++;}}
+    const idx=hsh(V.arg);
+    steps.push(snap({active:idx,hashVal:idx,key:V.arg,phase:'visiting',log:`hash(${V.arg}) = ${idx}. Go to bucket <span class="acc">${idx}</span> and scan its chain.`}));
+    const chain=buckets[idx];let found=false;
+    for(let i=0;i<chain.length;i++){steps.push(snap({active:idx,scanKey:chain[i],phase:'traversing',log:`Check ${chain[i]} ${chain[i]===V.arg?'== ':'≠ '}${V.arg}.`}));if(chain[i]===V.arg){found=true;steps.push(snap({active:idx,foundKey:V.arg,phase:'done',done:true,log:`<span class="pos">Found ${V.arg}</span> in bucket ${idx}.`}));break;}}
+    if(!found)steps.push(snap({active:idx,phase:'warning',done:true,log:`<span class="neg">${V.arg} not found</span> in bucket ${idx}.`}));
+  }
+  else if(V.op==='probe'){
+    const slots=new Array(V.cap).fill(null);let localN=0,localColl=0;
+    const snapP=(e)=>({slots:[...slots],n:localN,coll:localColl,probe:true,...e});
+    steps.push(snapP({phase:'idle',log:`Linear probing: on collision, try (i+1) mod ${V.cap} until an empty slot.`}));
+    for(const k of V.keys){let idx=hsh(k),tries=0;steps.push(snapP({active:idx,hashVal:idx,key:k,phase:'visiting',log:`hash(${k}) = <span class="acc">${idx}</span>.`}));while(slots[idx]!==null&&tries<V.cap){localColl++;steps.push(snapP({active:idx,key:k,phase:'traversing',log:`Slot ${idx} taken by ${slots[idx]} → <span class="amb">probe</span> to ${(idx+1)%V.cap}.`}));idx=(idx+1)%V.cap;tries++;}slots[idx]=k;localN++;steps.push(snapP({active:idx,newKey:k,phase:'done',log:`Placed <span class="pos">${k}</span> at slot ${idx}.`}));}
+    steps.push(snapP({phase:'done',done:true,log:`<span class="pos">Probing build complete.</span> α = ${(localN/V.cap).toFixed(2)}, collisions: ${localColl}.`}));
+  }
+  return steps;
+}
+
+function render(){
+  const st=V.steps[V.idx];if(!st)return;
+  let html='';
+  if(st.probe){
+    for(let i=0;i<V.cap;i++){let idxCls='ht-idx';if(st.active===i)idxCls+=' active';const val=st.slots[i];let cell;if(val===null)cell='<span class="ht-empty">empty</span>';else{let c='ht-node';if(st.newKey===val&&st.active===i)c+=' new';cell=`<div class="${c}">${val}</div>`;}html+=`<div class="ht-row"><div class="${idxCls}">[${i}]</div><div class="ht-chain">${cell}</div></div>`;}
+  } else {
+    for(let i=0;i<V.cap;i++){let idxCls='ht-idx';if(st.active===i)idxCls+=' active';if(st.foundKey!==undefined&&st.active===i)idxCls+=' hit';const chain=st.buckets[i];let cells='';if(chain.length===0)cells='<span class="ht-empty">empty</span>';else chain.forEach((k,j)=>{let c='ht-node';if(st.newKey===k&&st.active===i&&j===chain.length-1)c+=' new';if(st.scanKey===k&&st.active===i)c+=' collide';if(st.foundKey===k&&st.active===i)c+=' found';cells+=(j>0?'<span class="ht-arrow">→</span>':'')+`<div class="${c}">${k}</div>`;});html+=`<div class="ht-row"><div class="${idxCls}">[${i}]</div><div class="ht-chain">${cells}</div></div>`;}
+  }
+  els.wrap.innerHTML=html;
+  els.phase.className='phase-badge '+(st.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Scanning',visiting:'Hashing',done:'Done',warning:'Not found'}[st.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);
+  els.opHash.textContent=st.hashVal!==undefined?st.hashVal:'—';
+  els.opLoad.textContent=(st.n/V.cap).toFixed(2);
+  els.sSteps.textContent=V.idx;els.sN.textContent=st.n;els.sColl.textContent=st.coll;els.sCap.textContent=V.cap;
+  els.log.innerHTML=st.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';els.stepLabel.textContent=`Step ${V.idx} of ${total}`;els.pill.style.display=st.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const x=V.steps[i];const plain=x.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${x.key!==undefined?x.key:'—'}</td><td>${x.hashVal!==undefined?x.hashVal:(x.active!==undefined?x.active:'—')}</td><td>${plain.slice(0,42)}</td><td>${x.coll}</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  let html='';for(let i=0;i<V.cap;i++)html+=`<div class="ht-row"><div class="ht-idx">[${i}]</div><div class="ht-chain"><span class="ht-empty">empty</span></div></div>`;
+  els.wrap.innerHTML=html;
+  els.sCap.textContent=V.cap;els.sN.textContent=0;els.sColl.textContent=0;els.sSteps.textContent=0;els.opLoad.textContent='0.00';els.opHash.textContent='—';
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';els.phase.className='phase-badge idle';els.phase.textContent='Idle';els.opName.textContent=opLabel(V.op);
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>. hash(k) = k mod capacity.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('keyInput').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));const cap=parseInt(document.getElementById('capInput').value)||7;if(raw.length<1||raw.length>12){alert('Use 1–12 keys.');return;}if(cap<3||cap>13){alert('Capacity 3–13.');return;}V.keys=raw;V.cap=cap;V.arg=parseInt(document.getElementById('argInput').value)||raw[0];reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const n=5+Math.floor(Math.random()*3),a=[];for(let i=0;i<n;i++)a.push(Math.floor(Math.random()*50)+1);document.getElementById('keyInput').value=a.join(',');V.keys=a;V.arg=a[Math.floor(Math.random()*a.length)];document.getElementById('argInput').value=V.arg;reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;V.arg=parseInt(document.getElementById('argInput').value)||V.keys[0];reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

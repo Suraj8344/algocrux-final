@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2D Prefix Sum — Matrix Range Queries</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4a1a; }
+  .badge.p2d    { background: var(--teal-bg);  color: var(--teal);  border: 1px solid #0f3530; }
+  .badge.gfg    { background: var(--accent-bg);color: var(--accent);border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12.5px; color: var(--amber); line-height: 2.1; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* GRID VISUALS */
+  .grids-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.1rem; }
+  @media(max-width:720px){ .grids-wrap{ grid-template-columns:1fr; } }
+  .grid-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .grid-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 10px; }
+  .matrix { display: grid; gap: 4px; }
+  .mcell {
+    aspect-ratio: 1; min-height: 34px; border-radius: 7px; border: 1.5px solid var(--border2); background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--text);
+    transition: background .25s, border-color .25s, color .25s, box-shadow .25s, transform .2s;
+  }
+  .mcell.head { background: transparent; border: none; color: var(--muted2); font-size: 11px; font-weight: 600; min-height: 20px; }
+  .mcell.pad  { background: var(--surface); border-color: var(--border); color: var(--muted2); }
+  .mcell.D { background: var(--teal-bg);   border-color: var(--teal);   color: var(--teal);   box-shadow: 0 0 0 2px rgba(45,212,191,.2); }   /* bottom-right P[r2][c2] add */
+  .mcell.A { background: var(--green-bg);  border-color: var(--green);  color: var(--green); }                                            /* P[r1-1][c1-1] add back */
+  .mcell.B { background: var(--red-bg);    border-color: var(--red);    color: var(--red); }                                             /* subtract row band */
+  .mcell.C { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }                                          /* subtract col band */
+  .mcell.query { box-shadow: 0 0 0 2px var(--amber) inset; }
+  .formula-line { margin-top: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+  .formula-line .t { color: var(--teal); } .formula-line .r { color: var(--red); } .formula-line .p { color: var(--purple); } .formula-line .g { color: var(--green); } .formula-line .a { color: var(--amber); }
+
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; margin-top: 1.1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-d { color: var(--teal); } .tp-b { color: var(--red); } .tp-c { color: var(--purple); } .tp-a { color: var(--green); }
+
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.teal .val { color: var(--teal); } .stat-box.red .val { color: var(--red); } .stat-box.purple .val { color: var(--purple); } .stat-box.green .val { color: var(--green); }
+
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge gfg">Pattern / Prefix Based</span>
+      <span class="badge p2d">2D Prefix Sum</span>
+      <span class="badge medium">Medium</span>
+    </div>
+    <h1>2D Prefix Sum — Matrix Range Sum Queries</h1>
+    <p>Precompute a summed-area table once, then answer any rectangle sum in O(1) via inclusion-exclusion</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="lc-banner" id="lcBanner">
+    <div class="lc-icon">LC</div>
+    <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+    <a href="https://leetcode.com/problems/range-sum-query-2d-immutable/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Answer many <strong style="color:var(--text)">rectangle-sum queries</strong> on a fixed matrix without re-scanning each time. Build a <strong style="color:var(--teal)">summed-area table</strong> <code style="color:var(--accent)">P</code> where <code style="color:var(--accent)">P[i][j]</code> is the sum of everything in the rectangle from the origin to <code style="color:var(--accent)">(i,j)</code>.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> any sub-rectangle sum comes from <strong style="color:var(--teal)">inclusion-exclusion</strong>: take the big block, subtract the strip above, subtract the strip to the left, then add back the corner counted twice. Build is O(R·C), each query is <strong style="color:var(--teal)">O(1)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// build (1-indexed padding)</span><br>
+        P[i][j] = grid[i-1][j-1]<br>
+        &nbsp;&nbsp;+ P[i-1][j] + P[i][j-1] - P[i-1][j-1]<br><br>
+        <span class="comment">// query rect (r1,c1)-(r2,c2)</span><br>
+        sum = P[r2+1][c2+1] - P[r1][c2+1]<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- P[r2+1][c1] + P[r1][c1]
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Build time</div>
+      <div class="big">O(R·C)</div>
+      <p>One pass to fill the summed-area table, each cell computed from three neighbours in O(1).</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Query time</div>
+      <div class="big">O(1)</div>
+      <p>Every rectangle sum is four table lookups. Space is O(R·C) for the table.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Queries &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Center block <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Top-left corner <span class="tag tag-edge">touches origin</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Single cell <span class="tag tag-edge">1×1</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Full matrix <span class="tag tag-classic">whole grid</span></button>
+    <button class="tab" onclick="loadExample(4,this)">Bottom row band <span class="tag tag-classic">strip</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — inclusion-exclusion on the summed-area table</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> D: big block (+)</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> B: top strip (−)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> C: left strip (−)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> A: corner (+ back)</span>
+      <span><span class="dot" style="background:transparent;border-color:var(--amber);box-shadow:0 0 0 2px var(--amber) inset"></span> query rectangle</span>
+    </div>
+
+    <div class="grids-wrap">
+      <div class="grid-box">
+        <div class="grid-title">Original matrix</div>
+        <div class="matrix" id="matrix-grid"></div>
+      </div>
+      <div class="grid-box">
+        <div class="grid-title">Summed-area table P (1-indexed)</div>
+        <div class="matrix" id="matrix-P"></div>
+        <div class="formula-line" id="formula-line"></div>
+      </div>
+    </div>
+
+    <div class="tracker-row">
+      <span class="tracker-pill tp-d" id="pill-d">D = —</span>
+      <span class="tracker-pill tp-b" id="pill-b">B = —</span>
+      <span class="tracker-pill tp-c" id="pill-c">C = —</span>
+      <span class="tracker-pill tp-a" id="pill-a">A = —</span>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box teal">
+        <div class="lbl">D  P[r2+1][c2+1]</div>
+        <div class="val" id="s-d">—</div>
+        <div class="sub">big block</div>
+      </div>
+      <div class="stat-box red">
+        <div class="lbl">B  P[r1][c2+1]</div>
+        <div class="val" id="s-b">—</div>
+        <div class="sub">subtract top</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">C  P[r2+1][c1]</div>
+        <div class="val" id="s-c">—</div>
+        <div class="sub">subtract left</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Rectangle sum</div>
+        <div class="val" id="s-sum">—</div>
+        <div class="sub" id="s-sum-sub">D − B − C + A</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select a query and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Sum: —</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr><th>Step</th><th>Phase</th><th>Term</th><th>Cell</th><th>Value</th><th>Running</th></tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>prefix_2d.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">struct</span> <span class="fn">Matrix2D</span> {
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; P; <span class="cm">// (R+1) x (C+1), 1-indexed</span>
+
+    <span class="fn">Matrix2D</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; g) {
+        <span class="kw">int</span> R = g.size(), C = g[<span class="nm">0</span>].size();
+        P.assign(R + <span class="nm">1</span>, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;(C + <span class="nm">1</span>, <span class="nm">0</span>));
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt;= R; i++)
+            <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nm">1</span>; j &lt;= C; j++)
+                P[i][j] = g[i-<span class="nm">1</span>][j-<span class="nm">1</span>]
+                        + P[i-<span class="nm">1</span>][j] + P[i][j-<span class="nm">1</span>] - P[i-<span class="nm">1</span>][j-<span class="nm">1</span>];
+    }
+
+    <span class="cm">// sum of rectangle (r1,c1) .. (r2,c2) inclusive, 0-indexed</span>
+    <span class="kw">int</span> <span class="fn">query</span>(<span class="kw">int</span> r1, <span class="kw">int</span> c1, <span class="kw">int</span> r2, <span class="kw">int</span> c2) {
+        <span class="kw">return</span> P[r2+<span class="nm">1</span>][c2+<span class="nm">1</span>] - P[r1][c2+<span class="nm">1</span>]
+             - P[r2+<span class="nm">1</span>][c1] + P[r1][c1];
+    }
+};
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; g = {{<span class="nm">3</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">4</span>},{<span class="nm">5</span>,<span class="nm">6</span>,<span class="nm">3</span>,<span class="nm">2</span>},{<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">0</span>,<span class="nm">1</span>},{<span class="nm">4</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">5</span>}};
+    <span class="fn">Matrix2D</span> m(g);
+    cout &lt;&lt; m.<span class="fn">query</span>(<span class="nm">1</span>,<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>) &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 11</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Why 1-indexed padding avoids edge checks&#10;- Inclusion-exclusion: D - B - C + A&#10;- Corner A added back (subtracted twice)&#10;- 2D difference array for range updates"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="prefix2d"></div>
+</main>
+
+<script>
+const GRID = [
+  [3,0,1,4],
+  [5,6,3,2],
+  [1,2,0,1],
+  [4,1,0,5]
+];
+const R = GRID.length, C = GRID[0].length;
+
+// build summed-area table P (R+1 x C+1)
+const P = Array.from({length:R+1}, () => Array(C+1).fill(0));
+for (let i=1;i<=R;i++) for (let j=1;j<=C;j++)
+  P[i][j] = GRID[i-1][j-1] + P[i-1][j] + P[i][j-1] - P[i-1][j-1];
+
+// queries: {r1,c1,r2,c2}
+const EXAMPLES = [
+  { q:{r1:1,c1:1,r2:2,c2:2}, desc:`<strong style="color:var(--text)">Center block (1,1)-(2,2) — sum 11.</strong> The 2×2 middle {6,3,2,0} = 11. Full inclusion-exclusion: subtract top &amp; left strips, add back the corner.` },
+  { q:{r1:0,c1:0,r2:1,c2:1}, desc:`<strong style="color:var(--text)">Top-left corner (0,0)-(1,1) — sum 14.</strong> Touches the origin, so the B, C, A terms use the zero-padding row/column. sum = D − 0 − 0 + 0 = P[2][2].` },
+  { q:{r1:2,c1:3,r2:2,c2:3}, desc:`<strong style="color:var(--text)">Single cell (2,3)-(2,3) — sum 1.</strong> A 1×1 query still uses all four terms; they collapse to exactly grid[2][3].` },
+  { q:{r1:0,c1:0,r2:3,c2:3}, desc:`<strong style="color:var(--text)">Full matrix (0,0)-(3,3) — sum 38.</strong> Whole grid — the answer is just P[R][C] since the subtracted strips are all padding zeros.` },
+  { q:{r1:3,c1:0,r2:3,c2:3}, desc:`<strong style="color:var(--text)">Bottom row band (3,0)-(3,3) — sum 10.</strong> A 1×4 strip {4,1,0,5} = 10. Shows the top strip B carrying the weight of everything above.` }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){ document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1]; });
+
+let Q = null, steps = [], cursor = -1, playing = false, timer = null;
+
+function buildSteps() {
+  const {r1,c1,r2,c2} = Q;
+  const D = P[r2+1][c2+1], B = P[r1][c2+1], Cc = P[r2+1][c1], A = P[r1][c1];
+  const sum = D - B - Cc + A;
+  const stps = [];
+
+  stps.push({ phase:'init', show:[], run:0, term:'—', cell:'—', val:'—',
+    msg:`<span class="hi">Query rectangle (${r1},${c1}) → (${r2},${c2}).</span> We'll combine four corners of the summed-area table: <span class="tl">D</span> − <span class="neg">B</span> − <span class="sol">C</span> + <span class="pos">A</span>.` });
+
+  stps.push({ phase:'D', show:['D'], run:D, term:'D +', cell:`P[${r2+1}][${c2+1}]`, val:D,
+    msg:`<span class="hi">Add D = P[${r2+1}][${c2+1}] = <span class="tl">${D}</span>.</span> This is the whole block from the origin down to the query's bottom-right corner. Running = <span class="tl">${D}</span>.` });
+
+  stps.push({ phase:'B', show:['D','B'], run:D-B, term:'B −', cell:`P[${r1}][${c2+1}]`, val:B,
+    msg:`<span class="hi">Subtract B = P[${r1}][${c2+1}] = <span class="neg">${B}</span>.</span> Removes the strip <em>above</em> the rectangle. Running = ${D} − ${B} = <span class="hi">${D-B}</span>.` });
+
+  stps.push({ phase:'C', show:['D','B','C'], run:D-B-Cc, term:'C −', cell:`P[${r2+1}][${c1}]`, val:Cc,
+    msg:`<span class="hi">Subtract C = P[${r2+1}][${c1}] = <span class="sol">${Cc}</span>.</span> Removes the strip to the <em>left</em>. Running = ${D-B} − ${Cc} = <span class="hi">${D-B-Cc}</span>.` });
+
+  stps.push({ phase:'A', show:['D','B','C','A'], run:sum, term:'A +', cell:`P[${r1}][${c1}]`, val:A,
+    msg:`<span class="hi">Add back A = P[${r1}][${c1}] = <span class="pos">${A}</span>.</span> The top-left corner was subtracted twice (once in B, once in C), so add it once. Running = <span class="pos">${sum}</span>.` });
+
+  stps.push({ phase:'done', show:['sum'], run:sum, term:'result', cell:'—', val:sum,
+    msg:`<span class="hi">Done in four lookups.</span> <span class="pos">Rectangle sum = ${D} − ${B} − ${Cc} + ${A} = <span class="sol">${sum}</span>.</span> No matter the rectangle size, always O(1).` });
+
+  return stps;
+}
+
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  const phaseName = { init:'Setup', D:'Big block', B:'Sub top', C:'Sub left', A:'Add corner', done:'Result' };
+  tbody.innerHTML = stps.map((s,idx) => `<tr id="tr-${idx}">
+    <td>${idx+1}</td>
+    <td>${phaseName[s.phase]}</td>
+    <td style="color:var(--amber)">${s.term}</td>
+    <td style="color:var(--accent)">${s.cell}</td>
+    <td style="color:var(--text)">${s.val}</td>
+    <td style="color:var(--green);font-weight:600">${s.phase==='init'?'—':s.run}</td>
+  </tr>`).join('');
+}
+
+function classForCell_P(i, j, show) {
+  const {r1,c1,r2,c2} = Q;
+  // corner cells in P coords
+  if (show.includes('A') && i===r1 && j===c1) return 'A';
+  if (show.includes('C') && i===r2+1 && j===c1) return 'C';
+  if (show.includes('B') && i===r1 && j===c2+1) return 'B';
+  if (show.includes('D') && i===r2+1 && j===c2+1) return 'D';
+  return '';
+}
+
+function renderMatrices(s) {
+  const {r1,c1,r2,c2} = Q;
+  // ORIGINAL grid with query rectangle highlighted
+  const g = document.getElementById('matrix-grid');
+  g.style.gridTemplateColumns = `repeat(${C}, 1fr)`;
+  let gh = '';
+  for (let i=0;i<R;i++) for (let j=0;j<C;j++) {
+    const inQ = i>=r1 && i<=r2 && j>=c1 && j<=c2;
+    gh += `<div class="mcell${inQ?' query':''}" style="${inQ?'background:var(--amber-bg);border-color:var(--amber);color:var(--amber)':''}">${GRID[i][j]}</div>`;
+  }
+  g.innerHTML = gh;
+
+  // P table with header row/col, padded
+  const pg = document.getElementById('matrix-P');
+  pg.style.gridTemplateColumns = `repeat(${C+2}, 1fr)`;
+  let ph = '<div class="mcell head"></div>';
+  for (let j=0;j<=C;j++) ph += `<div class="mcell head">${j}</div>`;
+  for (let i=0;i<=R;i++) {
+    ph += `<div class="mcell head">${i}</div>`;
+    for (let j=0;j<=C;j++) {
+      const cls = (s.phase==='init'||s.phase==='done') && s.phase==='done'
+        ? classForCell_P(i,j,['D','B','C','A'])
+        : classForCell_P(i,j,s.show||[]);
+      const pad = (i===0 || j===0) ? ' pad' : '';
+      ph += `<div class="mcell${pad}${cls?' '+cls:''}">${P[i][j]}</div>`;
+    }
+  }
+  pg.innerHTML = ph;
+
+  // formula line
+  const D = P[r2+1][c2+1], B = P[r1][c2+1], Cc = P[r2+1][c1], A = P[r1][c1], sum = D-B-Cc+A;
+  const parts = [];
+  parts.push(`<span class="t">D ${D}</span>`);
+  if ((s.show||[]).includes('B') || s.phase==='done') parts.push(`<span class="r">− B ${B}</span>`);
+  if ((s.show||[]).includes('C') || s.phase==='done') parts.push(`<span class="p">− C ${Cc}</span>`);
+  if ((s.show||[]).includes('A') || s.phase==='done') parts.push(`<span class="g">+ A ${A}</span>`);
+  document.getElementById('formula-line').innerHTML =
+    (s.phase==='init') ? 'sum = D − B − C + A' :
+    (s.phase==='done') ? `sum = ${parts.join(' ')} = <span class="a">${sum}</span>` :
+    `sum = ${parts.join(' ')} …`;
+}
+
+function applyState(idx) {
+  steps.forEach((_,i) => { const tr = document.getElementById('tr-'+i); if (tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    renderMatrices({ phase:'init', show:[] });
+    ['pill-d','pill-b','pill-c','pill-a'].forEach((id,k)=>document.getElementById(id).textContent = ['D = —','B = —','C = —','A = —'][k]);
+    ['s-d','s-b','s-c','s-sum'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('s-sum-sub').textContent='D − B − C + A';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select a query and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s = steps[idx];
+  renderMatrices(s);
+  const {r1,c1,r2,c2} = Q;
+  const D = P[r2+1][c2+1], B = P[r1][c2+1], Cc = P[r2+1][c1], A = P[r1][c1], sum = D-B-Cc+A;
+
+  document.getElementById('pill-d').textContent = `D = ${(s.show||[]).includes('D')||s.phase==='done'?D:'—'}`;
+  document.getElementById('pill-b').textContent = `B = ${(s.show||[]).includes('B')||s.phase==='done'?B:'—'}`;
+  document.getElementById('pill-c').textContent = `C = ${(s.show||[]).includes('C')||s.phase==='done'?Cc:'—'}`;
+  document.getElementById('pill-a').textContent = `A = ${(s.show||[]).includes('A')||s.phase==='done'?A:'—'}`;
+
+  document.getElementById('s-d').textContent = (s.show||[]).includes('D')||s.phase==='done'?D:'—';
+  document.getElementById('s-b').textContent = (s.show||[]).includes('B')||s.phase==='done'?B:'—';
+  document.getElementById('s-c').textContent = (s.show||[]).includes('C')||s.phase==='done'?Cc:'—';
+  document.getElementById('s-sum').textContent = s.phase==='init'?'—':s.run;
+  document.getElementById('s-sum-sub').textContent = s.phase==='done'?'final':'running';
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.phase==='done') { const pill=document.getElementById('done-pill'); pill.textContent=`✓ Sum: ${sum}`; pill.style.display='inline-block'; }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  Q = EXAMPLES[i].q;
+  document.getElementById('example-desc').innerHTML = EXAMPLES[i].desc;
+  steps = buildSteps();
+  buildTableRows(steps);
+  cursor = -1; applyState(-1);
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   { if (playing){stopPlay();return;} if (cursor>=steps.length-1){cursor=-1;applyState(-1);} playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick(); }
+function tick() { if (!playing) return; if (cursor>=steps.length-1){stopPlay();return;} cursor++;applyState(cursor); timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]); }
+function togglePin() { const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn'); const p=panel.classList.toggle('pinned'); btn.classList.toggle('active',p); btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling'; }
+function copyCode() { navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{ const b=document.querySelector('.copy-btn'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1500); }); }
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain: "algocrux8344.firebaseapp.com", projectId: "algocrux8344", storageBucket: "algocrux8344.firebasestorage.app", messagingSenderId: "915570389436", appId: "1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId: "G-FFQ8CW124S" };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+  let currentUser = null; let isCompleted = false;
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+  function setCompletedState() { isCompleted = true; markBtn.innerHTML = '<span>&#x2705; Completed</span>'; markBtn.style.background = '#0d2318'; markBtn.style.borderColor = '#1a6b3a'; markBtn.style.color = '#4ade80'; markBtn.style.cursor = 'default'; trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80'; trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318'; trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80'; }
+  function setLoggedOutState() { markBtn.style.display = 'none'; trackerLogin.style.display = 'block'; trackerStatus.textContent = 'Sign in to track'; }
+  onAuthStateChanged(auth, async (user) => { if (!user) { setLoggedOutState(); return; } currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none'; const userDoc = await getDoc(doc(db, 'users', user.uid)); if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) { setCompletedState(); } });
+  markBtn.addEventListener('click', async () => { if (!currentUser || isCompleted) return; markBtn.disabled = true; markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>'; try { const userRef = doc(db, 'users', currentUser.uid); const userDoc = await getDoc(userRef); const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})(); if (userDoc.exists()) { await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) }); } else { await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } }); } setCompletedState(); } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; } });
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => { if (!user) return; const snap = await getDoc(doc(db, 'users', user.uid)); if (snap.exists()) { const bm = snap.data().bookmarks || []; isBookmarked = bm.includes(algoId); btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;'; btn.classList.toggle('active', isBookmarked); } });
+  btn.addEventListener('click', async () => { const user = auth.currentUser; if (!user) return; const ref = doc(db, 'users', user.uid); const snap = await getDoc(ref); const data = snap.exists() ? snap.data() : {}; const bm = new Set(data.bookmarks || []); if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId); await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true }); isBookmarked = !isBookmarked; btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;'; btn.classList.toggle('active', isBookmarked); });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain: "algocrux8344.firebaseapp.com", projectId: "algocrux8344", storageBucket: "algocrux8344.firebasestorage.app", messagingSenderId: "915570389436", appId: "1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId: "G-FFQ8CW124S" };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+  let currentUser = null; let saveTimer = null; let isSaving = false;
+  notesHeader.addEventListener('click', () => { const isOpen = notesBody.classList.toggle('open'); notesHeader.classList.toggle('open', isOpen); toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;'; if (isOpen) textarea.focus(); });
+  textarea.addEventListener('input', () => { const len = textarea.value.length; charCount.textContent = len + ' char' + (len !== 1 ? 's' : ''); setSaveStatus('unsaved'); clearTimeout(saveTimer); saveTimer = setTimeout(() => saveNotes(), 1500); });
+  function setSaveStatus(status) { saveStatus.className = 'save-status ' + status; if (status === 'saved') { saveText.textContent = 'Saved'; saveDot.innerHTML = '&#x2705;'; noteIndicator.classList.add('visible'); } else if (status === 'saving') { saveText.textContent = 'Saving...'; saveDot.innerHTML = '&#x23F3;'; } else if (status === 'error') { saveText.textContent = 'Error saving'; saveDot.innerHTML = '&#x274C;'; } else { saveText.textContent = 'Unsaved changes'; saveDot.innerHTML = '&#x25CF;'; } }
+  async function saveNotes() { if (isSaving) return; isSaving = true; setSaveStatus('saving'); try { if (currentUser) { const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId); await setDoc(notesRef, { text: textarea.value, updatedAt: new Date().toISOString() }, { merge: true }); } localStorage.setItem(LOCAL_KEY, textarea.value); setSaveStatus('saved'); } catch (err) { localStorage.setItem(LOCAL_KEY, textarea.value); setSaveStatus('error'); } finally { isSaving = false; } }
+  async function loadNotes() { let text = ''; if (currentUser) { try { const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId); const snap = await getDoc(notesRef); if (snap.exists()) text = snap.data().text || ''; } catch (err) {} } if (!text) text = localStorage.getItem(LOCAL_KEY) || ''; textarea.value = text; const len = text.length; charCount.textContent = len + ' char' + (len !== 1 ? 's' : ''); if (text.trim()) { noteIndicator.classList.add('visible'); setSaveStatus('saved'); } else { setSaveStatus('unsaved'); } }
+  async function syncLocalNotes() { const localText = localStorage.getItem(LOCAL_KEY); if (!localText || !currentUser) return; try { const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId); const snap = await getDoc(notesRef); const cloudText = snap.exists() ? (snap.data().text || '') : ''; if (localText.length > cloudText.length) { await setDoc(notesRef, { text: localText, updatedAt: new Date().toISOString() }, { merge: true }); } localStorage.removeItem(LOCAL_KEY); } catch (err) {} }
+  onAuthStateChanged(auth, async (user) => { currentUser = user; if (user) await syncLocalNotes(); await loadNotes(); });
+  window.addEventListener('beforeunload', () => { if (textarea.value.trim()) { localStorage.setItem(LOCAL_KEY, textarea.value); if (currentUser && !isSaving) saveNotes(); } });
+</script>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

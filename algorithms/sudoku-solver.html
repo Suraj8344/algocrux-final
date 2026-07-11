@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Solver — Backtracking</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+  }
+  .badge {
+    background: var(--amber-bg);
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #4a3a0a;
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: .75rem;
+  }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a3a0a; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  @media(max-width:700px){ .anim-panel.pinned{ top:8px; max-height:calc(100vh - 16px); } }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+
+  /* SUDOKU BOARD */
+  .board-outer { overflow-x: auto; padding-bottom: .5rem; display: flex; justify-content: center; }
+  .board-wrap {
+    display: inline-grid;
+    grid-template-columns: repeat(9, 38px);
+    grid-template-rows: repeat(9, 38px);
+    gap: 0;
+    border: 2px solid var(--border2);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--border);
+  }
+  .scell {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; font-family: var(--mono);
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    position: relative;
+    transition: background .2s, box-shadow .2s;
+  }
+  /* thicker box borders every 3 cells */
+  .scell.box-right  { border-right: 2px solid var(--border2); }
+  .scell.box-bottom { border-bottom: 2px solid var(--border2); }
+  .scell.given   { color: var(--text); background: #1f2333; }
+  .scell.filled  { color: var(--teal); }
+  .scell.state-current   { box-shadow: inset 0 0 0 3px var(--accent); background: var(--accent-bg); }
+  .scell.state-reject    { box-shadow: inset 0 0 0 3px var(--red); background: var(--red-bg); animation: shakecell .3s ease; }
+  .scell.state-conflict  { box-shadow: inset 0 0 0 3px var(--red); }
+  .scell.state-place     { box-shadow: inset 0 0 0 3px var(--green); background: var(--green-bg); animation: popcell .3s ease; color: var(--green); }
+  .scell.state-removing  { box-shadow: inset 0 0 0 3px var(--amber); opacity: .5; }
+  .scell.state-solved    { box-shadow: inset 0 0 0 2px var(--purple); background: var(--purple-bg); color: var(--purple); }
+
+  @keyframes shakecell {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-3px)}
+    75%{transform:translateX(3px)}
+  }
+  @keyframes popcell {
+    0%{transform:scale(1)}
+    50%{transform:scale(1.25)}
+    100%{transform:scale(1)}
+  }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--amber), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 1.25rem 0; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.purple .val { color: var(--purple); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65; transition: all .2s;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .btn.primary:hover { background: #4a3a0a; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--amber); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+  .fail-pill {
+    background: var(--red-bg); color: var(--red);
+    border: 1px solid #5a1a1a; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  .walkthrough {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td {
+    padding: 7px 10px; border-bottom: 1px solid var(--border);
+    font-family: var(--mono); color: var(--muted); white-space: nowrap;
+  }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .step-table .cell-idx { color: var(--accent); }
+  .step-table .action-try     { color: var(--accent); }
+  .step-table .action-reject  { color: var(--red); }
+  .step-table .action-place   { color: var(--green); }
+  .step-table .action-unplace { color: var(--amber); }
+  .step-table .action-solution{ color: var(--purple); }
+
+  .code-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--amber); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Backtracking</span>
+      <h1>Sudoku Solver</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/sudoku-solver/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Fill a 9×9 grid so every row, column, and 3×3 box contains 1–9 — O(9^M) worst case</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Fills the empty cells of a 9×9 Sudoku grid so that every <strong style="color:var(--text)">row</strong>, <strong style="color:var(--text)">column</strong>, and <strong style="color:var(--text)">3×3 box</strong> contains the digits 1–9 exactly once, while respecting the given clues.</p>
+      <p style="margin-top:.75rem">We scan for the next empty cell, try digits 1–9, check if each is <strong style="color:var(--text)">safe</strong> (no conflicts), and recurse. If no digit works, we <strong style="color:var(--amber)">backtrack</strong> and undo the previous placement.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// find next empty cell (r, c):</span><br>
+        <span class="keyword">for</span> digit 1..9:<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> isSafe(r, c, digit):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;place(r, c, digit)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;solve(next cell)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;unplace(r, c) <span class="comment">// backtrack</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(9^M)</div>
+      <p>Worst case is exponential in M, the number of empty cells — heavily pruned in practice by the row/column/box safety check.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(M)</div>
+      <p>Recursion depth scales with the number of empty cells; the 9×9 board itself is O(1) extra space.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Standard puzzle <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Nearly complete <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Heavy backtracking <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Unsolvable (conflict) <span class="tag tag-edge">edge</span></button>
+  </div>
+
+  <!-- EXAMPLE DESCRIPTION -->
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#1f2333;border-color:var(--border2)"></span> Given clue</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> Trying this cell</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> Conflict / rejected</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> Just placed</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> Solved</span>
+    </div>
+
+    <div class="board-outer">
+      <div class="board-wrap" id="board-wrap"></div>
+    </div>
+
+    <div class="step-label" id="step-label" style="margin-top:1.25rem">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box accent">
+        <div class="lbl">Cell</div>
+        <div class="val" id="s-pos">—</div>
+        <div class="sub" id="s-pos-sub">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Action</div>
+        <div class="val" id="s-action" style="font-size:14px">—</div>
+        <div class="sub" id="s-action-sub">—</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="lbl">Cells filled</div>
+        <div class="val" id="s-filled">—</div>
+        <div class="sub" id="s-filled-sub">of 81</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">Backtracks</div>
+        <div class="val" id="s-bt">—</div>
+        <div class="sub">so far</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select a puzzle and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Solved</span>
+      <span id="fail-pill" class="fail-pill">✗ No solution</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="4" step="1">
+        <span id="spd-lbl" style="min-width:50px">Fast</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table (scrollable)</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Row</th>
+          <th>Col</th>
+          <th>Digit</th>
+          <th>Action</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>sudoku_solver.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">bool</span> <span class="fn">isSafe</span>(<span class="kw">int</span> grid[<span class="nm">9</span>][<span class="nm">9</span>], <span class="kw">int</span> row, <span class="kw">int</span> col, <span class="kw">int</span> num) {
+    <span class="kw">for</span> (<span class="kw">int</span> x = <span class="nm">0</span>; x &lt; <span class="nm">9</span>; x++)
+        <span class="kw">if</span> (grid[row][x] == num || grid[x][col] == num)
+            <span class="kw">return false</span>;                       <span class="cm">// row / column conflict</span>
+
+    <span class="kw">int</span> br = row - row % <span class="nm">3</span>, bc = col - col % <span class="nm">3</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; <span class="nm">3</span>; i++)
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nm">0</span>; j &lt; <span class="nm">3</span>; j++)
+            <span class="kw">if</span> (grid[br+i][bc+j] == num)
+                <span class="kw">return false</span>;                   <span class="cm">// 3x3 box conflict</span>
+
+    <span class="kw">return true</span>;
+}
+
+<span class="kw">bool</span> <span class="fn">solve</span>(<span class="kw">int</span> grid[<span class="nm">9</span>][<span class="nm">9</span>]) {
+    <span class="kw">int</span> row = -<span class="nm">1</span>, col = -<span class="nm">1</span>;
+    <span class="kw">bool</span> empty = <span class="kw">false</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> r = <span class="nm">0</span>; r &lt; <span class="nm">9</span> &amp;&amp; !empty; r++)
+        <span class="kw">for</span> (<span class="kw">int</span> c = <span class="nm">0</span>; c &lt; <span class="nm">9</span> &amp;&amp; !empty; c++)
+            <span class="kw">if</span> (grid[r][c] == <span class="nm">0</span>) { row=r; col=c; empty=<span class="kw">true</span>; }
+
+    <span class="kw">if</span> (!empty) <span class="kw">return true</span>;             <span class="cm">// no empty cells left -- solved</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> num = <span class="nm">1</span>; num &lt;= <span class="nm">9</span>; num++) {
+        <span class="kw">if</span> (<span class="fn">isSafe</span>(grid, row, col, num)) {
+            grid[row][col] = num;            <span class="cm">// place</span>
+            <span class="kw">if</span> (<span class="fn">solve</span>(grid)) <span class="kw">return true</span>;
+            grid[row][col] = <span class="nm">0</span>;            <span class="cm">// backtrack</span>
+        }
+    }
+    <span class="kw">return false</span>;                       <span class="cm">// trigger backtracking</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> grid[<span class="nm">9</span>][<span class="nm">9</span>] = { <span class="cm">/* ... puzzle, 0 = empty ... */</span> };
+    <span class="kw">if</span> (<span class="fn">solve</span>(grid)) cout &lt;&lt; <span class="st">"Solved!\n"</span>;
+    <span class="kw">else</span> cout &lt;&lt; <span class="st">"No solution exists.\n"</span>;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    label: "Standard puzzle",
+    grid: [
+      [5,3,0, 0,7,0, 0,0,0],
+      [6,0,0, 1,9,5, 0,0,0],
+      [0,9,8, 0,0,0, 0,6,0],
+
+      [8,0,0, 0,6,0, 0,0,3],
+      [4,0,0, 8,0,3, 0,0,1],
+      [7,0,0, 0,2,0, 0,0,6],
+
+      [0,6,0, 0,0,0, 2,8,0],
+      [0,0,0, 4,1,9, 0,0,5],
+      [0,0,0, 0,8,0, 0,7,9]
+    ],
+    desc: `<strong style="color:var(--text)">Classic example</strong> — a well-known easy/medium Sudoku puzzle with a unique solution. Watch the solver scan empty cells left-to-right, top-to-bottom, trying digits 1–9 and backtracking out of dead ends.`
+  },
+  {
+    label: "Nearly complete",
+    grid: [
+      [5,3,4, 6,7,8, 9,1,2],
+      [6,7,2, 1,9,5, 3,4,8],
+      [1,9,8, 3,4,2, 5,6,7],
+
+      [8,5,9, 7,6,1, 4,2,3],
+      [4,2,6, 8,5,3, 7,9,1],
+      [7,1,3, 9,2,4, 8,5,6],
+
+      [9,6,1, 5,3,7, 2,8,4],
+      [2,8,7, 4,1,9, 6,3,5],
+      [3,0,0, 0,0,0, 1,7,9]
+    ],
+    desc: `<strong style="color:var(--text)">Edge case: nearly complete board.</strong> Only the last few cells are empty — the solver fills them almost immediately with little to no backtracking, since most of the grid already constrains the remaining digits.`
+  },
+  {
+    label: "Heavy backtracking",
+    grid: [
+      [0,0,0, 0,0,0, 0,0,0],
+      [0,0,0, 0,0,3, 0,8,5],
+      [0,0,1, 0,2,0, 0,0,0],
+
+      [0,0,0, 5,0,7, 0,0,0],
+      [0,0,4, 0,0,0, 1,0,0],
+      [0,9,0, 0,0,0, 0,0,0],
+
+      [5,0,0, 0,0,0, 0,7,3],
+      [0,0,2, 0,1,0, 0,0,0],
+      [0,0,0, 0,4,0, 0,0,9]
+    ],
+    desc: `<strong style="color:var(--text)">Edge case: sparse puzzle, heavy backtracking.</strong> Very few given clues means many more dead ends — watch the algorithm repeatedly place digits, hit conflicts deeper in the grid, and backtrack many cells before finding the right path.`
+  },
+  {
+    label: "Unsolvable (conflict)",
+    grid: [
+      [5,5,0, 0,7,0, 0,0,0],
+      [6,0,0, 1,9,5, 0,0,0],
+      [0,9,8, 0,0,0, 0,6,0],
+
+      [8,0,0, 0,6,0, 0,0,3],
+      [4,0,0, 8,0,3, 0,0,1],
+      [7,0,0, 0,2,0, 0,0,6],
+
+      [0,6,0, 0,0,0, 2,8,0],
+      [0,0,0, 4,1,9, 0,0,5],
+      [0,0,0, 0,8,0, 0,7,9]
+    ],
+    desc: `<strong style="color:var(--text)">Edge case: no valid solution.</strong> Two 5's are placed in the same row as given clues — an immediately invalid starting position. The solver will exhaustively try every possibility, backtrack all the way out, and correctly report <strong style="color:var(--red)">no solution exists</strong>.`
+  }
+];
+
+const SPEEDS = [900,500,250,120,50];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+
+let N = 9;
+let steps = [];
+let cursor = -1;
+let playing = false;
+let timer = null;
+let givenMask = [];
+
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+function cloneGrid(g){ return g.map(row=>[...row]); }
+
+function buildSteps(initialGrid) {
+  const steps = [];
+  const grid = cloneGrid(initialGrid);
+  let backtracks = 0;
+  let solved = false;
+  let failed = false;
+
+  function findEmpty() {
+    for (let r=0;r<9;r++)
+      for (let c=0;c<9;c++)
+        if (grid[r][c]===0) return [r,c];
+    return null;
+  }
+
+  function conflicts(row,col,num) {
+    const reasons = [];
+    for (let x=0;x<9;x++) {
+      if (x!==col && grid[row][x]===num) reasons.push(`row (${row},${x})`);
+      if (x!==row && grid[x][col]===num) reasons.push(`col (${x},${col})`);
+    }
+    const br = row-row%3, bc = col-col%3;
+    for (let i=0;i<3;i++) for (let j=0;j<3;j++) {
+      const rr=br+i, cc=bc+j;
+      if ((rr!==row||cc!==col) && grid[rr][cc]===num) reasons.push(`box (${rr},${cc})`);
+    }
+    return reasons;
+  }
+
+  let guard = 0;
+  const MAX_STEPS = 4000;
+
+  function backtrack() {
+    if (solved || failed) return;
+    if (guard++ > MAX_STEPS) { failed = true; return; }
+
+    const empty = findEmpty();
+    if (!empty) {
+      solved = true;
+      steps.push({ type:'solution', row:-1, col:-1, grid:cloneGrid(grid), backtracks });
+      return;
+    }
+    const [row,col] = empty;
+    for (let num=1; num<=9; num++) {
+      if (solved || failed) return;
+      steps.push({ type:'try', row, col, num, grid:cloneGrid(grid), backtracks });
+      const conf = conflicts(row,col,num);
+      if (conf.length) {
+        steps.push({ type:'reject', row, col, num, grid:cloneGrid(grid), conflictWith:conf, backtracks });
+        continue;
+      }
+      grid[row][col] = num;
+      steps.push({ type:'place', row, col, num, grid:cloneGrid(grid), backtracks });
+      backtrack();
+      if (solved || failed) return;
+      grid[row][col] = 0;
+      backtracks++;
+      steps.push({ type:'unplace', row, col, num, grid:cloneGrid(grid), backtracks });
+    }
+  }
+
+  backtrack();
+  if (!solved) {
+    steps.push({ type:'fail', row:-1, col:-1, grid:cloneGrid(grid), backtracks });
+  }
+  return steps;
+}
+
+function gridStr(g){
+  return g.map(row=>row.join('')).join('|');
+}
+
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx)=>{
+    let actionLabel, note;
+    if (s.type==='try') { actionLabel = `<span class="action-try">Try</span>`; note='checking safety'; }
+    else if (s.type==='reject') { actionLabel = `<span class="action-reject">✗ Reject</span>`; note = s.conflictWith.slice(0,2).join(', ') + (s.conflictWith.length>2?'…':''); }
+    else if (s.type==='place') { actionLabel = `<span class="action-place">✓ Place</span>`; note='—'; }
+    else if (s.type==='unplace') { actionLabel = `<span class="action-unplace">↺ Backtrack</span>`; note='undo, try next digit'; }
+    else if (s.type==='solution') { actionLabel = `<span class="action-solution">★ Solved</span>`; note = 'all 81 cells filled'; }
+    else { actionLabel = `<span style="color:var(--red)">✗ No solution</span>`; note = `${s.backtracks} backtracks total`; }
+    const row = s.row>=0 ? s.row : '—';
+    const col = s.col>=0 ? s.col : '—';
+    const num = s.num!==undefined ? s.num : '—';
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td class="cell-idx">${row}</td>
+      <td class="cell-idx">${col}</td>
+      <td>${num}</td>
+      <td>${actionLabel}</td>
+      <td>${note}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBoardShell() {
+  const wrap = document.getElementById('board-wrap');
+  let html = '';
+  for (let r=0;r<9;r++) {
+    for (let c=0;c<9;c++) {
+      let cls = 'scell';
+      if ((c+1)%3===0 && c!==8) cls += ' box-right';
+      if ((r+1)%3===0 && r!==8) cls += ' box-bottom';
+      html += `<div class="${cls}" id="cell-${r}-${c}"></div>`;
+    }
+  }
+  wrap.innerHTML = html;
+}
+
+function getCell(r,c){ return document.getElementById(`cell-${r}-${c}`); }
+
+function applyState(idx) {
+  // reset cells
+  for (let r=0;r<9;r++){
+    for (let c=0;c<9;c++){
+      const cell = getCell(r,c);
+      if (!cell) continue;
+      let cls = 'scell';
+      if ((c+1)%3===0 && c!==8) cls += ' box-right';
+      if ((r+1)%3===0 && r!==8) cls += ' box-bottom';
+      cell.className = cls;
+      cell.textContent = '';
+    }
+  }
+  steps.forEach((_,i)=>{
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+
+  if (idx < 0) {
+    // show initial grid with givens
+    drawGrid(steps.length ? cloneInitial() : [], false);
+    document.getElementById('s-pos').textContent='—';
+    document.getElementById('s-pos-sub').textContent='—';
+    document.getElementById('s-action').textContent='—';
+    document.getElementById('s-action').style.color='var(--text)';
+    document.getElementById('s-action-sub').textContent='—';
+    document.getElementById('s-filled').textContent='—';
+    document.getElementById('s-filled-sub').textContent='of 81';
+    document.getElementById('s-bt').textContent='—';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select a puzzle and press <strong style="color:var(--text)">Play</strong> to start.';
+    document.getElementById('done-pill').style.display='none';
+    document.getElementById('fail-pill').style.display='none';
+    return;
+  }
+
+  const s = steps[idx];
+  drawGrid(s.grid, true, s);
+
+  let actionText='', actionColor='var(--text)', actionSub='';
+
+  if (s.type==='try') {
+    const cell = getCell(s.row, s.col);
+    if (cell) cell.classList.add('state-current');
+    actionText='Try'; actionColor='var(--accent)';
+    actionSub=`testing digit ${s.num} at (${s.row},${s.col})`;
+  } else if (s.type==='reject') {
+    const cell = getCell(s.row, s.col);
+    if (cell) cell.classList.add('state-reject');
+    actionText='✗ Reject'; actionColor='var(--red)';
+    actionSub=`${s.num} conflicts — see table`;
+  } else if (s.type==='place') {
+    const cell = getCell(s.row, s.col);
+    if (cell) cell.classList.add('state-place');
+    actionText='✓ Place'; actionColor='var(--green)';
+    actionSub=`safe — placed ${s.num}`;
+  } else if (s.type==='unplace') {
+    const cell = getCell(s.row, s.col);
+    if (cell) { cell.classList.add('state-removing'); }
+    actionText='↺ Backtrack'; actionColor='var(--amber)';
+    actionSub=`removing ${s.num} at (${s.row},${s.col})`;
+  } else if (s.type==='solution') {
+    for (let r=0;r<9;r++) for (let c=0;c<9;c++) {
+      const cell = getCell(r,c);
+      if (cell) cell.classList.add('state-solved');
+    }
+    actionText='★ Solved'; actionColor='var(--purple)';
+    actionSub='all constraints satisfied';
+  } else if (s.type==='fail') {
+    actionText='✗ No solution'; actionColor='var(--red)';
+    actionSub='search space exhausted';
+  }
+
+  const filledCount = s.grid.flat().filter(v=>v!==0).length;
+  document.getElementById('s-pos').textContent = s.row>=0 ? `(${s.row},${s.col})` : '—';
+  document.getElementById('s-pos-sub').textContent = s.row>=0 ? `row ${s.row}, col ${s.col}` : '—';
+  document.getElementById('s-action').textContent = actionText;
+  document.getElementById('s-action').style.color = actionColor;
+  document.getElementById('s-action-sub').textContent = actionSub;
+  document.getElementById('s-filled').textContent = filledCount;
+  document.getElementById('s-filled-sub').textContent = 'of 81';
+  document.getElementById('s-bt').textContent = s.backtracks;
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  let msg = '';
+  if (s.type==='try') {
+    msg = `<span class="hi">Step ${idx+1} — Cell (${s.row},${s.col}).</span> Trying digit <span class="acc">${s.num}</span> — checking row, column, and box.`;
+  } else if (s.type==='reject') {
+    msg = `<span class="hi">Step ${idx+1} — Conflict.</span> Placing <span class="amb">${s.num}</span> at (${s.row},${s.col}) clashes with <span class="neg">${s.conflictWith[0]}</span>${s.conflictWith.length>1?` and ${s.conflictWith.length-1} more`:''}. Trying next digit.`;
+  } else if (s.type==='place') {
+    msg = `<span class="hi">Step ${idx+1} — Safe.</span> No conflicts — placing <span class="acc">${s.num}</span> at <span class="acc">(${s.row},${s.col})</span>. Moving to the next empty cell.`;
+  } else if (s.type==='unplace') {
+    msg = `<span class="hi">Step ${idx+1} — Dead end.</span> No digit worked further down this path — removing <span class="amb">${s.num}</span> from (${s.row},${s.col}) and trying the next digit.`;
+  } else if (s.type==='solution') {
+    msg = `<span class="hi">Step ${idx+1} — Complete!</span> <span class="sol">Every cell filled with no conflicts.</span> Solved after ${s.backtracks} backtrack(s).`;
+    document.getElementById('done-pill').style.display='inline-block';
+  } else {
+    msg = `<span class="hi">Step ${idx+1} — Exhausted.</span> <span class="neg">No valid arrangement exists</span> for this starting grid — every possibility was tried and backtracked (${s.backtracks} total).`;
+    document.getElementById('fail-pill').style.display='inline-block';
+  }
+  if (idx < steps.length-1) {
+    document.getElementById('done-pill').style.display='none';
+    document.getElementById('fail-pill').style.display='none';
+  }
+  document.getElementById('log').innerHTML = msg;
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+}
+
+let CURRENT_INITIAL = [];
+function cloneInitial(){ return cloneGrid(CURRENT_INITIAL); }
+
+function drawGrid(grid, animatedState, s) {
+  for (let r=0;r<9;r++){
+    for (let c=0;c<9;c++){
+      const cell = getCell(r,c);
+      if (!cell) continue;
+      const v = grid[r] ? grid[r][c] : 0;
+      cell.textContent = v===0 ? '' : v;
+      if (v!==0) {
+        if (CURRENT_INITIAL[r] && CURRENT_INITIAL[r][c]!==0) {
+          cell.classList.add('given');
+        } else {
+          cell.classList.add('filled');
+        }
+      }
+    }
+  }
+}
+
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[i];
+  CURRENT_INITIAL = cloneGrid(ex.grid);
+  document.getElementById('example-desc').innerHTML = ex.desc;
+  renderBoardShell();
+  steps = buildSteps(ex.grid);
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward(){
+  if (cursor < steps.length-1){ cursor++; applyState(cursor); }
+}
+function stepBack(){
+  if (cursor > 0){ cursor--; applyState(cursor); }
+  else if (cursor===0){ cursor=-1; applyState(-1); }
+}
+function resetAnim(){
+  stopPlay(); cursor=-1; applyState(-1);
+}
+function stopPlay(){
+  playing=false; clearTimeout(timer);
+  document.getElementById('btn-play').textContent='▶ Play';
+}
+function playPause(){
+  if (playing){ stopPlay(); return; }
+  if (cursor>=steps.length-1){ cursor=-1; applyState(-1); }
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick(){
+  if (!playing) return;
+  if (cursor>=steps.length-1){ stopPlay(); return; }
+  cursor++;
+  applyState(cursor);
+  const spd = SPEEDS[document.getElementById('speed').value-1];
+  timer = setTimeout(tick, spd);
+}
+
+function togglePin(){
+  const panel = document.getElementById('anim-panel');
+  const btn = document.getElementById('pin-btn');
+  const isPinned = panel.classList.toggle('pinned');
+  btn.classList.toggle('active', isPinned);
+  btn.textContent = isPinned ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+
+function copyCode(){
+  const code = document.getElementById('code-block').innerText;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+// init
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

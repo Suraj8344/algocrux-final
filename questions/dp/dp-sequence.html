@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<style>.design-ui-credit{position:fixed;bottom:12px;right:12px;font:11px/1 system-ui,sans-serif;color:rgba(128,128,128,0.5);pointer-events:none;z-index:2147483647;transition:opacity .4s ease;user-select:none;letter-spacing:.02em}@media(hover:none){.design-ui-credit{display:none}}@media print{*{transition:none!important;animation:none!important}.design-ui-credit{display:none!important}}</style>
+<script>(function(){function m(){document.body.classList.add('artifact-editable')}function c(){if(!matchMedia('(hover:hover)').matches)return;var d=document.createElement('div');d.className='design-ui-credit';d.setAttribute('aria-hidden','true');d.innerHTML='\u{1F49C} by ClickUp Brain';document.body.appendChild(d);var t=null,f=function(o){d.style.opacity=o?'0':''};f(true);var s=function(){f(false);clearTimeout(t);t=setTimeout(function(){f(true)},3000)};document.addEventListener('mousemove',s);s()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){m();c()});else{m();c()}})();</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sequence DP — Longest Common Subsequence</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--muted2:#5c6189;--green:#4ade80;--green-bg:#0d2318;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0d2522;--accent:#6c8fff;--accent-bg:#1a2140;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}.badge-row{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}.badge{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}.badge.gfg{background:var(--accent-bg);color:var(--accent);border:1px solid #1a2a60}.badge.px{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155}.badge.med{background:var(--amber-bg);color:var(--amber);border:1px solid #5c4a1a}header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}@media(max-width:640px){.concept{grid-template-columns:1fr}}.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--amber);line-height:2.1}.formula .comment{color:var(--muted);font-style:italic}.formula .keyword{color:var(--purple)}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:6px}.dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.grid-container{display:inline-grid;gap:2px;margin:1rem 0;overflow-x:auto}.grid-cell{width:40px;height:36px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted2);transition:all .25s}.grid-cell.filled{color:var(--text)}.grid-cell.current{border-color:var(--purple);background:var(--purple-bg);color:var(--purple)}.grid-cell.match-cell{border-color:var(--green);background:var(--green-bg);color:var(--green)}.grid-cell.source{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}.grid-cell.answer{border-color:var(--green);background:var(--green-bg);color:var(--green);box-shadow:0 0 0 2px rgba(74,222,128,.2)}.grid-cell.header{background:var(--surface);border:none;color:var(--teal);font-size:14px;font-weight:700}.grid-cell.corner{background:var(--surface);border:none;color:var(--muted)}
+.str-row{display:flex;gap:4px;margin:.75rem 0;font-family:var(--mono);font-size:16px;font-weight:700}.str-char{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border2);color:var(--text);transition:all .25s}.str-char.hl{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:6px}.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width .3s ease;width:0%}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}@media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}.stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}.stat-box.purple .val{color:var(--purple)}.stat-box.amber .val{color:var(--amber)}.stat-box.teal .val{color:var(--teal)}.stat-box.green .val{color:var(--green)}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.25rem;line-height:1.65}.log-box .hi{color:var(--text);font-weight:500}.log-box .pos{color:var(--green);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .sol{color:var(--purple);font-weight:600}.log-box .tl{color:var(--teal);font-weight:600}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}.done-pill{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans)}.copy-btn:hover{color:var(--text)}pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}
+.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}@media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}.complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}.complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}.notes-header:hover{background:var(--border)}.notes-header h3{font-size:.95rem;font-weight:600}.notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}.notes-header.open .toggle-icon{transform:rotate(180deg)}.notes-body{padding:1.25rem;display:none}.notes-body.open{display:block}.notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;resize:vertical;outline:none}
+.lc-banner{display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,#1a2140,#0c2624);border:1px solid #343a57;border-radius:12px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:14px}.lc-banner .lc-icon{width:36px;height:36px;border-radius:8px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;flex-shrink:0}.lc-banner .lc-text{flex:1;color:#8a8fb5;line-height:1.5}.lc-banner .lc-text b{color:#eef0fa;font-weight:600}.lc-banner .lc-btn{background:linear-gradient(135deg,#6c8fff,#2dd4bf);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;transition:all .2s ease;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}.lc-banner .lc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,143,255,.4)}@media(max-width:640px){.lc-banner{flex-direction:column;align-items:flex-start;gap:.6rem}.lc-banner .lc-btn{width:100%;justify-content:center}}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}.input-row label{font-size:12px;color:var(--muted);font-family:var(--mono)}.input-row input[type=text]{flex:1;min-width:80px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+</style><link rel="stylesheet" href="../practice/practice.css">
+</head><body>
+<header><div><div class="badge-row"><span class="badge gfg">DP / Pattern Types</span><span class="badge px">Sequence DP</span><span class="badge med">Medium</span></div><h1>Sequence DP — Longest Common Subsequence</h1><p>Compare two strings character by character. If match: dp[i][j] = dp[i-1][j-1]+1. Else: max of skip either.</p></div></header>
+<main>
+  <div class="lc-banner"><div class="lc-icon">LC</div><div class="lc-text">Practice on <b>LeetCode 1143: Longest Common Subsequence</b></div><a href="https://leetcode.com/problems/longest-common-subsequence/" target="_blank" rel="noopener" class="lc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open Problem</a></div>
+  <div class="concept"><div><h2>Sequence DP Pattern</h2><p>Two sequences compared with a <strong style="color:var(--teal)">2D table</strong>. Each cell (i,j) represents the LCS of the first i chars of s1 and first j chars of s2. If chars <strong style="color:var(--green)">match</strong>, extend the diagonal. If not, take the <strong style="color:var(--amber)">max of skipping either</strong>.</p></div><div><h2>Recurrence</h2><div class="formula"><span class="keyword">if</span> s1[i-1] == s2[j-1]:<br>&nbsp;&nbsp;dp[i][j] = dp[i-1][j-1] + 1 <span class="comment">// match!</span><br><span class="keyword">else</span>:<br>&nbsp;&nbsp;dp[i][j] = max(dp[i-1][j], dp[i][j-1])</div></div></div>
+
+  <div class="anim-panel" id="panel"><div class="anim-panel-head"><span class="title">Interactive Visualization</span></div>
+    <div class="legend"><span><div class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></div> Computing</span><span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Match (diagonal)</span><span><div class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></div> Max of skip</span></div>
+    <div class="input-row"><label>S1:</label><input type="text" id="s1" value="ABCBDAB"><label>S2:</label><input type="text" id="s2" value="BDCAB"><button class="btn" onclick="reset()">Apply</button></div>
+    <div style="overflow-x:auto"><div class="grid-container" id="grid"></div></div>
+    <div class="step-label" id="step-label">Step 0 of 0</div><div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+    <div class="stats-row"><div class="stat-box purple"><div class="lbl">Cell</div><div class="val" id="s-cell">—</div></div><div class="stat-box amber"><div class="lbl">Comparing</div><div class="val" id="s-cmp">—</div></div><div class="stat-box teal"><div class="lbl">dp[i][j]</div><div class="val" id="s-val">—</div></div><div class="stat-box green"><div class="lbl">LCS Length</div><div class="val" id="s-ans">—</div></div></div>
+    <div class="log-box" id="log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.</div>
+    <div class="controls"><button class="btn" onclick="stepBack()">← Prev</button><button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button><button class="btn" onclick="stepFwd()">Next →</button><button class="btn" onclick="reset()">↺ Reset</button><span class="done-pill" id="done-pill">✓ Done</span><div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="spd"></div></div>
+  </div>
+  <div class="code-section"><div class="code-header"><span>C++ — LCS</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">int</span> <span class="fn">longestCommonSubsequence</span>(<span class="kw">string</span> s1, <span class="kw">string</span> s2) {
+    <span class="kw">int</span> m = s1.<span class="fn">size</span>(), n = s2.<span class="fn">size</span>();
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(m+<span class="nm">1</span>, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(n+<span class="nm">1</span>, <span class="nm">0</span>));
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt;= m; i++)
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nm">1</span>; j &lt;= n; j++)
+            <span class="kw">if</span> (s1[i-<span class="nm">1</span>] == s2[j-<span class="nm">1</span>])
+                dp[i][j] = dp[i-<span class="nm">1</span>][j-<span class="nm">1</span>] + <span class="nm">1</span>;
+            <span class="kw">else</span>
+                dp[i][j] = <span class="fn">max</span>(dp[i-<span class="nm">1</span>][j], dp[i][j-<span class="nm">1</span>]);
+
+    <span class="kw">return</span> dp[m][n];
+}</pre></div>
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid"><div class="complex-card"><div class="lbl">Time</div><div class="big">O(M × N)</div><p>M and N are string lengths.</p></div><div class="complex-card"><div class="lbl">Space</div><div class="big">O(M × N)</div><p>Can optimize to O(min(M,N)).</p></div></div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes on Sequence DP / LCS..."></textarea></div></div>
+</main>
+<script>
+const S={steps:[],idx:-1,playing:false,timer:null};
+function getS1(){return(document.getElementById('s1').value||'ABC').toUpperCase().slice(0,8)}
+function getS2(){return(document.getElementById('s2').value||'AC').toUpperCase().slice(0,8)}
+function spd(){return[1800,1200,750,400,180][parseInt(document.getElementById('spd').value)-1]}
+function gen(){const s1=getS1(),s2=getS2(),m=s1.length,n=s2.length;const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));const steps=[];
+steps.push({dp:dp.map(r=>[...r]),cur:null,src:[],isMatch:false,log:`S1: "<span class="hi">${s1}</span>", S2: "<span class="hi">${s2}</span>". Building ${m+1}×${n+1} table.`});
+for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const match=s1[i-1]===s2[j-1];
+  if(match){dp[i][j]=dp[i-1][j-1]+1;
+    steps.push({dp:dp.map(r=>[...r]),cur:[i,j],src:[[i-1,j-1]],isMatch:true,log:`'<span class="pos">${s1[i-1]}</span>' == '<span class="pos">${s2[j-1]}</span>': dp[${i}][${j}] = dp[${i-1}][${j-1}] + 1 = <span class="pos">${dp[i][j]}</span>. Match!`})}
+  else{dp[i][j]=Math.max(dp[i-1][j],dp[i][j-1]);
+    steps.push({dp:dp.map(r=>[...r]),cur:[i,j],src:[[i-1,j],[i,j-1]],isMatch:false,log:`'${s1[i-1]}' ≠ '${s2[j-1]}': dp[${i}][${j}] = max(dp[${i-1}][${j}], dp[${i}][${j-1}]) = max(${dp[i-1][j]}, ${dp[i][j-1]}) = <span class="tl">${dp[i][j]}</span>.`})}}
+// trace LCS
+let lcs='',ti=m,tj=n;while(ti>0&&tj>0){if(s1[ti-1]===s2[tj-1]){lcs=s1[ti-1]+lcs;ti--;tj--}else if(dp[ti-1][tj]>dp[ti][tj-1])ti--;else tj--}
+steps.push({dp:dp.map(r=>[...r]),cur:null,src:[],answer:[m,n],lcs,log:`✓ <span class="pos">LCS length = ${dp[m][n]}</span>. LCS: "<span class="pos">${lcs}</span>".`});
+return steps}
+function render(){const s=S.steps[S.idx];if(!s)return;const s1=getS1(),s2=getS2(),m=s1.length,n=s2.length;
+const grid=document.getElementById('grid');grid.style.gridTemplateColumns=`40px repeat(${n+1},40px)`;
+let h='<div class="grid-cell corner"></div><div class="grid-cell corner">∅</div>';for(let j=0;j<n;j++)h+=`<div class="grid-cell header">${s2[j]}</div>`;
+h+='<div class="grid-cell corner">∅</div>';for(let j=0;j<=n;j++)h+=`<div class="grid-cell filled">0</div>`;
+for(let i=1;i<=m;i++){h+=`<div class="grid-cell header">${s1[i-1]}</div>`;
+  for(let j=0;j<=n;j++){let cls='grid-cell';if(s.dp[i][j]>0||j===0)cls+=' filled';
+    if(s.answer&&s.answer[0]===i&&s.answer[1]===j)cls+=' answer';
+    else if(s.cur&&s.cur[0]===i&&s.cur[1]===j)cls+=s.isMatch?' match-cell':' current';
+    else if(s.src.some(p=>p[0]===i&&p[1]===j))cls+=' source';
+    h+=`<div class="${cls}">${s.dp[i][j]}</div>`}}
+grid.innerHTML=h;
+document.getElementById('s-cell').textContent=s.cur?`(${s.cur[0]},${s.cur[1]})`:'—';document.getElementById('s-cmp').textContent=s.cur?`${s1[s.cur[0]-1]} vs ${s2[s.cur[1]-1]}`:'—';document.getElementById('s-val').textContent=s.cur?s.dp[s.cur[0]][s.cur[1]]:'—';document.getElementById('s-ans').textContent=s.answer?s.dp[s.answer[0]][s.answer[1]]+(s.lcs?' "'+s.lcs+'"':''):'—';
+document.getElementById('log').innerHTML=s.log;const t=S.steps.length-1;document.getElementById('pf').style.width=(t>0?(S.idx/t)*100:0)+'%';document.getElementById('step-label').textContent=`Step ${S.idx+1} of ${S.steps.length}`;document.getElementById('done-pill').style.display=s.answer?'inline-block':'none'}
+function stepFwd(){if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx<S.steps.length-1){S.idx++;render()}}
+function stepBack(){if(S.idx>0){S.idx--;render()}}
+function togglePlay(){if(S.playing){S.playing=false;clearTimeout(S.timer);document.getElementById('play-btn').textContent='▶ Play';return}if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx>=S.steps.length-1)S.idx=-1;S.playing=true;document.getElementById('play-btn').textContent='⏸ Pause';(function go(){if(!S.playing)return;if(S.idx>=S.steps.length-1){S.playing=false;document.getElementById('play-btn').textContent='▶ Play';return}S.idx++;render();S.timer=setTimeout(go,spd())})()}
+function reset(){S.playing=false;clearTimeout(S.timer);S.steps=[];S.idx=-1;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('done-pill').style.display='none';document.getElementById('grid').innerHTML='';document.getElementById('pf').style.width='0%';document.getElementById('step-label').textContent='Step 0 of 0';['s-cell','s-cmp','s-val','s-ans'].forEach(id=>document.getElementById(id).textContent='—');document.getElementById('log').innerHTML='Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.'}
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight')stepFwd();if(e.key==='ArrowLeft')stepBack();if(e.key===' '){e.preventDefault();togglePlay()}if(e.key==='r')reset()});
+document.addEventListener('DOMContentLoaded',reset);
+</script></body></html>

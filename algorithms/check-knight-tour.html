@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check Knight Tour Configuration — LeetCode 2596</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+  .badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+  .b-easy  {background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .b-graph {background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .b-chess {background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+  .b-lc    {background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:3px}
+
+  main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  /* CONCEPT */
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.5rem}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .nm{color:var(--amber)}
+
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  /* MOVE GRID */
+  .move-showcase{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
+  .move-showcase canvas{border-radius:8px;flex-shrink:0}
+  .move-list{flex:1;min-width:180px}
+  .move-list h3{font-size:.9rem;font-weight:600;margin-bottom:.8rem;color:var(--muted)}
+  .move-list ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px 1rem}
+  .move-list li{font-family:var(--mono);font-size:12px;color:var(--teal);background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 8px}
+
+  /* COMPLEXITY */
+  .complexity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:600px){.complexity-grid{grid-template-columns:1fr}}
+  .cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+  .cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .tag-s{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--teal-bg);color:var(--teal)}
+  .tag-e{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--purple-bg);color:var(--purple)}
+  .tag-i{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--red-bg);color:var(--red)}
+
+  /* ANIMATION PANEL */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text)}
+  .pin-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* PHASE */
+  .phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1rem}
+  .phase-badge.checking {background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .phase-badge.valid    {background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .phase-badge.invalid  {background:var(--red-bg);color:var(--red);border:1px solid #5a2020}
+  .phase-badge.idle     {background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+
+  /* BOARD + INFO LAYOUT */
+  .anim-body{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:start;margin-bottom:1rem}
+  @media(max-width:680px){.anim-body{grid-template-columns:1fr}}
+  .board-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+  #board-canvas{display:block;border-radius:10px;border:2px solid var(--border2)}
+  .move-arrow-info{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;width:100%}
+  .move-arrow-info .val{font-size:18px;font-weight:700;color:var(--amber)}
+
+  .info-col{display:flex;flex-direction:column;gap:.75rem}
+  .info-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.85rem 1rem}
+  .info-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2,#5c6189);margin-bottom:4px}
+  .info-card .big{font-size:20px;font-weight:700;font-family:var(--mono)}
+  .seq-row{display:flex;gap:5px;flex-wrap:wrap}
+  .seq-cell{width:30px;height:30px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);font-family:var(--mono);font-size:11px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;transition:all .2s}
+  .seq-cell .si{font-size:9px;color:var(--muted);line-height:1}
+  .seq-cell .sv{font-size:11px;font-weight:600;line-height:1}
+  .seq-cell.done  {background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .seq-cell.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+  .seq-cell.bad   {background:var(--red-bg);border-color:var(--red);color:var(--red)}
+
+  /* STATS ROW */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+  @media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+  .stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .stat-box.teal .val{color:var(--teal)}
+  .stat-box.amber .val{color:var(--amber)}
+  .stat-box.green .val{color:var(--green)}
+  .stat-box.red .val{color:var(--red)}
+
+  /* LOG */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:2px;transition:width .25s ease}
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:52px;margin-bottom:1rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:600}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .neg{color:var(--red);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .btn.primary:hover{background:#1e2c55}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--accent)}
+  .result-pill{border-radius:20px;font-size:12px;font-weight:700;padding:4px 14px;display:none;letter-spacing:.04em}
+  .pill-true {background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .pill-false{background:var(--red-bg);color:var(--red);border:1px solid #5a2020}
+
+  /* WALK TABLE */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:580px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cr{color:var(--red)}
+  .cam{color:var(--amber)} .ct{color:var(--teal)} .cp{color:var(--purple)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic}
+  .nm{color:var(--amber)} .st{color:var(--green)}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badges">
+      <span class="badge b-easy">Easy</span>
+      <span class="badge b-chess">Graph / Chess</span>
+      <span class="badge b-graph">Array · Simulation</span>
+      <span class="badge b-lc">LC #2596</span>
+      <h1>Check Knight Tour Configuration</h1>
+    </div>
+    <p>Verify that a given sequence of moves forms a valid knight's tour over an n×n board — O(n²) time · O(n²) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it ask?</h2>
+      <p>You're given an <strong style="color:var(--text)">n×n grid</strong> and a 2D array <code>grid</code> where <code>grid[i][j]</code> is the step number at which a knight visits cell (i, j).</p>
+      <p>Return <strong style="color:var(--text)">true</strong> if the sequence represents a valid knight's tour: every cell is visited exactly once, the knight starts at cell labelled 0, and each consecutive pair of moves is a valid L-shaped knight jump.</p>
+    </div>
+    <div>
+      <h2>The algorithm</h2>
+      <div class="formula">
+        <span class="cm">// Build position lookup: step → (row,col)</span><br>
+        pos[<span class="nm">0..n²-1</span>] = build from grid<br><br>
+        <span class="cm">// Verify step 0 is at (0,0)</span><br>
+        <span class="kw">if</span> pos[<span class="nm">0</span>] ≠ (0, 0): <span class="kw">return</span> false<br><br>
+        <span class="cm">// Validate each consecutive jump</span><br>
+        <span class="kw">for</span> k = <span class="nm">1</span> to n²−1:<br>
+        &nbsp;&nbsp;dr = |pos[k].r − pos[k−1].r|<br>
+        &nbsp;&nbsp;dc = |pos[k].c − pos[k−1].c|<br>
+        &nbsp;&nbsp;<span class="kw">if</span> {dr,dc} ≠ {1,2}: <span class="kw">return</span> false<br>
+        <span class="kw">return</span> true
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Key insight:</strong> A knight's L-shape means the absolute row and column deltas between consecutive positions must always be <strong>{1, 2}</strong> (one is 1, the other is 2 — in either order). So the check is just: |Δrow| + |Δcol| = 3 <em>AND</em> |Δrow| ≠ |Δcol|. That's it — no BFS, no visited set at runtime. Two numbers, one condition, per step.
+  </div>
+
+  <!-- KNIGHT MOVE SHOWCASE -->
+  <p class="section-label">Knight move patterns</p>
+  <div class="move-showcase">
+    <canvas id="moves-canvas" width="180" height="180"></canvas>
+    <div class="move-list">
+      <h3>All 8 valid L-shaped jumps from any cell</h3>
+      <ul>
+        <li>(−2, −1)</li><li>(−2, +1)</li>
+        <li>(−1, −2)</li><li>(−1, +2)</li>
+        <li>(+1, −2)</li><li>(+1, +2)</li>
+        <li>(+2, −1)</li><li>(+2, +1)</li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:.75rem">|Δrow| + |Δcol| = 3 and |Δrow| ≠ |Δcol| ↔ valid knight jump</p>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="cx-card"><div class="lbl">Time</div><div class="big">O(n²)</div><p>One pass to build the pos array, one pass to verify n²−1 moves.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n²)</div><p>The pos lookup array stores one (row,col) pair per cell.</p></div>
+    <div class="cx-card"><div class="lbl">Check condition</div><div class="big">{1,2}</div><p>|Δrow| and |Δcol| must be exactly {1, 2} in some order — no other sets pass.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- EXAMPLES TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">Valid 5×5 tour<span class="tag-s">valid</span></button>
+    <button class="tab" onclick="loadEx(1,this)">Valid 3×3 tour<span class="tag-s">valid</span></button>
+    <button class="tab" onclick="loadEx(2,this)">Wrong start<span class="tag-i">invalid</span></button>
+    <button class="tab" onclick="loadEx(3,this)">Bad jump<span class="tag-i">invalid</span></button>
+    <button class="tab" onclick="loadEx(4,this)">1×1 trivial<span class="tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(5,this)">Repeated cell<span class="tag-i">invalid</span></button>
+  </div>
+
+  <div id="ex-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-head">
+      <span class="title">Live animation — Knight Tour Validator</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#1a1a2e;border-color:#44475a"></span>Unvisited cell</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span>Board (dark/light)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span>Visited path</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Current knight ♞</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Valid move ✓</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Invalid move ✗</span>
+    </div>
+
+    <div id="phase-badge" class="phase-badge idle">⏸ Waiting to start</div>
+
+    <div class="anim-body">
+      <!-- CHESSBOARD -->
+      <div class="board-wrap">
+        <canvas id="board-canvas"></canvas>
+        <div class="move-arrow-info" id="move-info" style="display:none">
+          <div style="font-size:10px;margin-bottom:2px">Jump Δ</div>
+          <div class="val" id="delta-val">—</div>
+        </div>
+      </div>
+
+      <!-- INFO COLUMN -->
+      <div class="info-col">
+        <!-- Sequence strip -->
+        <div class="info-card">
+          <div class="lbl">Step sequence (step# → position)</div>
+          <div class="seq-row" id="seq-row"></div>
+        </div>
+
+        <!-- Current check -->
+        <div class="info-card">
+          <div class="lbl">Checking move</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem;margin-top:4px">
+            <div>
+              <div style="font-size:10px;color:var(--muted)">From (step k−1)</div>
+              <div id="from-cell" style="font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--accent)">—</div>
+            </div>
+            <div style="font-size:1.4rem;color:var(--muted)">♞</div>
+            <div>
+              <div style="font-size:10px;color:var(--muted)">To (step k)</div>
+              <div id="to-cell" style="font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--amber)">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delta check -->
+        <div class="info-card">
+          <div class="lbl">Move validation</div>
+          <div style="margin-top:6px;font-family:var(--mono);font-size:13px;display:flex;flex-direction:column;gap:5px">
+            <div>|Δrow| = <span id="dr-val" style="color:var(--teal);font-weight:700">—</span></div>
+            <div>|Δcol| = <span id="dc-val" style="color:var(--teal);font-weight:700">—</span></div>
+            <div id="check-result" style="margin-top:4px;font-size:12px;padding:4px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">Pending…</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" style="gap:6px">
+          <div class="stat-box teal"><div class="lbl">Step</div><div class="val" id="s-step">0</div><div class="sub" id="s-step-sub">of —</div></div>
+          <div class="stat-box amber"><div class="lbl">Valid moves</div><div class="val" id="s-valid">0</div></div>
+          <div class="stat-box red"><div class="lbl">Invalid moves</div><div class="val" id="s-invalid">0</div></div>
+          <div class="stat-box green"><div class="lbl">Result</div><div class="val" id="s-result">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="log-box" id="log">Select an example above and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="pill-true"  class="result-pill pill-true">✓ true — Valid Tour!</span>
+      <span id="pill-false" class="result-pill pill-false">✗ false — Invalid Tour</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALK TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step verification table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr><th>Check #</th><th>Step k−1</th><th>Step k</th><th>From (r,c)</th><th>To (r,c)</th><th>|Δrow|</th><th>|Δcol|</th><th>Valid knight?</th></tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>check_knight_tour.cpp · LeetCode 2596</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">class</span> <span class="fn">Solution</span> {
+<span class="kw">public</span>:
+    <span class="kw">bool</span> <span class="fn">checkValidGrid</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; grid) {
+        <span class="kw">int</span> n = grid.size();
+        <span class="kw">int</span> total = n * n;
+
+        <span class="cm">// Step 1: build position lookup — step number → (row, col)</span>
+        <span class="fn">vector</span>&lt;pair&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt; pos(total);
+        <span class="kw">for</span> (<span class="kw">int</span> r = <span class="nm">0</span>; r &lt; n; r++)
+            <span class="kw">for</span> (<span class="kw">int</span> c = <span class="nm">0</span>; c &lt; n; c++)
+                pos[grid[r][c]] = {r, c};
+
+        <span class="cm">// Step 2: knight must start at (0,0)</span>
+        <span class="kw">if</span> (pos[<span class="nm">0</span>] != make_pair(<span class="nm">0</span>, <span class="nm">0</span>))
+            <span class="kw">return false</span>;
+
+        <span class="cm">// Step 3: each consecutive pair must be a valid knight jump</span>
+        <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nm">1</span>; k &lt; total; k++) {
+            <span class="kw">int</span> dr = abs(pos[k].first  - pos[k-<span class="nm">1</span>].first);
+            <span class="kw">int</span> dc = abs(pos[k].second - pos[k-<span class="nm">1</span>].second);
+
+            <span class="cm">// Valid iff deltas are {1, 2} in some order</span>
+            <span class="kw">if</span> (!((dr == <span class="nm">1</span> &amp;&amp; dc == <span class="nm">2</span>) || (dr == <span class="nm">2</span> &amp;&amp; dc == <span class="nm">1</span>)))
+                <span class="kw">return false</span>;
+        }
+
+        <span class="kw">return true</span>;
+    }
+};</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+   DATA
+   ===================================================================== */
+const EXAMPLES = [
+  {
+    n:5,
+    grid:[
+      [0,11,16,5,20],
+      [17,6,21,12,15],
+      [10,1,14,19,4],
+      [7,22,3,24,13],
+      [2,9,18,23,8]
+    ],
+    desc:`<strong style="color:var(--text)">Valid 5×5 knight's tour.</strong> A complete knight's tour visiting all 25 cells exactly once. The knight starts at (0,0)=step 0 and every consecutive move is a valid L-shaped jump. Result: <span style="color:var(--green)">true</span>.`
+  },
+  {
+    n:3,
+    grid:[
+      [0,5,2],
+      [3,6,7],
+      [4,1,8]
+    ],
+    desc:`<strong style="color:var(--text)">Valid 3×3 knight's tour.</strong> 9 cells, 9 steps. The knight weaves through the board with valid L-shaped jumps. Watch each step light up green. Result: <span style="color:var(--green)">true</span>.`
+  },
+  {
+    n:3,
+    grid:[
+      [3,5,2],
+      [0,6,7],
+      [4,1,8]
+    ],
+    desc:`<strong style="color:var(--text)">Invalid: wrong starting cell.</strong> Step 0 (the start) is at (1,0) instead of (0,0). A valid tour must always start at the top-left corner. Immediately caught at the first check. Result: <span style="color:var(--red)">false</span>.`
+  },
+  {
+    n:3,
+    grid:[
+      [0,5,2],
+      [3,6,7],
+      [4,8,1]
+    ],
+    desc:`<strong style="color:var(--text)">Invalid: illegal jump.</strong> Most moves look valid but one pair of consecutive steps makes a jump that is not an L-shape. Watch the animation reach the bad move and highlight it in red. Result: <span style="color:var(--red)">false</span>.`
+  },
+  {
+    n:1,
+    grid:[[0]],
+    desc:`<strong style="color:var(--text)">Edge case: 1×1 grid.</strong> Only one cell, the knight starts and ends at (0,0)=step 0. No moves to verify. Trivially valid. Result: <span style="color:var(--green)">true</span>.`
+  },
+  {
+    n:3,
+    grid:[
+      [0,5,2],
+      [3,6,3],
+      [4,1,8]
+    ],
+    desc:`<strong style="color:var(--text)">Invalid: repeated step value.</strong> The value 3 appears twice, meaning one cell would be visited twice and another never visited. This makes the move from that position geometrically impossible too. Result: <span style="color:var(--red)">false</span>.`
+  }
+];
+
+/* =====================================================================
+   STEP BUILDER
+   ===================================================================== */
+function buildSteps(n, grid) {
+  const total = n * n;
+  const stps = [];
+  const pos = new Array(total);
+
+  // Build pos — guard against duplicates
+  const seen = new Set();
+  let dupFound = false;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const v = grid[r][c];
+      if (v < 0 || v >= total || seen.has(v)) { dupFound = true; }
+      else { seen.add(v); pos[v] = [r, c]; }
+    }
+  }
+
+  // Fill missing positions with nulls if duplicate exists
+  for (let k = 0; k < total; k++) if (!pos[k]) pos[k] = null;
+
+  stps.push({ type:'init', n, pos, grid, step:-1, validSoFar:0, invalidSoFar:0,
+    note:`Build position table: scan grid and record which (row,col) holds each step number. n=${n}, total cells=${total}.` });
+
+  // Check start
+  const startOk = pos[0] && pos[0][0]===0 && pos[0][1]===0;
+  stps.push({ type:'check-start', n, pos, grid, step:0, startOk, validSoFar:0, invalidSoFar:0,
+    fromCell:null, toCell:pos[0], dr:null, dc:null,
+    note: startOk
+      ? `Step 0 is at (0,0) ✓ — knight starts at the top-left corner.`
+      : `Step 0 is at (${pos[0]?pos[0][0]:'?'},${pos[0]?pos[0][1]:'?'}) ✗ — must start at (0,0). Return false.` });
+
+  if (!startOk || dupFound) {
+    stps.push({ type:'done-false', n, pos, grid, step:0, result:false, validSoFar:0, invalidSoFar:1,
+      note:`Invalid tour: ${dupFound?'duplicate step values detected.':'knight does not start at (0,0).'}` });
+    return stps;
+  }
+
+  let validSoFar = 0, invalidSoFar = 0;
+  for (let k = 1; k < total; k++) {
+    const from = pos[k-1], to = pos[k];
+    if (!from || !to) {
+      stps.push({ type:'done-false', n, pos, grid, step:k, result:false, validSoFar, invalidSoFar:invalidSoFar+1,
+        note:`Missing position for step ${k}. Tour is invalid.` });
+      return stps;
+    }
+    const dr = Math.abs(to[0] - from[0]);
+    const dc = Math.abs(to[1] - from[1]);
+    const valid = (dr===1&&dc===2)||(dr===2&&dc===1);
+    if (valid) validSoFar++; else invalidSoFar++;
+
+    stps.push({ type:'check-move', n, pos, grid, step:k, fromCell:from, toCell:to, dr, dc, valid, validSoFar, invalidSoFar,
+      note: valid
+        ? `Move ${k-1}→${k}: (${from[0]},${from[1]})→(${to[0]},${to[1]}) |Δr|=${dr} |Δc|=${dc} → valid L-shape ✓`
+        : `Move ${k-1}→${k}: (${from[0]},${from[1]})→(${to[0]},${to[1]}) |Δr|=${dr} |Δc|=${dc} → NOT a knight move ✗. Return false.` });
+
+    if (!valid) {
+      stps.push({ type:'done-false', n, pos, grid, step:k, result:false, validSoFar, invalidSoFar,
+        note:`Invalid move at step ${k}. Tour fails.` });
+      return stps;
+    }
+  }
+
+  stps.push({ type:'done-true', n, pos, grid, step:total-1, result:true, validSoFar, invalidSoFar:0,
+    note:`All ${total-1} moves verified as valid knight jumps and start is (0,0). Return true ✓` });
+  return stps;
+}
+
+/* =====================================================================
+   DRAW BOARD
+   ===================================================================== */
+const CELL_DARK  = '#1e2030';
+const CELL_LIGHT = '#252840';
+
+function drawBoard(idx) {
+  const canvas = document.getElementById('board-canvas');
+  if (!curN) { canvas.width=0; canvas.height=0; return; }
+  const n = curN;
+  const maxW = Math.min(canvas.parentElement.clientWidth || 360, 360);
+  const CELL = Math.max(36, Math.min(68, Math.floor(maxW / n)));
+  const W = CELL * n, H = CELL * n;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const s = idx >= 0 ? steps[idx] : null;
+  const pos = curPos;
+  const grid = curGrid;
+
+  // visited cells up to current step
+  const visitedUpTo = new Set();
+  if (s) {
+    const curStep = s.step < 0 ? -1 : s.step;
+    for (let k = 0; k <= curStep && k < curN*curN; k++) {
+      if (pos[k]) visitedUpTo.add(pos[k][0]+','+pos[k][1]);
+    }
+  }
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const x = c * CELL, y = r * CELL;
+      const isLight = (r+c) % 2 === 0;
+      let fill = isLight ? CELL_LIGHT : CELL_DARK;
+      let strokeCol = '#3d4266', strokeW = 1;
+      const key = r+','+c;
+      const isVisited = visitedUpTo.has(key);
+
+      let isCurrent = false, isFrom = false, isTo = false, isBad = false;
+      if (s) {
+        isCurrent = s.toCell && s.toCell[0]===r && s.toCell[1]===c
+                 && (s.type==='check-move'||s.type==='check-start'||s.type==='done-false'||s.type==='done-true');
+        isFrom    = s.fromCell && s.fromCell[0]===r && s.fromCell[1]===c;
+        isBad     = (s.type==='done-false'||(!s.valid&&s.type==='check-move')) && isCurrent;
+      }
+
+      if (isBad) {
+        fill='#2a1111'; strokeCol='#f87171'; strokeW=2.5;
+      } else if (isCurrent) {
+        fill='#2a1e06'; strokeCol='#fbbf24'; strokeW=2.5;
+      } else if (isFrom) {
+        fill='#1a2140'; strokeCol='#6c8fff'; strokeW=2;
+      } else if (isVisited) {
+        fill='#1e0f33'; strokeCol='#c084fc'; strokeW=1.5;
+      }
+
+      // Draw cell
+      ctx.fillStyle = fill;
+      ctx.fillRect(x, y, CELL, CELL);
+      ctx.strokeStyle = strokeCol;
+      ctx.lineWidth = strokeW;
+      ctx.strokeRect(x + strokeW/2, y + strokeW/2, CELL - strokeW, CELL - strokeW);
+
+      // Step number label (small)
+      const stepNum = grid[r][c];
+      ctx.font = `${Math.max(8, CELL*.14)}px monospace`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillStyle = isVisited||isCurrent||isFrom ? '#c084fc' : '#3d4266';
+      ctx.fillText(stepNum, x+3, y+2);
+
+      // Knight on current cell
+      if (isCurrent && s.type !== 'done-false') {
+        ctx.font = `bold ${Math.max(16, CELL*.45)}px serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = isBad ? '#f87171' : '#fbbf24';
+        ctx.fillText('♞', x + CELL/2, y + CELL/2 + 2);
+      } else if (isBad) {
+        ctx.font = `bold ${Math.max(16, CELL*.45)}px serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#f87171';
+        ctx.fillText('♞', x + CELL/2, y + CELL/2 + 2);
+      }
+
+      // Draw path trail for visited (small dot)
+      if (isVisited && !isCurrent && !isFrom) {
+        ctx.beginPath();
+        ctx.arc(x+CELL/2, y+CELL/2, Math.max(3, CELL*.07), 0, Math.PI*2);
+        ctx.fillStyle = '#c084fc';
+        ctx.fill();
+      }
+    }
+  }
+
+  // Draw L-shaped arrow from→to
+  if (s && s.fromCell && s.toCell && s.type === 'check-move') {
+    const [fr, fc] = s.fromCell, [tr2, tc] = s.toCell;
+    const fx = fc*CELL+CELL/2, fy = fr*CELL+CELL/2;
+    const tx = tc*CELL+CELL/2, ty = tr2*CELL+CELL/2;
+    const col = s.valid ? '#4ade80' : '#f87171';
+    ctx.save();
+    ctx.strokeStyle = col; ctx.lineWidth = 2.2;
+    ctx.setLineDash([5,4]);
+    // L-path: go vertical first then horizontal
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.lineTo(fx, ty);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+    // arrowhead
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    const dx = tx > fx ? 1 : -1;
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - dx*10, ty - 5);
+    ctx.lineTo(tx - dx*10, ty + 5);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* =====================================================================
+   DRAW MOVE SHOWCASE (static reference board)
+   ===================================================================== */
+function drawMoveShowcase() {
+  const canvas = document.getElementById('moves-canvas');
+  const CELL = 30, n = 6;
+  canvas.width = CELL * n; canvas.height = CELL * n;
+  const ctx = canvas.getContext('2d');
+  const cr = 2, cc = 3; // knight at (2,3) in 0-indexed on 6x6
+
+  const moves = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+  const reachable = new Set(moves.map(([dr,dc])=>`${cr+dr},${cc+dc}`));
+
+  for (let r=0;r<n;r++) {
+    for (let c=0;c<n;c++) {
+      const x=c*CELL, y=r*CELL;
+      const isLight=(r+c)%2===0;
+      const key=`${r},${c}`;
+      const isKnight=r===cr&&c===cc;
+      const isReach=reachable.has(key);
+
+      let fill = isLight ? '#252840' : '#1e2030';
+      if (isKnight) fill='#2a1e06';
+      else if (isReach) fill='#0c2624';
+
+      ctx.fillStyle=fill; ctx.fillRect(x,y,CELL,CELL);
+      ctx.strokeStyle=isKnight?'#fbbf24':isReach?'#2dd4bf':'#3d4266';
+      ctx.lineWidth=isKnight||isReach?2:1;
+      ctx.strokeRect(x+.5,y+.5,CELL-1,CELL-1);
+
+      if (isKnight) {
+        ctx.font='bold 16px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle='#fbbf24'; ctx.fillText('♞',x+CELL/2,y+CELL/2+1);
+      } else if (isReach) {
+        ctx.beginPath(); ctx.arc(x+CELL/2,y+CELL/2,4,0,Math.PI*2);
+        ctx.fillStyle='#2dd4bf'; ctx.fill();
+      }
+    }
+  }
+}
+
+/* =====================================================================
+   SEQUENCE STRIP
+   ===================================================================== */
+function updateSeqStrip(s) {
+  const row = document.getElementById('seq-row');
+  if (!s || !curPos || curPos.length === 0) { row.innerHTML=''; return; }
+  const total = curN * curN;
+  row.innerHTML = Array.from({length: total}, (_,k) => {
+    const p = curPos[k];
+    let cls='seq-cell';
+    const curStep = s.step < 0 ? -1 : s.step;
+    if (k < curStep) cls += ' done';
+    else if (k === curStep) cls += ' active';
+    if (s.type==='check-move' && !s.valid && k===s.step) cls = 'seq-cell bad';
+    if (s.type==='done-false' && k>=s.step) cls = 'seq-cell';
+    const pr = p?p[0]:'?', pc2 = p?p[1]:'?';
+    return `<div class="${cls}"><span class="si">${k}</span><span class="sv">${pr},${pc2}</span></div>`;
+  }).join('');
+}
+
+/* =====================================================================
+   APPLY STATE
+   ===================================================================== */
+function applyState(idx) {
+  drawBoard(idx);
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('pill-true').style.display='none';
+  document.getElementById('pill-false').style.display='none';
+  document.getElementById('move-info').style.display='none';
+
+  if (idx < 0) {
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('from-cell').textContent='—';
+    document.getElementById('to-cell').textContent='—';
+    document.getElementById('dr-val').textContent='—';
+    document.getElementById('dc-val').textContent='—';
+    document.getElementById('check-result').textContent='Pending…';
+    document.getElementById('check-result').style.color='';
+    document.getElementById('s-step').textContent='0';
+    document.getElementById('s-step-sub').textContent='of '+(curN*curN-1);
+    document.getElementById('s-valid').textContent='0';
+    document.getElementById('s-invalid').textContent='0';
+    document.getElementById('s-result').textContent='—';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    updateSeqStrip(null);
+    setPhase('idle'); return;
+  }
+
+  const s = steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('s-step').textContent=Math.max(0,s.step);
+  document.getElementById('s-step-sub').textContent='of '+(curN*curN-1);
+  document.getElementById('s-valid').textContent=s.validSoFar||0;
+  document.getElementById('s-invalid').textContent=s.invalidSoFar||0;
+  updateSeqStrip(s);
+
+  if (s.fromCell) document.getElementById('from-cell').textContent=`(${s.fromCell[0]},${s.fromCell[1]})`;
+  else document.getElementById('from-cell').textContent='—';
+  if (s.toCell) document.getElementById('to-cell').textContent=`(${s.toCell[0]},${s.toCell[1]})`;
+  else document.getElementById('to-cell').textContent='—';
+
+  if (s.dr !== null && s.dr !== undefined) {
+    document.getElementById('dr-val').textContent=s.dr;
+    document.getElementById('dc-val').textContent=s.dc;
+    const ok = s.valid;
+    const res = document.getElementById('check-result');
+    res.textContent = ok ? `{${s.dr},{${s.dc}}} = {1,2} ✓ valid knight move` : `{${s.dr},{${s.dc}}} ≠ {1,2} ✗ INVALID`;
+    res.style.color = ok ? 'var(--green)' : 'var(--red)';
+    res.style.background = ok ? 'var(--green-bg)' : 'var(--red-bg)';
+    res.style.borderColor = ok ? '#1a4a2e' : '#5a2020';
+    document.getElementById('move-info').style.display='block';
+    document.getElementById('delta-val').textContent=`(|Δr|=${s.dr}, |Δc|=${s.dc})`;
+  } else {
+    document.getElementById('dr-val').textContent='—';
+    document.getElementById('dc-val').textContent='—';
+    document.getElementById('check-result').textContent='Pending…';
+    document.getElementById('check-result').style.color='';
+    document.getElementById('check-result').style.background='';
+    document.getElementById('check-result').style.borderColor='';
+  }
+
+  let msg='', result='—';
+  const sp=`<span class="hi">Step ${idx+1}.</span> `;
+
+  if (s.type==='init') {
+    msg=`${sp}Build the position lookup table: scan all ${curN}×${curN}=${curN*curN} cells and map each step number to its <span class="acc">(row, col)</span>.`;
+    setPhase('checking');
+  } else if (s.type==='check-start') {
+    if (s.startOk) {
+      msg=`${sp}<span class="pos">✓ Start valid.</span> Step 0 is at <span class="tea">(0,0)</span> — the top-left corner. Continue to verify moves.`;
+      setPhase('checking');
+    } else {
+      msg=`${sp}<span class="neg">✗ Wrong start.</span> Step 0 is at <span class="neg">(${s.toCell?s.toCell[0]:'?'},${s.toCell?s.toCell[1]:'?'})</span> but must be <span class="tea">(0,0)</span>. Return <span class="neg">false</span> immediately.`;
+      setPhase('invalid');
+    }
+  } else if (s.type==='check-move') {
+    if (s.valid) {
+      msg=`${sp}Move <span class="amb">${s.step-1}→${s.step}</span>: <span class="acc">(${s.fromCell[0]},${s.fromCell[1]})</span> → <span class="amb">(${s.toCell[0]},${s.toCell[1]})</span>. |Δrow|=<span class="tea">${s.dr}</span>, |Δcol|=<span class="tea">${s.dc}</span>. Valid L-shape <span class="pos">✓</span>`;
+      setPhase('checking');
+    } else {
+      msg=`${sp}Move <span class="amb">${s.step-1}→${s.step}</span>: <span class="acc">(${s.fromCell[0]},${s.fromCell[1]})</span> → <span class="neg">(${s.toCell[0]},${s.toCell[1]})</span>. |Δrow|=<span class="neg">${s.dr}</span>, |Δcol|=<span class="neg">${s.dc}</span>. NOT a knight move <span class="neg">✗</span>. Return false.`;
+      setPhase('invalid');
+    }
+  } else if (s.type==='done-true') {
+    msg=`${sp}<span class="pos">🎉 Valid tour!</span> All <span class="tea">${curN*curN-1}</span> moves are valid knight L-jumps and the start is (0,0). Return <span class="pos">true</span>.`;
+    document.getElementById('pill-true').style.display='inline-block';
+    result='true'; setPhase('valid');
+  } else if (s.type==='done-false') {
+    msg=`${sp}<span class="neg">✗ Invalid tour.</span> ${s.note} Return <span class="neg">false</span>.`;
+    document.getElementById('pill-false').style.display='inline-block';
+    result='false'; setPhase('invalid');
+  }
+
+  document.getElementById('s-result').textContent=result;
+  document.getElementById('log').innerHTML=msg;
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+
+function setPhase(type) {
+  const b=document.getElementById('phase-badge');
+  b.className='phase-badge '+type;
+  if(type==='checking') b.textContent='🔍 Verifying moves…';
+  else if(type==='valid') b.textContent='✅ Valid Knight Tour!';
+  else if(type==='invalid') b.textContent='❌ Invalid — Tour Fails';
+  else b.textContent='⏸ Waiting to start';
+}
+
+/* =====================================================================
+   BUILD WALK TABLE
+   ===================================================================== */
+function buildTable(stps) {
+  document.getElementById('step-tbody').innerHTML = stps.map((s,i)=>{
+    let from='—', to='—', dr='—', dc='—', verdict='';
+    if(s.fromCell) from=`(${s.fromCell[0]},${s.fromCell[1]})`;
+    if(s.toCell)   to  =`(${s.toCell[0]},${s.toCell[1]})`;
+    if(s.dr!=null){dr=s.dr; dc=s.dc;}
+    if(s.type==='init') verdict=`<span class="ca">Build pos table</span>`;
+    else if(s.type==='check-start') verdict=s.startOk?`<span class="cg">Start ✓ (0,0)</span>`:`<span class="cr">Wrong start ✗</span>`;
+    else if(s.type==='check-move') verdict=s.valid?`<span class="cg">✓ Valid</span>`:`<span class="cr">✗ Invalid</span>`;
+    else if(s.type==='done-true') verdict=`<span class="cg">Return true ✓</span>`;
+    else verdict=`<span class="cr">Return false ✗</span>`;
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td>
+      <td class="cam">${s.step<0?'—':s.step>0?s.step-1:'—'}</td>
+      <td class="cam">${s.step<=0?'—':s.step}</td>
+      <td class="ca">${from}</td>
+      <td class="cam">${to}</td>
+      <td class="ct">${dr}</td>
+      <td class="ct">${dc}</td>
+      <td>${verdict}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* =====================================================================
+   CONTROLS
+   ===================================================================== */
+const SPEEDS=[1600,1000,600,280,100];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let curN=0, curGrid=[], curPos=[], steps=[], cursor=-1, playing=false, timer=null;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+function loadEx(n, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const ex = EXAMPLES[n];
+  curN = ex.n; curGrid = ex.grid;
+  // build pos
+  const total=curN*curN;
+  curPos = new Array(total).fill(null);
+  for(let r=0;r<curN;r++) for(let c=0;c<curN;c++){
+    const v=curGrid[r][c];
+    if(v>=0&&v<total) curPos[v]=[r,c];
+  }
+  document.getElementById('ex-desc').innerHTML=ex.desc;
+  steps=buildSteps(curN,curGrid);
+  buildTable(steps);
+  cursor=-1;
+  setTimeout(()=>applyState(-1),30);
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn');b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+window.addEventListener('resize',()=>drawBoard(cursor));
+
+// Draw static move showcase
+drawMoveShowcase();
+// Load first example
+loadEx(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

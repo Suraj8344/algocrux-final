@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 410 — Split Array Largest Sum</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --orange:#fb923c;--orange-bg:#2a1500;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  /* HEADER */
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+  .badge-hard{background:#3a1111;color:#f87171;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #5a2020}
+  .badge-tag{background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #2a3875}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+
+  /* CONCEPT */
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:13px;color:var(--accent);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .val{color:var(--amber)}
+
+  /* KEY INSIGHT BOX */
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .tag{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .tag-e{background:var(--purple-bg);color:var(--purple)}
+  .tag-s{background:var(--green-bg);color:var(--green)}
+
+  /* ANIM PANEL */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.5);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;flex-shrink:0}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted)}
+  .pin-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
+  /* LEGEND */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.25rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* ── MAIN VISUALIZER ── */
+  /* Binary search number line */
+  .bs-section{margin-bottom:1.25rem}
+  .bs-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+  #bs-canvas{display:block;width:100%;border-radius:8px}
+
+  /* Array bars */
+  .array-section{margin-bottom:1rem}
+  #arr-canvas{display:block;width:100%;border-radius:8px}
+
+  /* Greedy check rows */
+  .greedy-section{margin-bottom:1rem}
+  .greedy-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+  #greedy-canvas{display:block;width:100%;border-radius:8px}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:2px;transition:width .3s ease;width:0%}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}
+  .stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text);transition:color .2s}
+  .stat-box .sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+  .stat-box.accent .val{color:var(--accent)}
+  .stat-box.green .val{color:var(--green)}
+  .stat-box.amber .val{color:var(--amber)}
+  .stat-box.purple .val{color:var(--purple)}
+
+  /* LOG */
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:56px;margin-bottom:1.25rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:500}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .neg{color:var(--red);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .ora{color:var(--orange);font-weight:600}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .btn.primary:hover{background:#22306e}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--accent)}
+  .done-pill{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+
+  /* WALKTHROUGH */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cr{color:var(--red)}
+  .cam{color:var(--amber)} .cp{color:var(--purple)} .ct{color:var(--teal)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic} .nm{color:var(--amber)} .st{color:var(--green)}
+
+  /* COMPLEXITY */
+  .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}
+  @media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .complex-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="badge-hard">Hard</span>
+      <span class="badge-tag">Binary Search</span>
+      <span class="badge-tag">Greedy</span>
+      <h1>410. Split Array Largest Sum</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/split-array-largest-sum/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Split into k subarrays, minimize the largest sum — O(n · log(sum)) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given array <code style="color:var(--accent)">nums</code> and integer <code style="color:var(--accent)">k</code>, split the array into exactly <strong style="color:var(--text)">k non-empty contiguous subarrays</strong> such that the <strong style="color:var(--text)">largest subarray sum is minimized</strong>.</p>
+      <p style="margin-top:.75rem">Example: nums=[7,2,5,10,8], k=2 → best split is [7,2,5] | [10,8] → max sum = <strong style="color:var(--green)">18</strong>.</p>
+    </div>
+    <div>
+      <h2>Binary Search + Greedy</h2>
+      <div class="formula">
+        <span class="cm">// Search space: [max(nums), sum(nums)]</span><br>
+        lo = <span class="val">max</span>(nums), hi = <span class="val">sum</span>(nums)<br>
+        <span class="kw">while</span> lo ≤ hi:<br>
+        &nbsp;&nbsp;mid = (lo + hi) / 2<br>
+        &nbsp;&nbsp;<span class="cm">// Can we fit in ≤ k subarrays?</span><br>
+        &nbsp;&nbsp;<span class="kw">if</span> canSplit(nums, k, mid):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;hi = mid − 1 <span class="cm">// try smaller</span><br>
+        &nbsp;&nbsp;<span class="kw">else</span>: lo = mid + 1
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY INSIGHT -->
+  <div class="insight">
+    💡 <strong>Key insight:</strong> Binary search over the <strong>answer value</strong> (the allowed max sum), not the array indices. For any candidate limit <code>mid</code>, greedily check: can we split the array into ≤ k subarrays where no subarray exceeds <code>mid</code>? If yes → try lower. If no → try higher. The search space shrinks from <strong>O(sum)</strong> to <strong>O(log·sum)</strong>.
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(n·log S)</div>
+      <p>O(log S) binary search iterations × O(n) greedy check per iteration. S = sum(nums).</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Only a few integer variables — no extra arrays needed.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">nums=[7,2,5,10,8] k=2 <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadExample(1,this)">nums=[1,2,3,4,5] k=2 <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadExample(2,this)">k=1 (no split) <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadExample(3,this)">k=n (all singles) <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadExample(4,this)">All equal values <span class="tag tag-e">edge</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — Binary Search + Greedy</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Current mid (candidate)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Valid split (answer updated)</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Too small (need more room)</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Active subarray in greedy check</span>
+    </div>
+
+    <!-- Binary search number line -->
+    <div class="bs-section">
+      <div class="bs-title">Binary search range</div>
+      <canvas id="bs-canvas" height="64"></canvas>
+    </div>
+
+    <!-- Array with partition lines -->
+    <div class="array-section">
+      <div class="bs-title">Array — greedy partition with limit = mid</div>
+      <canvas id="arr-canvas" height="90"></canvas>
+    </div>
+
+    <!-- Greedy check visualization -->
+    <div class="greedy-section">
+      <div class="greedy-title">Greedy check — running sum per partition</div>
+      <canvas id="greedy-canvas" height="52"></canvas>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box accent">
+        <div class="lbl">lo (search low)</div>
+        <div class="val" id="s-lo">—</div>
+        <div class="sub" id="s-lo-sub">lower bound</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="lbl">mid (candidate)</div>
+        <div class="val" id="s-mid">—</div>
+        <div class="sub" id="s-mid-sub">current guess</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">hi (search high)</div>
+        <div class="val" id="s-hi">—</div>
+        <div class="sub" id="s-hi-sub">upper bound</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Best answer</div>
+        <div class="val" id="s-ans">—</div>
+        <div class="sub" id="s-ans-sub">min largest sum</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Answer found!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr>
+            <th>Step</th><th>lo</th><th>mid</th><th>hi</th>
+            <th>Partitions needed</th><th>vs k</th>
+            <th>Action</th><th>Answer</th>
+          </tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>split_array.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Greedy check: can we split nums into ≤ k parts, each sum ≤ limit?</span>
+<span class="kw">bool</span> <span class="fn">canSplit</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums, <span class="kw">int</span> k, <span class="kw">long long</span> limit) {
+    <span class="kw">int</span> parts = <span class="nm">1</span>;
+    <span class="kw">long long</span> curSum = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> x : nums) {
+        <span class="kw">if</span> (curSum + x &gt; limit) {
+            parts++;          <span class="cm">// start a new partition</span>
+            curSum = x;
+            <span class="kw">if</span> (parts &gt; k) <span class="kw">return false</span>;
+        } <span class="kw">else</span> {
+            curSum += x;
+        }
+    }
+    <span class="kw">return true</span>;
+}
+
+<span class="kw">int</span> <span class="fn">splitArray</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums, <span class="kw">int</span> k) {
+    <span class="kw">long long</span> lo = *<span class="fn">max_element</span>(nums.begin(), nums.end());
+    <span class="kw">long long</span> hi = <span class="fn">accumulate</span>(nums.begin(), nums.end(), <span class="nm">0LL</span>);
+    <span class="kw">long long</span> ans = hi;
+
+    <span class="kw">while</span> (lo &lt;= hi) {
+        <span class="kw">long long</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+        <span class="kw">if</span> (<span class="fn">canSplit</span>(nums, k, mid)) {
+            ans = mid;        <span class="cm">// valid — try smaller limit</span>
+            hi = mid - <span class="nm">1</span>;
+        } <span class="kw">else</span> {
+            lo = mid + <span class="nm">1</span>;    <span class="cm">// too tight — allow bigger limit</span>
+        }
+    }
+    <span class="kw">return</span> (<span class="kw">int</span>)ans;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; nums = {<span class="nm">7</span>, <span class="nm">2</span>, <span class="nm">5</span>, <span class="nm">10</span>, <span class="nm">8</span>};
+    <span class="kw">int</span> k = <span class="nm">2</span>;
+    cout &lt;&lt; <span class="fn">splitArray</span>(nums, k) &lt;&lt; <span class="st">"\n"</span>;  <span class="cm">// 18</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    nums:[7,2,5,10,8], k:2,
+    desc:`<strong style="color:var(--text)">LeetCode example 1.</strong> nums=[7,2,5,10,8], k=2. Binary search range: <code style="color:var(--accent)">[10, 32]</code>. The optimal split is <code style="color:var(--green)">[7,2,5] | [10,8]</code> with max sum <strong style="color:var(--green)">18</strong>. Watch how mid=21 is valid (fits in 2 parts) but we keep trying lower until we converge on 18.`
+  },
+  {
+    nums:[1,2,3,4,5], k:2,
+    desc:`<strong style="color:var(--text)">LeetCode example 2.</strong> nums=[1,2,3,4,5], k=2. Range: <code style="color:var(--accent)">[5, 15]</code>. Optimal split: <code style="color:var(--green)">[1,2,3] | [4,5]</code>, max sum = <strong style="color:var(--green)">9</strong>. A clean case where binary search converges in just a few iterations.`
+  },
+  {
+    nums:[7,2,5,10,8], k:1,
+    desc:`<strong style="color:var(--text)">Edge case: k=1 (no splits allowed).</strong> The entire array must be one subarray. The answer is always <strong style="color:var(--amber)">sum(nums) = 32</strong> regardless. lo starts equal to hi immediately after binary search — trivially one iteration.`
+  },
+  {
+    nums:[7,2,5,10,8], k:5,
+    desc:`<strong style="color:var(--text)">Edge case: k=n (each element is its own subarray).</strong> When k equals the array length, every element is isolated. The answer is <strong style="color:var(--amber)">max(nums) = 10</strong> — the minimum possible, the lower bound of our search. Binary search converges to lo immediately.`
+  },
+  {
+    nums:[4,4,4,4,4], k:3,
+    desc:`<strong style="color:var(--text)">Edge case: all equal values.</strong> nums=[4,4,4,4,4], k=3. Range: <code style="color:var(--accent)">[4, 20]</code>. Any reasonable split leaves one partition with 2 elements (sum=8). Answer: <strong style="color:var(--green)">8</strong>. Tests that the greedy check handles uniform arrays without bias.`
+  }
+];
+
+const SPEEDS=[1800,1200,700,380,160];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let nums=[], K=0, steps=[], cursor=-1, playing=false, timer=null;
+const SVG_NS='http://www.w3.org/2000/svg';
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── GREEDY CHECK (returns {parts, partitionEnds}) ── */
+function greedyCheck(nums, k, limit) {
+  let parts=1, cur=0;
+  const ends=[];
+  for(let i=0;i<nums.length;i++){
+    if(cur+nums[i]>limit){
+      ends.push(i-1);
+      parts++;
+      cur=nums[i];
+    } else {
+      cur+=nums[i];
+    }
+  }
+  ends.push(nums.length-1);
+  return {parts, ends, valid: parts<=k};
+}
+
+/* ── BUILD STEPS ── */
+function buildSteps(nums, k) {
+  const total=nums.reduce((a,b)=>a+b,0);
+  const maxEl=Math.max(...nums);
+  const stps=[];
+  let lo=maxEl, hi=total, ans=total;
+
+  stps.push({type:'init', lo, hi, mid:null, ans, parts:null, valid:null, ends:[], note:`Initialize: lo=max(nums)=${maxEl}, hi=sum(nums)=${total}`});
+
+  while(lo<=hi){
+    const mid=Math.floor((lo+hi)/2);
+    const {parts, ends, valid}=greedyCheck(nums,k,mid);
+    stps.push({type:'check', lo, hi, mid, ans, parts, valid, ends, note:`mid=${mid}: greedy needs ${parts} partition(s) for k=${k}`});
+    if(valid){
+      ans=mid;
+      hi=mid-1;
+      stps.push({type:'valid', lo, hi:mid-1, mid, ans, parts, valid, ends, note:`mid=${mid} valid! Update answer=${ans}, try smaller: hi=${mid-1}`});
+    } else {
+      lo=mid+1;
+      stps.push({type:'invalid', lo:mid+1, hi, mid, ans, parts, valid, ends, note:`mid=${mid} too small (needs ${parts}>${k} parts). Increase: lo=${mid+1}`});
+    }
+  }
+  stps.push({type:'done', lo, hi, mid:ans, ans, parts:null, valid:null, ends:[], note:`Binary search complete. Answer = ${ans}`});
+  return stps;
+}
+
+/* ── CANVAS DRAWING ── */
+function getW(id){ return document.getElementById(id).parentElement.clientWidth||600; }
+
+function drawBinarySearch(idx){
+  const c=document.getElementById('bs-canvas');
+  const W=getW('bs-canvas'); c.width=W; c.height=64;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,64);
+  if(!nums.length) return;
+
+  const total=nums.reduce((a,b)=>a+b,0);
+  const maxEl=Math.max(...nums);
+  const initLo=maxEl, initHi=total;
+  const range=initHi-initLo||1;
+  const PAD=48, TH=28;
+
+  // track bar
+  const barX=PAD, barW=W-PAD*2;
+  ctx.fillStyle='#22263a';
+  roundRect(ctx,barX,TH-6,barW,12,4); ctx.fill();
+
+  const toX=v=>PAD+(v-initLo)/range*barW;
+
+  if(idx<0){
+    // just draw the range
+    ctx.fillStyle='#3d4266'; roundRect(ctx,barX,TH-6,barW,12,4); ctx.fill();
+    drawTick(ctx,toX(initLo),TH,'#6c8fff',`lo=${initLo}`,true);
+    drawTick(ctx,toX(initHi),TH,'#f87171',`hi=${initHi}`,false);
+    return;
+  }
+
+  const s=steps[idx];
+  if(!s) return;
+
+  // eliminated region (left of lo)
+  const loX=toX(s.lo), hiX=toX(s.hi<initLo?initLo:s.hi);
+  // dead zones
+  if(s.lo>initLo){
+    ctx.fillStyle='rgba(248,113,113,.12)';
+    roundRect(ctx,barX,TH-6,Math.max(0,toX(s.lo-1)-barX),12,4); ctx.fill();
+  }
+  if(s.hi<initHi){
+    ctx.fillStyle='rgba(74,222,128,.1)';
+    const hx=toX(s.hi+1);
+    if(hx<barX+barW){ roundRect(ctx,hx,TH-6,barX+barW-hx,12,4); ctx.fill(); }
+  }
+
+  // active zone
+  if(s.lo<=s.hi){
+    ctx.fillStyle='rgba(108,143,255,.25)';
+    roundRect(ctx,toX(s.lo),TH-6,Math.max(4,toX(s.hi)-toX(s.lo)),12,4); ctx.fill();
+  }
+
+  // mid marker
+  if(s.mid!==null){
+    const mx=toX(s.mid);
+    ctx.fillStyle= s.type==='valid'?'#4ade80': s.type==='invalid'?'#f87171':'#fbbf24';
+    ctx.beginPath(); ctx.arc(mx,TH,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#0f1117';
+    ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('m',mx,TH);
+  }
+
+  // ticks
+  drawTick(ctx,toX(initLo),TH,'#3d4266',initLo,true);
+  drawTick(ctx,toX(initHi),TH,'#3d4266',initHi,false);
+  drawTick(ctx,toX(s.lo),TH,'#6c8fff',`lo=${s.lo}`,true);
+  if(s.hi>=initLo) drawTick(ctx,toX(s.hi),TH,'#f87171',`hi=${s.hi}`,false);
+  if(s.ans<initHi+1){ const ax=toX(s.ans); if(ax>=barX&&ax<=barX+barW){ ctx.strokeStyle='#4ade80'; ctx.lineWidth=2; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(ax,8);ctx.lineTo(ax,TH+14);ctx.stroke();ctx.setLineDash([]); } }
+}
+
+function drawTick(ctx,x,y,color,label,above){
+  ctx.strokeStyle=color; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x,y-8); ctx.lineTo(x,y+8); ctx.stroke();
+  ctx.fillStyle=color; ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText(label, x, above?y-14:y+20);
+}
+
+function drawArray(idx){
+  const c=document.getElementById('arr-canvas');
+  const W=getW('arr-canvas'); c.width=W; c.height=90;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,90);
+  if(!nums.length) return;
+
+  const n=nums.length;
+  const CW=Math.min(70,Math.floor((W-32)/n));
+  const SX=(W-CW*n)/2, SY=12, CH=54;
+
+  const s=idx>=0?steps[idx]:null;
+  const ends=s&&s.ends?s.ends:[];
+
+  // build partition color map
+  let partIdx=0;
+  const PART_COLORS=['#1a2140','#1e0f33','#0c2624','#2a1e06','#2a1111','#0d2318'];
+  const PART_STROKES=['#6c8fff','#c084fc','#2dd4bf','#fbbf24','#f87171','#4ade80'];
+  const cellPart=new Array(n).fill(0);
+  let p=0;
+  for(let i=0;i<n;i++){
+    cellPart[i]=p;
+    if(ends.includes(i)&&i<n-1) p++;
+  }
+
+  nums.forEach((v,i)=>{
+    const x=SX+i*CW, fill=PART_COLORS[cellPart[i]%PART_COLORS.length], stroke=PART_STROKES[cellPart[i]%PART_STROKES.length];
+    ctx.fillStyle=fill; roundRect(ctx,x+2,SY,CW-4,CH,7); ctx.fill();
+    ctx.strokeStyle=stroke; ctx.lineWidth=1.5; roundRect(ctx,x+2,SY,CW-4,CH,7); ctx.stroke();
+    ctx.fillStyle=stroke; ctx.font=`bold ${Math.min(16,CW*.38)}px monospace`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(v, x+CW/2, SY+CH/2);
+    ctx.fillStyle='#3d4266'; ctx.font='9px monospace'; ctx.textBaseline='alphabetic';
+    ctx.fillText(i, x+CW/2, SY+CH+13);
+  });
+
+  // partition separator lines
+  ends.slice(0,-1).forEach(e=>{
+    const lx=SX+(e+1)*CW+1;
+    ctx.strokeStyle='#e8eaf6'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(lx,SY-4); ctx.lineTo(lx,SY+CH+4); ctx.stroke();
+  });
+
+  // mid limit label
+  if(s&&s.mid!==null){
+    ctx.fillStyle='#fbbf24'; ctx.font='11px monospace'; ctx.textAlign='right';
+    ctx.fillText(`limit = ${s.mid}`, W-8, 11);
+  }
+}
+
+function drawGreedy(idx){
+  const c=document.getElementById('greedy-canvas');
+  const W=getW('greedy-canvas'); c.width=W; c.height=52;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,52);
+  if(idx<0||!steps[idx]||!steps[idx].ends) return;
+
+  const s=steps[idx];
+  if(!s.mid) return;
+
+  const ends=s.ends;
+  const PART_COLORS=['#6c8fff','#c084fc','#2dd4bf','#fbbf24','#f87171','#4ade80'];
+
+  // compute sums per partition
+  let partSums=[], cur=0, p=0;
+  for(let i=0;i<nums.length;i++){
+    cur+=nums[i];
+    if(ends[p]===i){ partSums.push(cur); cur=0; p++; }
+  }
+
+  const maxSum=Math.max(...partSums,1);
+  const PAD=8, barH=18, barY=18;
+  const totalW=W-PAD*2;
+  const slotW=totalW/partSums.length;
+
+  partSums.forEach((sum,i)=>{
+    const bw=Math.max(4,(sum/s.mid)*slotW*.85);
+    const bx=PAD+i*slotW;
+    const color=PART_COLORS[i%PART_COLORS.length];
+    // background
+    ctx.fillStyle='#22263a'; roundRect(ctx,bx+2,barY,slotW-8,barH,4); ctx.fill();
+    // fill
+    const isOver=sum>s.mid;
+    ctx.fillStyle=isOver?'rgba(248,113,113,.35)':'rgba(74,222,128,.25)';
+    roundRect(ctx,bx+2,barY,Math.min(bw,slotW-8),barH,4); ctx.fill();
+    ctx.strokeStyle=isOver?'#f87171':color; ctx.lineWidth=1.5;
+    roundRect(ctx,bx+2,barY,slotW-8,barH,4); ctx.stroke();
+    // sum label
+    ctx.fillStyle=isOver?'#f87171':color; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+    ctx.fillText(sum, bx+slotW/2, barY+barH/2+4);
+    // partition label
+    ctx.fillStyle='#5a5f80'; ctx.font='9px monospace';
+    ctx.fillText(`P${i+1}`, bx+slotW/2, barY-4);
+  });
+
+  // limit line
+  const limX=PAD+(s.mid/s.mid)*(totalW/partSums.length)*.85+8; // placeholder — draw relative limit
+  // draw "limit" as a label on right
+  ctx.fillStyle='#fbbf24'; ctx.font='10px monospace'; ctx.textAlign='right';
+  const okText=s.valid?`✓ ${s.parts} parts ≤ k=${K}`:`✗ ${s.parts} parts > k=${K}`;
+  ctx.fillStyle=s.valid?'#4ade80':'#f87171';
+  ctx.font='bold 11px monospace'; ctx.textAlign='right';
+  ctx.fillText(okText, W-8, 14);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  if(w<=0||h<=0)return;
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  drawBinarySearch(idx);
+  drawArray(idx);
+  drawGreedy(idx);
+  document.getElementById('done-pill').style.display='none';
+  steps.forEach((_,i)=>{ const tr=document.getElementById('tr-'+i); if(tr) tr.classList.remove('highlighted'); });
+
+  if(idx<0){
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    ['s-lo','s-mid','s-hi','s-ans'].forEach(id=>document.getElementById(id).textContent='—');
+    ['s-lo-sub','s-mid-sub','s-hi-sub','s-ans-sub'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s=steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+
+  document.getElementById('s-lo').textContent=s.lo;
+  document.getElementById('s-hi').textContent=s.hi;
+  document.getElementById('s-mid').textContent=s.mid??'—';
+  document.getElementById('s-ans').textContent=s.ans;
+  document.getElementById('s-lo-sub').textContent=`max(nums)=${Math.max(...nums)}`;
+  document.getElementById('s-hi-sub').textContent=`sum(nums)=${nums.reduce((a,b)=>a+b,0)}`;
+  document.getElementById('s-mid-sub').textContent=s.mid!==null?`(lo+hi)/2=${s.mid}`:'—';
+  document.getElementById('s-ans-sub').textContent=s.type==='init'?'not yet found':'min so far';
+
+  // log message
+  let msg='';
+  if(s.type==='init'){
+    msg=`<span class="hi">Initialize.</span> lo = max(nums) = <span class="acc">${s.lo}</span> (smallest possible answer — max element must fit in some part). hi = sum(nums) = <span class="acc">${s.hi}</span> (k=1 whole array). Binary search begins.`;
+  } else if(s.type==='check'){
+    msg=`<span class="hi">Step ${idx+1} — Try mid = ${s.mid}.</span> Greedy check: with limit <span class="amb">${s.mid}</span>, we need <span class="${s.valid?'pos':'neg'}">${s.parts} partition(s)</span> vs k=${K}.`;
+  } else if(s.type==='valid'){
+    msg=`<span class="hi">Step ${idx+1} — ✓ Valid!</span> <span class="pos">${s.parts} parts ≤ k=${K}</span> with limit ${s.mid}. Update answer = <span class="pos">${s.ans}</span>. Try smaller → hi = ${s.hi}.`;
+  } else if(s.type==='invalid'){
+    msg=`<span class="hi">Step ${idx+1} — ✗ Too tight.</span> <span class="neg">${s.parts} parts > k=${K}</span> — limit ${s.mid} is too small, can't fit everything. Increase → lo = ${s.lo}.`;
+  } else if(s.type==='done'){
+    msg=`<span class="hi">🎉 Done!</span> lo > hi — binary search converged. <span class="pos">Final answer = ${s.ans}</span>. This is the minimum possible largest subarray sum when splitting into k=${K} parts.`;
+    document.getElementById('done-pill').style.display='inline-block';
+  }
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    const midStr=s.mid!==null?s.mid:'—';
+    const partsStr=s.parts!==null?s.parts:'—';
+    const vsStr=s.valid===null?'—':s.valid?`<span class="cg">≤ k ✓</span>`:`<span class="cr">> k ✗</span>`;
+    let action='';
+    if(s.type==='init') action=`<span class="ca">Initialize</span>`;
+    else if(s.type==='check') action=`<span class="cam">Greedy check</span>`;
+    else if(s.type==='valid') action=`<span class="cg">Valid → hi=${s.hi}, ans=${s.ans}</span>`;
+    else if(s.type==='invalid') action=`<span class="cr">Invalid → lo=${s.lo}</span>`;
+    else action=`<span class="ct">✓ Converged</span>`;
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td class="ca">${s.lo}</td><td class="cam">${midStr}</td><td class="cr">${s.hi}</td>
+      <td class="cp">${partsStr}</td><td>${vsStr}</td><td>${action}</td><td class="cg">${s.ans}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadExample(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  nums=[...EXAMPLES[n].nums]; K=EXAMPLES[n].k;
+  document.getElementById('example-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(nums,K);
+  buildTable(steps);
+  cursor=-1; applyState(-1);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const isPinned=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',isPinned);
+  btn.textContent=isPinned?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+window.addEventListener('resize',()=>{ if(cursor>=0)applyState(cursor); else applyState(-1); });
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

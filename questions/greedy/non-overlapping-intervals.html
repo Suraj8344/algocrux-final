@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<style>.design-ui-credit{position:fixed;bottom:12px;right:12px;font:11px/1 system-ui,sans-serif;color:rgba(128,128,128,0.5);pointer-events:none;z-index:2147483647;transition:opacity .4s ease;user-select:none;letter-spacing:.02em}@media(hover:none){.design-ui-credit{display:none}}@media print{*{transition:none!important;animation:none!important;box-shadow:none!important}.design-ui-credit{display:none!important}}</style>
+<script>(function(){function m(){document.body.classList.add('artifact-editable')}function c(){if(!matchMedia('(hover:hover)').matches)return;var d=document.createElement('div');d.className='design-ui-credit';d.setAttribute('aria-hidden','true');d.innerHTML='\u{1F49C} by ClickUp Brain';document.body.appendChild(d);var t=null,f=function(o){d.style.opacity=o?'0':''};f(true);var s=function(){f(false);clearTimeout(t);t=setTimeout(function(){f(true)},3000)};document.addEventListener('mousemove',s);s()}function i(){m();c()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',i);else i()})();</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Non-overlapping Intervals — Minimum Removals</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--muted2:#5c6189;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0d2522;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}.badge-row{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}.badge{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}.badge.gfg{background:var(--accent-bg);color:var(--accent);border:1px solid #1a2a60}.badge.px{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155}.badge.med{background:var(--amber-bg);color:var(--amber);border:1px solid #5c4a1a}header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}@media(max-width:640px){.concept{grid-template-columns:1fr}}.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--amber);line-height:2.1}.formula .comment{color:var(--muted);font-style:italic}.formula .keyword{color:var(--purple)}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:6px}.dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.timeline-container{position:relative;margin:1rem 0 1.5rem;overflow-x:auto}.timeline-rows{display:flex;flex-direction:column;gap:6px;padding-bottom:8px}.timeline-row{position:relative;height:38px}.timeline-bar{height:32px;border-radius:6px;position:absolute;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;transition:all .3s;border:1.5px solid}.timeline-bar.default{background:var(--surface2);border-color:var(--border2);color:var(--muted)}.timeline-bar.kept{background:var(--green-bg);border-color:var(--green);color:var(--green)}.timeline-bar.removed{background:var(--red-bg);border-color:rgba(248,113,113,.3);color:var(--red);opacity:.5;text-decoration:line-through}.timeline-bar.current{background:var(--purple-bg);border-color:var(--purple);color:var(--purple);transform:translateY(-2px)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:6px}.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width .3s ease;width:0%}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}@media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}.stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}.stat-box.purple .val{color:var(--purple)}.stat-box.amber .val{color:var(--amber)}.stat-box.teal .val{color:var(--teal)}.stat-box.green .val{color:var(--green)}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.25rem;line-height:1.65}.log-box .hi{color:var(--text);font-weight:500}.log-box .pos{color:var(--green);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .sol{color:var(--purple);font-weight:600}.log-box .tl{color:var(--teal);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}.done-pill{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans)}.copy-btn:hover{color:var(--text)}pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}
+.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}@media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}.complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}.complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}.notes-header:hover{background:var(--border)}.notes-header h3{font-size:.95rem;font-weight:600}.notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}.notes-header.open .toggle-icon{transform:rotate(180deg)}.notes-body{padding:1.25rem;display:none}.notes-body.open{display:block}.notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;resize:vertical;outline:none}
+.lc-banner{display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,#1a2140,#0c2624);border:1px solid #343a57;border-radius:12px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:14px}.lc-banner .lc-icon{width:36px;height:36px;border-radius:8px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;flex-shrink:0}.lc-banner .lc-text{flex:1;color:#8a8fb5;line-height:1.5}.lc-banner .lc-text b{color:#eef0fa;font-weight:600}.lc-banner .lc-btn{background:linear-gradient(135deg,#6c8fff,#2dd4bf);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;transition:all .2s ease;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}.lc-banner .lc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,143,255,.4)}@media(max-width:640px){.lc-banner{flex-direction:column;align-items:flex-start;gap:.6rem}.lc-banner .lc-btn{width:100%;justify-content:center}}
+</style>
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+<header><div><div class="badge-row"><span class="badge gfg">Greedy / Interval</span><span class="badge px">Non-overlapping Intervals</span><span class="badge med">Medium</span></div><h1>Non-overlapping Intervals — Minimum Removals to Eliminate Overlaps</h1><p>Find the minimum number of intervals to remove so no two intervals overlap. O(N log N).</p></div></header>
+<main>
+  <div class="lc-banner"><div class="lc-icon">LC</div><div class="lc-text">Practice on <b>LeetCode 435: Non-overlapping Intervals</b></div><a href="https://leetcode.com/problems/non-overlapping-intervals/" target="_blank" rel="noopener" class="lc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open Problem</a></div>
+
+  <div class="concept"><div><h2>Key Insight</h2><p>This is the <strong style="color:var(--teal)">flip side</strong> of Activity Selection. Max non-overlapping = N, so <strong style="color:var(--red)">removals = N - maxKept</strong>. Sort by end time, greedily keep intervals that don't overlap, count the rest as removals.</p></div><div><h2>The Algorithm</h2><div class="formula"><span class="keyword">sort</span> by end time<br><span class="keyword">kept</span> = 1, lastEnd = intervals[0].end<br><span class="keyword">for</span> each remaining interval:<br>&nbsp;&nbsp;<span class="keyword">if</span> start >= lastEnd: keep it<br>&nbsp;&nbsp;<span class="keyword">else</span>: remove it (overlap)<br><span class="keyword">return</span> N - kept</div></div></div>
+
+  <div class="anim-panel" id="panel"><div class="anim-panel-head"><span class="title">Interactive Visualization</span></div>
+    <div class="legend"><span><div class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></div> Considering</span><span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Kept</span><span><div class="dot" style="background:var(--red-bg);border-color:var(--red)"></div> Removed</span></div>
+    <div class="timeline-container" id="timeline"></div>
+    <div class="step-label" id="step-label">Step 0 of 0</div><div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+    <div class="stats-row"><div class="stat-box green"><div class="lbl">Kept</div><div class="val" id="s-kept">0</div></div><div class="stat-box purple"><div class="lbl">Removed</div><div class="val" id="s-rem">0</div></div><div class="stat-box amber"><div class="lbl">Last End</div><div class="val" id="s-end">—</div></div><div class="stat-box teal"><div class="lbl">Total</div><div class="val" id="s-total">0</div></div></div>
+    <div class="log-box" id="log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.</div>
+    <div class="controls"><button class="btn" onclick="stepBack()">← Prev</button><button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button><button class="btn" onclick="stepFwd()">Next →</button><button class="btn" onclick="reset()">↺ Reset</button><button class="btn" onclick="randData()">Random</button><span class="done-pill" id="done-pill">✓ Done</span><div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="spd"></div></div>
+  </div>
+  <div class="code-section"><div class="code-header"><span>C++ — Non-overlapping Intervals</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">int</span> <span class="fn">eraseOverlapIntervals</span>(<span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; intervals) {
+    <span class="fn">sort</span>(intervals.<span class="fn">begin</span>(), intervals.<span class="fn">end</span>(),
+         [](<span class="kw">auto</span>&amp; a, <span class="kw">auto</span>&amp; b){ <span class="kw">return</span> a[<span class="nm">1</span>] &lt; b[<span class="nm">1</span>]; });
+
+    <span class="kw">int</span> kept = <span class="nm">1</span>, lastEnd = intervals[<span class="nm">0</span>][<span class="nm">1</span>];
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; intervals.<span class="fn">size</span>(); i++) {
+        <span class="kw">if</span> (intervals[i][<span class="nm">0</span>] >= lastEnd) {
+            kept++;
+            lastEnd = intervals[i][<span class="nm">1</span>];
+        }
+    }
+    <span class="kw">return</span> intervals.<span class="fn">size</span>() - kept;
+}</pre></div>
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid"><div class="complex-card"><div class="lbl">Time</div><div class="big">O(N log N)</div><p>Sorting + single pass.</p></div><div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>In-place after sorting.</p></div></div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes..."></textarea></div></div>
+</main>
+<script>
+let ivs=[[1,2],[2,3],[3,4],[1,3],[2,4],[3,5],[0,6]];
+const S={steps:[],idx:-1,playing:false,timer:null};
+function spd(){return[1800,1200,750,400,180][parseInt(document.getElementById('spd').value)-1]}
+function randData(){const n=6+Math.floor(Math.random()*4);ivs=[];for(let i=0;i<n;i++){const s=Math.floor(Math.random()*10);ivs.push([s,s+1+Math.floor(Math.random()*4)])}reset()}
+function gen(){const sorted=[...ivs].map(a=>[...a]).sort((a,b)=>a[1]-b[1]);const n=sorted.length;const steps=[];const st=new Array(n).fill('default');let kept=1,rem=0,lastEnd=sorted[0][1];st[0]='kept';
+steps.push({sorted,st:[...st],cur:-1,lastEnd:-1,kept:0,rem:0,log:`<span class="hi">${n} intervals</span> sorted by end time. Goal: find minimum removals.`});
+steps.push({sorted,st:[...st],cur:0,lastEnd,kept,rem,log:`Keep first interval [<span class="pos">${sorted[0][0]},${sorted[0][1]}</span>]. lastEnd = <span class="amb">${lastEnd}</span>.`});
+for(let i=1;i<n;i++){const overlap=sorted[i][0]<lastEnd;
+  steps.push({sorted,st:[...st],cur:i,lastEnd,kept,rem,log:`Consider [<span class="sol">${sorted[i][0]},${sorted[i][1]}</span>]. Start ${sorted[i][0]} ${overlap?'<':'≥'} lastEnd ${lastEnd}.`});
+  if(!overlap){st[i]='kept';lastEnd=sorted[i][1];kept++;
+    steps.push({sorted,st:[...st],cur:i,lastEnd,kept,rem,log:`<span class="pos">Kept!</span> No overlap. lastEnd = <span class="amb">${lastEnd}</span>.`})}
+  else{st[i]='removed';rem++;
+    steps.push({sorted,st:[...st],cur:i,lastEnd,kept,rem,log:`<span class="neg">Removed!</span> Overlaps with previous. Removals: <span class="neg">${rem}</span>.`})}}
+steps.push({sorted,st:[...st],cur:-1,lastEnd,kept,rem,log:`✓ <span class="pos">Done!</span> Minimum removals: <span class="neg">${rem}</span>. Kept: <span class="pos">${kept}</span> out of ${n}.`});
+return steps}
+function render(){const s=S.steps[S.idx];if(!s)return;const maxE=Math.max(...s.sorted.map(a=>a[1]));const W=Math.max(500,maxE*50);
+let h=`<div style="position:relative;min-width:${W}px"><div class="timeline-rows">`;
+for(let i=0;i<s.sorted.length;i++){const a=s.sorted[i];const left=(a[0]/maxE)*W;const width=((a[1]-a[0])/maxE)*W;let cls='timeline-bar ';
+if(s.cur===i&&s.st[i]==='default')cls+='current';else cls+=s.st[i];
+h+=`<div class="timeline-row"><div class="${cls}" style="left:${left}px;width:${Math.max(width,24)}px">[${a[0]},${a[1]}]</div></div>`}
+h+=`</div></div>`;document.getElementById('timeline').innerHTML=h;
+document.getElementById('s-kept').textContent=s.kept;document.getElementById('s-rem').textContent=s.rem;document.getElementById('s-end').textContent=s.lastEnd>=0?s.lastEnd:'—';document.getElementById('s-total').textContent=s.sorted.length;
+document.getElementById('log').innerHTML=s.log;const t=S.steps.length-1;document.getElementById('pf').style.width=(t>0?(S.idx/t)*100:0)+'%';document.getElementById('step-label').textContent=`Step ${S.idx+1} of ${S.steps.length}`;document.getElementById('done-pill').style.display=S.idx===S.steps.length-1?'inline-block':'none'}
+function stepFwd(){if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx<S.steps.length-1){S.idx++;render()}}
+function stepBack(){if(S.idx>0){S.idx--;render()}}
+function togglePlay(){if(S.playing){S.playing=false;clearTimeout(S.timer);document.getElementById('play-btn').textContent='▶ Play';return}if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx>=S.steps.length-1)S.idx=-1;S.playing=true;document.getElementById('play-btn').textContent='⏸ Pause';(function go(){if(!S.playing)return;if(S.idx>=S.steps.length-1){S.playing=false;document.getElementById('play-btn').textContent='▶ Play';return}S.idx++;render();S.timer=setTimeout(go,spd())})()}
+function reset(){S.playing=false;clearTimeout(S.timer);S.steps=[];S.idx=-1;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('done-pill').style.display='none';document.getElementById('timeline').innerHTML='<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);padding:1rem;display:block;text-align:center">Press Play or Next</span>';document.getElementById('pf').style.width='0%';document.getElementById('step-label').textContent='Step 0 of 0';document.getElementById('s-kept').textContent='0';document.getElementById('s-rem').textContent='0';document.getElementById('s-end').textContent='—';document.getElementById('s-total').textContent=ivs.length;document.getElementById('log').innerHTML='Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.'}
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight')stepFwd();if(e.key==='ArrowLeft')stepBack();if(e.key===' '){e.preventDefault();togglePlay()}if(e.key==='r')reset()});
+document.addEventListener('DOMContentLoaded',reset);
+</script></body></html>

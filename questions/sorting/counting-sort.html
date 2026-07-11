@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counting Sort — Non-Comparison Based Sorting</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.easy { background: var(--green-bg); color: var(--green); border: 1px solid #1a6b3a; }
+  .badge.px { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .badge.gfg { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5c4a1a; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .progress-card{position:fixed;bottom:20px;right:20px;z-index:100;width:310px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem;box-shadow:0 16px 44px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:.85rem}
+  .progress-card .pc-top{display:flex;align-items:center;gap:12px}
+  .pc-icon{width:38px;height:38px;border-radius:9px;background:var(--purple-bg);border:1px solid #3a2155;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple);transition:background .25s,border-color .25s,color .25s}
+  .pc-icon svg{width:18px;height:18px}
+  .pc-ic-done{display:none}.progress-card.done .pc-ic-todo{display:none}.progress-card.done .pc-ic-done{display:block}
+  .pc-meta{flex:1;min-width:0}.pc-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.3}.pc-status{font-size:12px;color:var(--muted);margin-top:1px;transition:color .2s}
+  .pc-btn{width:100%;padding:.6rem;border-radius:9px;border:1px solid var(--accent-dim);background:var(--accent-bg);color:var(--accent);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}.pc-btn:hover{filter:brightness(1.15)}
+  .progress-card.done .pc-icon{background:var(--green-bg);border-color:var(--green);color:var(--green)}.progress-card.done .pc-status{color:var(--green)}.progress-card.done .pc-btn{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  @media(max-width:640px){.progress-card{left:16px;right:16px;width:auto;bottom:12px}}
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 8rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12.5px; color: var(--amber); line-height: 2.1; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .arr-section { margin-bottom: 1.1rem; }
+  .arr-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .arr-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
+  .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cell { min-width: 46px; height: 46px; padding: 0 6px; border-radius: 9px; border: 1.5px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text); transition: background .25s, border-color .25s, color .25s, box-shadow .25s, transform .2s; }
+  .cell.cur { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); transform: translateY(-2px); }
+  .cell.match { background: var(--green-bg); border-color: var(--green); box-shadow: 0 0 0 2px rgba(74,222,128,.25); }
+  .cell.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .cell.counting { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .cell.placing { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); animation: cellPop .3s cubic-bezier(.22,1,.36,1); }
+  .cell-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  .cell-val-label { font-size: 9px; color: var(--teal); font-family: var(--mono); margin-top: 1px; }
+  @keyframes cellPop { from { transform: scale(0.5) translateY(-6px); opacity: 0.3; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .count-bars { display: flex; gap: 4px; flex-wrap: wrap; align-items: flex-end; justify-content: center; padding: .5rem 0; min-height: 80px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .bar-val { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--amber); margin-bottom: 3px; min-height: 16px; }
+  .bar-rect { width: 32px; border-radius: 4px 4px 0 0; background: var(--surface2); border: 1px solid var(--border2); border-bottom: none; transition: height .3s cubic-bezier(.22,1,.36,1), background .25s, border-color .25s; min-height: 2px; }
+  .bar-rect.hl { background: var(--amber-bg); border-color: var(--amber); }
+  .bar-rect.prefix { background: var(--teal-bg); border-color: var(--teal); }
+  .bar-rect.placing-bar { background: var(--purple-bg); border-color: var(--purple); }
+  .bar-rect.done-bar { background: var(--green-bg); border-color: var(--green); }
+  .bar-base { width: 32px; height: 2px; background: var(--border); }
+  .bar-label { font-size: 9px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box.purple .val { color: var(--purple); } .stat-box.amber .val { color: var(--amber); } .stat-box.teal .val { color: var(--teal); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .input-row label { font-size: 12px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
+  .input-row input[type=text] { flex: 1; min-width: 160px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; transition: border-color .15s; }
+  .input-row input[type=text]:focus { border-color: var(--accent-dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge-row">
+    <span class="badge gfg">Sorting / Non-Comparison</span>
+    <span class="badge px">Counting Sort</span>
+    <span class="badge easy">Easy</span>
+  </div>
+  <h1>Counting Sort — Count, Accumulate, Place</h1>
+  <p>Count occurrences of each value, compute prefix sums, then place elements in sorted order. O(N + K) time.</p>
+</header>
+
+<div class="progress-card" id="progressCard">
+  <div class="pc-top">
+    <div class="pc-icon">
+      <svg class="pc-ic-todo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+      <svg class="pc-ic-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="pc-meta">
+      <div class="pc-title">Counting Sort — Non-Comparison Sort</div>
+      <div class="pc-status" id="pcStatus">Not completed</div>
+    </div>
+  </div>
+  <button class="pc-btn" id="pcBtn">Mark as Complete</button>
+</div>
+
+<main>
+
+  <div class="lc-banner">
+    <div class="lc-icon">GFG</div>
+    <div class="lc-text">Practice this algorithm on <b>GeeksforGeeks</b> to reinforce your understanding.</div>
+    <a href="https://www.geeksforgeeks.org/counting-sort/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sorts integers in <strong style="color:var(--teal)">linear time</strong> by counting how many times each value appears. No comparisons between elements at all. Works best when the range of values (<strong style="color:var(--amber)">K</strong>) is not significantly larger than the number of elements (<strong style="color:var(--amber)">N</strong>).</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> if you know an element's count and the count of everything smaller, you know its exact final position. <strong style="color:var(--teal)">Prefix sums</strong> of the count array give you that.</p>
+    </div>
+    <div>
+      <h2>Three Phases</h2>
+      <div class="formula">
+        <span class="comment">// Phase 1: Count occurrences</span><br>
+        <span class="keyword">count</span>[val - min]++<br><br>
+        <span class="comment">// Phase 2: Prefix sum (cumulative)</span><br>
+        <span class="keyword">count</span>[i] += count[i - 1]<br><br>
+        <span class="comment">// Phase 3: Place elements (right to left)</span><br>
+        <span class="keyword">output</span>[--count[val - min]] = val
+      </div>
+    </div>
+  </div>
+
+  <div class="anim-panel" id="panel-cs">
+    <div class="anim-panel-head">
+      <span class="title">Interactive Visualization</span>
+      <button class="pin-btn" onclick="togglePin()">📌 Pin</button>
+    </div>
+
+    <div class="legend">
+      <span><div class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></div> Current Element</span>
+      <span><div class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></div> Counting</span>
+      <span><div class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></div> Prefix Sum</span>
+      <span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Placed / Done</span>
+    </div>
+
+    <div class="input-row">
+      <label>Array:</label>
+      <input type="text" id="cs-input" value="4, 2, 2, 8, 3, 3, 1, 7, 5, 1">
+      <button class="btn" onclick="applyArray()">Apply</button>
+      <button class="btn" onclick="randomArray()">Random</button>
+    </div>
+
+    <div class="arr-section">
+      <div class="arr-label">Input Array</div>
+      <div class="arr-row" id="cs-source-row"></div>
+    </div>
+
+    <div class="arr-section">
+      <div class="arr-label" id="cs-count-label">Count Array</div>
+      <div class="count-bars" id="cs-count-bars">
+        <span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">Press Play or Next to begin</span>
+      </div>
+    </div>
+
+    <div class="arr-section">
+      <div class="arr-label">Output Array</div>
+      <div class="arr-row" id="cs-output-row">
+        <span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">—</span>
+      </div>
+    </div>
+
+    <div class="step-label" id="cs-step-label">Step 0 of 0</div>
+    <div class="progress-track"><div class="progress-fill" id="cs-progress-fill"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="lbl">Phase</div><div class="val" id="cs-stat-phase" style="font-size:13px">Init</div></div>
+      <div class="stat-box amber"><div class="lbl">Range (K)</div><div class="val" id="cs-stat-range">0</div></div>
+      <div class="stat-box teal"><div class="lbl">Counted</div><div class="val" id="cs-stat-counted">0</div></div>
+      <div class="stat-box green"><div class="lbl">Placed</div><div class="val" id="cs-stat-placed">0</div></div>
+    </div>
+
+    <div class="log-box" id="cs-log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start the Counting Sort animation.</div>
+
+    <div class="controls">
+      <button class="btn" onclick="stepBack()">← Prev</button>
+      <button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button>
+      <button class="btn" onclick="stepForward()">Next →</button>
+      <button class="btn" onclick="resetAlgo()">↺ Reset</button>
+      <span class="done-pill" id="done-pill">✓ Sorted</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" min="1" max="5" value="3" id="speed-slider">
+      </div>
+    </div>
+  </div>
+
+  <div class="code-section" style="margin-bottom:2rem;">
+    <div class="code-header"><span>Step-by-Step Walkthrough</span></div>
+    <div style="padding:1rem;max-height:340px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;position:sticky;top:0;background:var(--surface);">Phase</th>
+            <th style="text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;position:sticky;top:0;background:var(--surface);">Description</th>
+          </tr>
+        </thead>
+        <tbody style="font-family:var(--mono);color:var(--muted);">
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--amber);">1. Count</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Scan input left to right. For each element, increment count[val - min].</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--teal);">2. Prefix Sum</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Accumulate: count[i] += count[i-1]. Now count[i] = position after last occurrence of value i+min.</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--purple);">3. Place</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Scan input right to left. Place each element at output[--count[val-min]]. This preserves stability.</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--green);">4. Done</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Output array is the final sorted result.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <div class="code-header">
+      <span>C++ — Counting Sort (Stable)</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="cs-code"><span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">countingSort</span>(<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr) {
+    <span class="kw">int</span> n = arr.<span class="fn">size</span>();
+    <span class="kw">int</span> mn = *<span class="fn">min_element</span>(arr.<span class="fn">begin</span>(), arr.<span class="fn">end</span>());
+    <span class="kw">int</span> mx = *<span class="fn">max_element</span>(arr.<span class="fn">begin</span>(), arr.<span class="fn">end</span>());
+    <span class="kw">int</span> range = mx - mn + <span class="nm">1</span>;
+
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; count(range, <span class="nm">0</span>), output(n);
+
+    <span class="cm">// Phase 1: Count occurrences</span>
+    <span class="kw">for</span> (<span class="kw">int</span> val : arr)
+        count[val - mn]++;
+
+    <span class="cm">// Phase 2: Prefix sum</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; range; i++)
+        count[i] += count[i - <span class="nm">1</span>];
+
+    <span class="cm">// Phase 3: Place elements (right to left for stability)</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = n - <span class="nm">1</span>; i >= <span class="nm">0</span>; i--) {
+        output[count[arr[i] - mn] - <span class="nm">1</span>] = arr[i];
+        count[arr[i] - mn]--;
+    }
+
+    <span class="kw">return</span> output;
+}</pre>
+  </div>
+
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time</div>
+      <div class="big">O(N + K)</div>
+      <p>N elements, K is the range of values (max - min + 1). Always linear.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space</div>
+      <div class="big">O(N + K)</div>
+      <p>Count array of size K, plus output array of size N.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Stable?</div>
+      <div class="big" style="color:var(--green)">Yes</div>
+      <p>Right-to-left placement preserves relative order of equal elements.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">In-Place?</div>
+      <div class="big" style="color:var(--red)">No</div>
+      <p>Requires extra arrays for count and output.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="notes-section">
+    <div class="notes-header" onclick="toggleNotes()">
+      <h3>📝 Notes</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="notes-body">
+      <textarea placeholder="Jot down observations, edge cases, or insights about counting sort..."></textarea>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const st = { steps: [], idx: -1, playing: false, timer: null, arr: [4,2,2,8,3,3,1,7,5,1] };
+
+const COMPLETE_KEY = 'algo-progress:counting-sort';
+function initComplete() {
+  const card = document.getElementById('progressCard'), btn = document.getElementById('pcBtn'), status = document.getElementById('pcStatus');
+  function apply(done){ card.classList.toggle('done',done); status.textContent = done?'Completed':'Not completed'; btn.textContent = done?'Completed ✓':'Mark as Complete'; }
+  let done=false; try{ done=localStorage.getItem(COMPLETE_KEY)==='1'; }catch(e){} apply(done);
+  btn.addEventListener('click',function(){ let d=false; try{ d=localStorage.getItem(COMPLETE_KEY)==='1'; }catch(e){} const nx=!d; try{ localStorage.setItem(COMPLETE_KEY,nx?'1':'0'); }catch(e){} apply(nx); });
+}
+
+function togglePin() {
+  const p = document.getElementById('panel-cs');
+  p.classList.toggle('pinned'); p.querySelector('.pin-btn').classList.toggle('active');
+}
+function toggleNotes() {
+  document.querySelector('.notes-header').classList.toggle('open');
+  document.querySelector('.notes-body').classList.toggle('open');
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('cs-code').textContent).then(() => {
+    const b = document.querySelector('.copy-btn'); b.textContent = 'Copied!';
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  });
+}
+function getSpeed() { return [1800,1200,750,400,180][parseInt(document.getElementById('speed-slider').value)-1]; }
+
+function applyArray() {
+  const raw = document.getElementById('cs-input').value;
+  const arr = raw.split(/[,\s]+/).map(Number).filter(n => !isNaN(n) && n >= 0);
+  if (arr.length < 2) { alert('Need at least 2 numbers.'); return; }
+  if (arr.length > 16) { alert('Max 16 elements for clarity.'); return; }
+  const mx = Math.max(...arr), mn = Math.min(...arr);
+  if (mx - mn > 30) { alert('Keep value range within 30 for a readable visualization.'); return; }
+  st.arr = arr; resetAlgo();
+}
+function randomArray() {
+  const len = 7 + Math.floor(Math.random()*5);
+  const base = Math.floor(Math.random()*5);
+  const arr = [];
+  for (let i = 0; i < len; i++) arr.push(base + Math.floor(Math.random()*10));
+  document.getElementById('cs-input').value = arr.join(', ');
+  st.arr = arr; resetAlgo();
+}
+
+function genSteps(arr) {
+  const a = [...arr], n = a.length, steps = [];
+  const mn = Math.min(...a), mx = Math.max(...a), range = mx - mn + 1;
+  const count = new Array(range).fill(0);
+  const output = new Array(n).fill(null);
+  let counted = 0, placed = 0;
+
+  steps.push({ phase:'init', arr:[...a], count:[...count], output:[...output], mn, mx, range, hl:{}, counted:0, placed:0, countMode:'raw',
+    log:`Array: <span class="hi">[${a.join(', ')}]</span>. Range: <span class="amb">[${mn}..${mx}]</span>, K = <span class="amb">${range}</span>.` });
+
+  for (let i = 0; i < n; i++) {
+    count[a[i] - mn]++;
+    counted++;
+    steps.push({ phase:'count', arr:[...a], count:[...count], output:[...output], mn, mx, range,
+      hl:{ src: i, countIdx: a[i] - mn }, counted, placed, countMode:'raw',
+      log:`Element <span class="sol">${a[i]}</span> (index ${i}): increment count[<span class="amb">${a[i] - mn}</span>] → <span class="amb">${count[a[i]-mn]}</span>.` });
+  }
+
+  steps.push({ phase:'count-done', arr:[...a], count:[...count], output:[...output], mn, mx, range, hl:{}, counted, placed, countMode:'raw',
+    log:`<span class="pos">Counting complete!</span> Count array: [<span class="amb">${count.join(', ')}</span>]. Now computing prefix sums...` });
+
+  for (let i = 1; i < range; i++) {
+    const before = count[i];
+    count[i] += count[i-1];
+    steps.push({ phase:'prefix', arr:[...a], count:[...count], output:[...output], mn, mx, range,
+      hl:{ prefixIdx: i, prefixPrev: i-1 }, counted, placed, countMode:'prefix',
+      log:`count[<span class="tl">${i}</span>] = ${before} + count[${i-1}] = <span class="tl">${count[i]}</span>. Value ${i+mn} will end at position ${count[i]}.` });
+  }
+
+  steps.push({ phase:'prefix-done', arr:[...a], count:[...count], output:[...output], mn, mx, range, hl:{}, counted, placed, countMode:'prefix',
+    log:`<span class="pos">Prefix sums done!</span> Cumulative: [<span class="tl">${count.join(', ')}</span>]. Now placing elements right to left...` });
+
+  for (let i = n - 1; i >= 0; i--) {
+    const val = a[i];
+    const ci = val - mn;
+    count[ci]--;
+    const pos = count[ci];
+    output[pos] = val;
+    placed++;
+    steps.push({ phase:'place', arr:[...a], count:[...count], output:[...output], mn, mx, range,
+      hl:{ src: i, countIdx: ci, outIdx: pos }, counted, placed, countMode:'placing',
+      log:`Place <span class="sol">${val}</span> (index ${i}): count[<span class="amb">${ci}</span>] decremented to <span class="amb">${count[ci]}</span>. Output[<span class="pos">${pos}</span>] = <span class="pos">${val}</span>.` });
+  }
+
+  steps.push({ phase:'done', arr:[...a], count:[...count], output:[...output], mn, mx, range, hl:{}, counted, placed, countMode:'done',
+    log:`✓ <span class="pos">Sorted!</span> Result: <span class="hi">[${output.join(', ')}]</span>. O(N+K) = O(${n}+${range}) = O(${n+range}).` });
+
+  return steps;
+}
+
+function render() {
+  const step = st.steps[st.idx]; if (!step) return;
+
+  const srcRow = document.getElementById('cs-source-row');
+  let h = '';
+  for (let i = 0; i < step.arr.length; i++) {
+    let cls = 'cell';
+    if (step.hl.src === i && step.phase === 'count') cls += ' cur';
+    if (step.hl.src === i && step.phase === 'place') cls += ' cur';
+    if (step.phase === 'done') cls += ' match';
+    h += `<div class="cell-wrap"><div class="${cls}">${step.arr[i]}</div><div class="cell-idx">${i}</div></div>`;
+  }
+  srcRow.innerHTML = h;
+
+  const barContainer = document.getElementById('cs-count-bars');
+  const label = document.getElementById('cs-count-label');
+  if (step.phase === 'init') {
+    barContainer.innerHTML = '<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">Count array will appear here</span>';
+    label.textContent = 'Count Array';
+  } else {
+    const maxCount = Math.max(...step.count, 1);
+    const barH = 60;
+    let isPrefix = step.countMode === 'prefix' || step.countMode === 'placing' || step.countMode === 'done';
+    label.textContent = isPrefix ? 'Count Array (Prefix Sums)' : 'Count Array';
+
+    let bh = '';
+    for (let i = 0; i < step.count.length; i++) {
+      const h2 = Math.max(2, (step.count[i] / Math.max(maxCount, 1)) * barH);
+      let barCls = 'bar-rect';
+      if (step.hl.countIdx === i && (step.phase === 'count')) barCls += ' hl';
+      if (step.hl.prefixIdx === i || step.hl.prefixPrev === i) barCls += ' prefix';
+      if (step.hl.countIdx === i && step.phase === 'place') barCls += ' placing-bar';
+      if (step.phase === 'done') barCls += ' done-bar';
+
+      bh += `<div class="bar-col">`;
+      bh += `<div class="bar-val">${step.count[i]}</div>`;
+      bh += `<div class="${barCls}" style="height:${h2}px"></div>`;
+      bh += `<div class="bar-base"></div>`;
+      bh += `<div class="bar-label">${i + step.mn}</div>`;
+      bh += `</div>`;
+    }
+    barContainer.innerHTML = bh;
+  }
+
+  const outRow = document.getElementById('cs-output-row');
+  if (step.output.some(v => v !== null)) {
+    let oh = '';
+    for (let i = 0; i < step.output.length; i++) {
+      let cls = 'cell';
+      if (step.output[i] === null) { cls = 'cell'; }
+      else if (step.hl.outIdx === i && step.phase === 'place') cls += ' placing';
+      else cls += ' match';
+      if (step.phase === 'done' && step.output[i] !== null) cls = 'cell match';
+      const val = step.output[i] !== null ? step.output[i] : '·';
+      oh += `<div class="cell-wrap"><div class="${cls}">${val}</div><div class="cell-idx">${i}</div></div>`;
+    }
+    outRow.innerHTML = oh;
+  } else {
+    outRow.innerHTML = '<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">—</span>';
+  }
+
+  const phases = { init:'Init', count:'Counting', 'count-done':'Count Done', prefix:'Prefix Sum', 'prefix-done':'Prefix Done', place:'Placing', done:'Done ✓' };
+  document.getElementById('cs-stat-phase').textContent = phases[step.phase] || step.phase;
+  document.getElementById('cs-stat-range').textContent = step.range;
+  document.getElementById('cs-stat-counted').textContent = step.counted;
+  document.getElementById('cs-stat-placed').textContent = step.placed;
+
+  document.getElementById('cs-log').innerHTML = step.log;
+  const total = st.steps.length - 1;
+  document.getElementById('cs-progress-fill').style.width = (total > 0 ? (st.idx/total)*100 : 0) + '%';
+  document.getElementById('cs-step-label').textContent = `Step ${st.idx+1} of ${st.steps.length}`;
+  document.getElementById('done-pill').style.display = step.phase === 'done' ? 'inline-block' : 'none';
+}
+
+function stepForward() {
+  if (st.steps.length === 0) { st.steps = genSteps(st.arr); st.idx = -1; }
+  if (st.idx < st.steps.length - 1) { st.idx++; render(); }
+}
+function stepBack() { if (st.idx > 0) { st.idx--; render(); } }
+function togglePlay() {
+  if (st.playing) { st.playing = false; clearTimeout(st.timer); document.getElementById('play-btn').textContent = '▶ Play'; return; }
+  if (st.steps.length === 0) { st.steps = genSteps(st.arr); st.idx = -1; }
+  if (st.idx >= st.steps.length - 1) st.idx = -1;
+  st.playing = true; document.getElementById('play-btn').textContent = '⏸ Pause';
+  (function advance() {
+    if (!st.playing) return;
+    if (st.idx >= st.steps.length - 1) { st.playing = false; document.getElementById('play-btn').textContent = '▶ Play'; return; }
+    st.idx++; render(); st.timer = setTimeout(advance, getSpeed());
+  })();
+}
+function resetAlgo() {
+  st.playing = false; clearTimeout(st.timer); st.steps = []; st.idx = -1;
+  document.getElementById('play-btn').textContent = '▶ Play';
+  document.getElementById('done-pill').style.display = 'none';
+  let h = '';
+  for (let i = 0; i < st.arr.length; i++) h += `<div class="cell-wrap"><div class="cell">${st.arr[i]}</div><div class="cell-idx">${i}</div></div>`;
+  document.getElementById('cs-source-row').innerHTML = h;
+  document.getElementById('cs-count-bars').innerHTML = '<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">Press Play or Next to begin</span>';
+  document.getElementById('cs-count-label').textContent = 'Count Array';
+  document.getElementById('cs-output-row').innerHTML = '<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);">—</span>';
+  document.getElementById('cs-progress-fill').style.width = '0%';
+  document.getElementById('cs-step-label').textContent = 'Step 0 of 0';
+  document.getElementById('cs-stat-phase').textContent = 'Init';
+  document.getElementById('cs-stat-range').textContent = '0';
+  document.getElementById('cs-stat-counted').textContent = '0';
+  document.getElementById('cs-stat-placed').textContent = '0';
+  document.getElementById('cs-log').innerHTML = 'Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start the Counting Sort animation.';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'l') stepForward();
+  if (e.key === 'ArrowLeft' || e.key === 'h') stepBack();
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'r') resetAlgo();
+});
+document.addEventListener('DOMContentLoaded', () => { initComplete(); resetAlgo(); });
+</script>
+</body>
+</html>

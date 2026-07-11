@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree BFS — Level Order, Zigzag & Right Side View</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.bfs  { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.gfg  { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .concept code { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* MODE TOGGLE */
+  .mode-toggle {
+    display: flex; gap: 4px; margin-bottom: 1.25rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 4px;
+  }
+  .mode-btn {
+    flex: 1; padding: 7px 10px; border-radius: 6px; border: none;
+    background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .mode-btn:hover { color: var(--text); }
+  .mode-btn.active { background: var(--accent-bg); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-dim); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .dot.d-cur   { background: var(--amber-bg);  border-color: var(--amber); }
+  .dot.d-queue { background: var(--teal-bg);   border-color: var(--teal); }
+  .dot.d-done  { background: var(--purple-bg); border-color: var(--purple); }
+  .dot.d-pick  { background: var(--green-bg);  border-color: var(--green); }
+
+  /* ── SVG TREE ── */
+  .tree-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1.1rem; overflow-x: auto; }
+  svg.tree { display: block; width: 100%; height: auto; }
+  .edge { stroke: var(--border2); stroke-width: 2; transition: stroke .25s; }
+  .node-circle {
+    fill: var(--surface); stroke: var(--border2); stroke-width: 2;
+    transition: fill .25s, stroke .25s, filter .25s;
+  }
+  .node-circle.cur   { fill: var(--amber-bg);  stroke: var(--amber);  filter: drop-shadow(0 0 6px rgba(251,191,36,.5)); }
+  .node-circle.queue { fill: var(--teal-bg);   stroke: var(--teal); }
+  .node-circle.done  { fill: var(--purple-bg); stroke: var(--purple); }
+  .node-circle.pick  { fill: var(--green-bg);  stroke: var(--green); filter: drop-shadow(0 0 6px rgba(74,222,128,.5)); }
+  .node-text { fill: var(--text); font-family: var(--mono); font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+
+  /* ── QUEUE STRIP ── */
+  .queue-section { margin-bottom: 1.1rem; }
+  .queue-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .queue-strip {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem; min-height: 56px;
+  }
+  .q-cell {
+    width: 40px; height: 40px; border-radius: 8px;
+    border: 1.5px solid var(--teal); background: var(--teal-bg); color: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px; font-weight: 700;
+    animation: qpop .25s ease;
+  }
+  @keyframes qpop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .q-head-tag { font-size: 10px; color: var(--muted2); font-family: var(--mono); align-self: flex-start; }
+  .q-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  /* ── OUTPUT ROWS (levels) ── */
+  .out-section { margin-bottom: 1.1rem; }
+  .out-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .out-levels { display: flex; flex-direction: column; gap: 6px; }
+  .out-level-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .out-lvl-tag { font-size: 10px; color: var(--muted2); font-family: var(--mono); min-width: 34px; }
+  .out-chip {
+    padding: 3px 11px; border-radius: 7px; font-family: var(--mono); font-size: 13px; font-weight: 700;
+    border: 1.5px solid var(--purple); background: var(--purple-bg); color: var(--purple);
+    animation: qpop .25s ease;
+  }
+  .out-chip.rsv { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .out-arrow { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-node { color: var(--amber); }
+  .tp-lvl  { color: var(--teal); }
+  .tp-dir  { color: var(--accent); }
+  .tp-out  { color: var(--purple); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.green  .val { color: var(--green); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge gfg">Pattern / Tree BFS</span>
+      <span class="badge bfs">Queue · Level by Level</span>
+      <span class="badge medium">Medium</span>
+    </div>
+    <h1>Tree BFS — Level Order, Zigzag &amp; Right Side View</h1>
+    <p>One queue-driven sweep, three classic outputs: walk the tree level by level in — O(N) time, O(W) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Breadth-First Search visits a tree <strong style="color:var(--text)">level by level</strong> using a queue. Push the root, then repeatedly pop a node and enqueue its children. The trick that unlocks every variant: at the top of each loop, snapshot the current <code>queueSize</code>. That count is exactly how many nodes sit on the current level, so you can process a whole level in one inner loop.</p>
+      <p style="margin-top:.6rem">From that single skeleton you get three answers for free: <strong style="color:var(--teal)">Level Order</strong> (each level as its own list), <strong style="color:var(--amber)">Zigzag</strong> (alternate the direction per level), and <strong style="color:var(--green)">Right Side View</strong> (the last node dequeued on each level).</p>
+    </div>
+    <div class="formula">
+      <span class="comment">// BFS skeleton — the level-size snapshot</span><br>
+      q.<span class="keyword">push</span>(root)<br>
+      <span class="keyword">while</span> q not empty:<br>
+      &nbsp;&nbsp;sz = q.size()&nbsp;&nbsp;<span class="comment">// nodes on this level</span><br>
+      &nbsp;&nbsp;<span class="keyword">for</span> i in 0..sz:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;node = q.pop()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// last i ⇒ right-side view</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;push node.left, node.right<br>
+    </div>
+  </div>
+
+  <div class="lc-banner" id="lcBanner">
+    <div class="lc-icon">LC</div>
+    <div class="lc-text">Practice all three variants on <b>LeetCode</b>: Level Order (102), Zigzag (103), Right Side View (199).</div>
+    <a href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time Complexity</div>
+      <div class="big">O(N)</div>
+      <p>Every node is enqueued and dequeued exactly once.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space Complexity</div>
+      <div class="big">O(W)</div>
+      <p>Queue holds at most one full level; W is the max width of the tree.</p>
+    </div>
+  </div>
+
+  <div class="tabs" id="exampleTabs"></div>
+
+  <div class="anim-panel" id="animPanel">
+    <div class="anim-panel-head">
+      <span class="title">Live Visualization</span>
+      <button class="pin-btn" id="pinBtn">📌 Pin panel</button>
+    </div>
+
+    <div class="mode-toggle" id="modeToggle">
+      <button class="mode-btn active" data-mode="level">Level Order</button>
+      <button class="mode-btn" data-mode="zigzag">Zigzag</button>
+      <button class="mode-btn" data-mode="rsv">Right Side View</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot d-cur"></span> Dequeued (current)</span>
+      <span><span class="dot d-queue"></span> In queue</span>
+      <span><span class="dot d-pick"></span> Picked for output</span>
+      <span><span class="dot d-done"></span> Fully processed</span>
+    </div>
+
+    <div class="tree-wrap">
+      <svg class="tree" id="treeSvg" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="queue-section">
+      <div class="queue-label">Queue <span style="color:var(--muted2)">(front → back)</span></div>
+      <div class="queue-strip" id="queueStrip"></div>
+    </div>
+
+    <div class="out-section">
+      <div class="out-label" id="outLabel">Output by level</div>
+      <div class="out-levels" id="outLevels"></div>
+    </div>
+
+    <div class="tracker-row">
+      <span class="tracker-pill tp-node">node = <span id="tpNode">–</span></span>
+      <span class="tracker-pill tp-lvl">level = <span id="tpLvl">0</span></span>
+      <span class="tracker-pill tp-dir">dir = <span id="tpDir">L→R</span></span>
+      <span class="tracker-pill tp-out">visited = <span id="tpOut">0</span></span>
+    </div>
+
+    <div class="step-label">Step <span id="stepNum">0</span> / <span id="stepTotal">0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl">Current</div><div class="val" id="statCur">–</div><div class="sub">dequeued node</div></div>
+      <div class="stat-box teal"><div class="lbl">Queue size</div><div class="val" id="statQ">0</div><div class="sub">nodes waiting</div></div>
+      <div class="stat-box purple"><div class="lbl">Level</div><div class="val" id="statLvl">0</div><div class="sub">current depth</div></div>
+      <div class="stat-box green"><div class="lbl">Visited</div><div class="val" id="statVis">0</div><div class="sub">nodes emitted</div></div>
+    </div>
+
+    <div class="log-box" id="logBox">Pick a mode and hit <span class="tl">Play</span> to sweep the tree level by level.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="backBtn">⟨ Step back</button>
+      <button class="btn" id="fwdBtn">Step ⟩</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="done-pill" id="donePill">✓ Done</span>
+      <span class="speed-wrap">Speed <input type="range" id="speed" min="1" max="5" value="3"></span>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step trace</h3>
+    <table class="step-table" id="stepTable">
+      <thead>
+        <tr><th>#</th><th>Action</th><th>Node</th><th>Level</th><th>Queue</th><th>Output so far</th></tr>
+      </thead>
+      <tbody id="stepTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="code-section">
+    <div class="code-header">
+      <span id="codeTitle">C++ — Level Order (LC 102)</span>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <pre id="codeBlock"></pre>
+  </div>
+
+  <!-- ===== NOTES ===== -->
+  <div class="notes-section">
+    <div class="notes-header" id="notesHeader">
+      <h3>📝 My Notes <span class="note-indicator" id="noteIndicator">●</span></h3>
+      <span class="toggle-icon">▾</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <div id="notesContent">
+        <textarea id="notesText" placeholder="Jot down your intuition: why does snapshotting queueSize give you the level boundary? When is zigzag just a reversed level?"></textarea>
+        <div class="notes-footer">
+          <span class="save-status saved" id="saveStatus">Saved</span>
+          <span id="charCount">0 chars</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <div class="practice-arena" data-problem-slug="tree-bfs-variants"></div>
+
+</main>
+
+<button class="algo-bookmark" id="bookmarkBtn" title="Bookmark this algorithm">☆</button>
+
+<script>
+/* ============================================================
+   TREE BFS — Level Order / Zigzag / Right Side View
+   All steps computed live from the tree. No hardcoded frames.
+   ============================================================ */
+
+// Tree as array of {id, val, left, right, x, y, depth}
+const EXAMPLES = {
+  balanced: {
+    label: "Balanced",
+    nodes: [
+      { val: 1, left: 1, right: 2 },   // 0
+      { val: 2, left: 3, right: 4 },   // 1
+      { val: 3, left: 5, right: 6 },   // 2
+      { val: 4, left: -1, right: -1 }, // 3
+      { val: 5, left: -1, right: -1 }, // 4
+      { val: 6, left: -1, right: -1 }, // 5
+      { val: 7, left: -1, right: -1 }, // 6
+    ],
+    root: 0
+  },
+  leftHeavy: {
+    label: "Left-leaning",
+    nodes: [
+      { val: 1, left: 1, right: 2 },
+      { val: 2, left: 3, right: -1 },
+      { val: 3, left: -1, right: 4 },
+      { val: 4, left: -1, right: -1 },
+      { val: 5, left: -1, right: -1 },
+    ],
+    root: 0
+  },
+  rightHeavy: {
+    label: "Right-leaning",
+    nodes: [
+      { val: 1, left: 1, right: 2 },
+      { val: 2, left: -1, right: -1 },
+      { val: 3, left: -1, right: 3 },
+      { val: 4, left: 4, right: -1 },
+      { val: 5, left: -1, right: -1 },
+    ],
+    root: 0
+  },
+  full4: {
+    label: "Four levels",
+    nodes: [
+      { val: 3, left: 1, right: 2 },
+      { val: 9, left: 3, right: 4 },
+      { val: 20, left: 5, right: 6 },
+      { val: 15, left: 7, right: -1 },
+      { val: 7, left: -1, right: -1 },
+      { val: 1, left: -1, right: -1 },
+      { val: 8, left: -1, right: 8 },
+      { val: 6, left: -1, right: -1 },
+      { val: 2, left: -1, right: -1 },
+    ],
+    root: 0
+  },
+  skew: {
+    label: "Zigzag skew",
+    nodes: [
+      { val: 1, left: 1, right: 2 },
+      { val: 2, left: -1, right: 3 },
+      { val: 3, left: 4, right: -1 },
+      { val: 4, left: -1, right: -1 },
+      { val: 5, left: -1, right: -1 },
+    ],
+    root: 0
+  }
+};
+
+let exampleKeys = Object.keys(EXAMPLES);
+let curExample = "balanced";
+let curMode = "level"; // level | zigzag | rsv
+
+let steps = [];
+let stepIdx = 0;
+let playing = false;
+let playTimer = null;
+
+const $ = id => document.getElementById(id);
+
+/* ---------- Layout: assign x,y to each node by binary position ---------- */
+function layout(ex) {
+  const nodes = ex.nodes.map((n, i) => ({ ...n, id: i, x: 0, y: 0, depth: 0 }));
+  // compute depth via BFS
+  const rootId = ex.root;
+  // assign positions using in-order-ish slot indexing per depth
+  // First find depth of each node
+  function setDepth(id, d) {
+    if (id < 0) return;
+    nodes[id].depth = d;
+    setDepth(nodes[id].left, d + 1);
+    setDepth(nodes[id].right, d + 1);
+  }
+  setDepth(rootId, 0);
+  const maxDepth = Math.max(...nodes.map(n => n.depth));
+  // x by in-order traversal to avoid overlap
+  let slot = 0;
+  function inorder(id) {
+    if (id < 0) return;
+    inorder(nodes[id].left);
+    nodes[id]._slot = slot++;
+    inorder(nodes[id].right);
+  }
+  inorder(rootId);
+  const totalSlots = slot;
+  const W = 720, H = 320, padX = 40, padY = 34;
+  const usableW = W - padX * 2;
+  const levelGap = maxDepth > 0 ? (H - padY * 2) / maxDepth : 0;
+  nodes.forEach(n => {
+    n.x = totalSlots > 1 ? padX + (n._slot / (totalSlots - 1)) * usableW : W / 2;
+    n.y = padY + n.depth * levelGap;
+  });
+  return nodes;
+}
+
+/* ---------- Build BFS steps live ---------- */
+function buildSteps(ex, mode) {
+  const nodes = layout(ex);
+  const out = [];
+  const levelsOut = []; // array of arrays of node ids (as emitted per mode)
+
+  // We simulate queue of node ids
+  let queue = [ex.root];
+  let level = 0;
+  let visited = 0;
+  const done = new Set();
+
+  function snapshotQueue() { return queue.slice(); }
+  function outClone() { return levelsOut.map(l => l.slice()); }
+
+  // initial push step
+  out.push({
+    kind: "push",
+    node: ex.root,
+    level: 0,
+    dir: "L→R",
+    queue: snapshotQueue(),
+    cur: null,
+    picked: [],
+    done: [],
+    levelsOut: outClone(),
+    visited,
+    log: `Push root <span class="tl">${nodes[ex.root].val}</span> onto the queue. Level 0 begins.`
+  });
+
+  while (queue.length) {
+    const sz = queue.length;
+    const dir = mode === "zigzag" ? (level % 2 === 0 ? "L→R" : "R→L") : "L→R";
+    const thisLevelVals = [];
+    const thisLevelIds = [];
+
+    // level-start marker
+    out.push({
+      kind: "level-start",
+      node: null,
+      level,
+      dir,
+      queue: snapshotQueue(),
+      cur: null,
+      picked: [],
+      done: [...done],
+      levelsOut: outClone(),
+      visited,
+      log: `<span class="hi">Level ${level}</span>: snapshot queueSize = <span class="tl">${sz}</span>. Process exactly ${sz} node${sz>1?"s":""}${mode==="zigzag" ? `, direction <span class="amb">${dir}</span>` : ""}.`
+    });
+
+    for (let i = 0; i < sz; i++) {
+      const id = queue.shift();
+      visited++;
+      thisLevelIds.push(id);
+      thisLevelVals.push(nodes[id].val);
+      const isLast = (i === sz - 1);
+
+      // enqueue children
+      const kids = [];
+      if (nodes[id].left >= 0) kids.push(nodes[id].left);
+      if (nodes[id].right >= 0) kids.push(nodes[id].right);
+      kids.forEach(k => queue.push(k));
+      done.add(id);
+
+      let picked = [];
+      let logExtra = "";
+      if (mode === "rsv") {
+        if (isLast) {
+          picked = [id];
+          logExtra = ` → last on level ${level}, <span class="pos">pick ${nodes[id].val}</span> for the right-side view.`;
+        } else {
+          logExtra = ` (not last on level, skip for RSV).`;
+        }
+      }
+
+      out.push({
+        kind: "dequeue",
+        node: id,
+        level,
+        dir,
+        queue: snapshotQueue(),
+        cur: id,
+        picked,
+        done: [...done],
+        levelsOut: outClone(),
+        visited,
+        log: `Dequeue <span class="amb">${nodes[id].val}</span>${kids.length ? `, enqueue ${kids.map(k=>`<span class="tl">${nodes[k].val}</span>`).join(", ")}` : ", no children"}.${logExtra}`
+      });
+    }
+
+    // finalize level output per mode
+    let levelEmitted;
+    if (mode === "zigzag" && level % 2 === 1) {
+      levelEmitted = thisLevelIds.slice().reverse();
+    } else if (mode === "rsv") {
+      levelEmitted = [thisLevelIds[thisLevelIds.length - 1]];
+    } else {
+      levelEmitted = thisLevelIds.slice();
+    }
+    levelsOut.push(levelEmitted);
+
+    let commitLog;
+    if (mode === "level") {
+      commitLog = `Commit level ${level}: <span class="sol">[${levelEmitted.map(x=>nodes[x].val).join(", ")}]</span>.`;
+    } else if (mode === "zigzag") {
+      commitLog = level % 2 === 1
+        ? `Odd level ${level} → reverse before committing: <span class="sol">[${levelEmitted.map(x=>nodes[x].val).join(", ")}]</span>.`
+        : `Even level ${level} stays L→R: <span class="sol">[${levelEmitted.map(x=>nodes[x].val).join(", ")}]</span>.`;
+    } else {
+      commitLog = `Right-side view now: <span class="pos">[${levelsOut.map(l=>nodes[l[0]].val).join(", ")}]</span>.`;
+    }
+
+    out.push({
+      kind: "level-commit",
+      node: null,
+      level,
+      dir,
+      queue: snapshotQueue(),
+      cur: null,
+      picked: mode === "rsv" ? [levelEmitted[0]] : levelEmitted,
+      done: [...done],
+      levelsOut: outClone(),
+      visited,
+      log: commitLog
+    });
+
+    level++;
+  }
+
+  // final
+  const finalOut = levelsOut.map(l => `[${l.map(x => nodes[x].val).join(", ")}]`).join(", ");
+  const rsvFlat = `[${levelsOut.map(l => nodes[l[0]].val).join(", ")}]`;
+  out.push({
+    kind: "done",
+    node: null,
+    level: level - 1,
+    dir: "–",
+    queue: [],
+    cur: null,
+    picked: [],
+    done: [...done],
+    levelsOut: outClone(),
+    visited,
+    log: mode === "rsv"
+      ? `✓ Done. Right-side view = <span class="sol">${rsvFlat}</span>. That is the last node dequeued on every level.`
+      : `✓ Done. Result = <span class="sol">${finalOut}</span>. Visited all ${visited} nodes, each once.`
+  });
+
+  return { nodes, steps: out, mode };
+}
+
+/* ---------- Rendering ---------- */
+let RENDER = { nodes: [] };
+
+function renderTreeSvg(nodes) {
+  const svg = $("treeSvg");
+  svg.innerHTML = "";
+  const NS = "http://www.w3.org/2000/svg";
+  // edges first
+  nodes.forEach(n => {
+    [n.left, n.right].forEach(c => {
+      if (c >= 0) {
+        const line = document.createElementNS(NS, "line");
+        line.setAttribute("x1", n.x); line.setAttribute("y1", n.y);
+        line.setAttribute("x2", nodes[c].x); line.setAttribute("y2", nodes[c].y);
+        line.setAttribute("class", "edge");
+        line.dataset.edge = `${n.id}-${c}`;
+        svg.appendChild(line);
+      }
+    });
+  });
+  // nodes
+  nodes.forEach(n => {
+    const g = document.createElementNS(NS, "g");
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", 18);
+    c.setAttribute("class", "node-circle");
+    c.dataset.node = n.id;
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", n.x); t.setAttribute("y", n.y);
+    t.setAttribute("class", "node-text");
+    t.textContent = n.val;
+    g.appendChild(c); g.appendChild(t);
+    svg.appendChild(g);
+  });
+}
+
+function paintStep() {
+  const st = steps[stepIdx];
+  if (!st) return;
+  const nodes = RENDER.nodes;
+
+  // reset node classes then apply
+  document.querySelectorAll(".node-circle").forEach(c => {
+    c.classList.remove("cur", "queue", "done", "pick");
+    const id = +c.dataset.node;
+    if (st.done.includes(id)) c.classList.add("done");
+    if (st.queue.includes(id)) c.classList.add("queue");
+    if (st.picked.includes(id)) c.classList.add("pick");
+    if (st.cur === id) c.classList.add("cur");
+  });
+
+  // queue strip
+  const qs = $("queueStrip");
+  qs.innerHTML = "";
+  if (!st.queue.length) {
+    qs.innerHTML = '<span class="q-empty">queue empty</span>';
+  } else {
+    st.queue.forEach((id, i) => {
+      const cell = document.createElement("div");
+      cell.className = "q-cell";
+      cell.textContent = nodes[id].val;
+      if (i === 0) cell.title = "front";
+      qs.appendChild(cell);
+    });
+  }
+
+  // output levels
+  const ol = $("outLevels");
+  ol.innerHTML = "";
+  st.levelsOut.forEach((lvl, li) => {
+    const row = document.createElement("div");
+    row.className = "out-level-row";
+    const tag = document.createElement("span");
+    tag.className = "out-lvl-tag";
+    tag.textContent = curMode === "rsv" ? `d${li}` : `L${li}`;
+    row.appendChild(tag);
+    lvl.forEach((id, ci) => {
+      const chip = document.createElement("span");
+      chip.className = "out-chip" + (curMode === "rsv" ? " rsv" : "");
+      chip.textContent = nodes[id].val;
+      row.appendChild(chip);
+    });
+    ol.appendChild(row);
+  });
+
+  // trackers
+  $("tpNode").textContent = st.cur !== null ? nodes[st.cur].val : "–";
+  $("tpLvl").textContent = st.level;
+  $("tpDir").textContent = st.dir;
+  $("tpOut").textContent = st.visited;
+
+  // stats
+  $("statCur").textContent = st.cur !== null ? nodes[st.cur].val : "–";
+  $("statQ").textContent = st.queue.length;
+  $("statLvl").textContent = st.level;
+  $("statVis").textContent = st.visited;
+
+  // log
+  $("logBox").innerHTML = st.log;
+
+  // progress
+  $("stepNum").textContent = stepIdx;
+  $("stepTotal").textContent = steps.length - 1;
+  $("progressFill").style.width = ((stepIdx / (steps.length - 1)) * 100) + "%";
+
+  // done pill
+  $("donePill").style.display = st.kind === "done" ? "inline-block" : "none";
+
+  // step table highlight
+  document.querySelectorAll("#stepTbody tr").forEach((tr, i) => {
+    tr.classList.toggle("highlighted", i === stepIdx);
+  });
+  const hl = document.querySelector("#stepTbody tr.highlighted");
+  if (hl) hl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+  // buttons
+  $("backBtn").disabled = stepIdx === 0;
+  $("fwdBtn").disabled = stepIdx === steps.length - 1;
+}
+
+function buildStepTable() {
+  const tb = $("stepTbody");
+  tb.innerHTML = "";
+  const nodes = RENDER.nodes;
+  steps.forEach((st, i) => {
+    const tr = document.createElement("tr");
+    const action = st.kind === "push" ? "push root"
+      : st.kind === "level-start" ? `level ${st.level} start`
+      : st.kind === "dequeue" ? "dequeue"
+      : st.kind === "level-commit" ? `commit L${st.level}`
+      : "done";
+    const qStr = st.queue.length ? st.queue.map(id => nodes[id].val).join(" ") : "∅";
+    const outStr = st.levelsOut.length
+      ? st.levelsOut.map(l => "[" + l.map(id => nodes[id].val).join(",") + "]").join(" ")
+      : "–";
+    tr.innerHTML = `<td>${i}</td><td>${action}</td><td>${st.cur !== null ? nodes[st.cur].val : "–"}</td><td>${st.kind==="done"?"–":st.level}</td><td>${qStr}</td><td>${outStr}</td>`;
+    tr.addEventListener("click", () => { stopPlay(); stepIdx = i; paintStep(); });
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- Controls ---------- */
+function rebuild() {
+  const res = buildSteps(EXAMPLES[curExample], curMode);
+  RENDER = { nodes: res.nodes };
+  steps = res.steps;
+  stepIdx = 0;
+  renderTreeSvg(res.nodes);
+  buildStepTable();
+  paintStep();
+  updateCode();
+  updateOutLabel();
+}
+
+function updateOutLabel() {
+  $("outLabel").textContent = curMode === "level" ? "Output by level"
+    : curMode === "zigzag" ? "Output by level (zigzag: odd levels reversed)"
+    : "Right-side view (last node per depth)";
+}
+
+function stepForward() { if (stepIdx < steps.length - 1) { stepIdx++; paintStep(); } }
+function stepBack()    { if (stepIdx > 0) { stepIdx--; paintStep(); } }
+
+function play() {
+  if (stepIdx >= steps.length - 1) stepIdx = 0;
+  playing = true;
+  $("playBtn").textContent = "❚❚ Pause";
+  const speed = +$("speed").value;
+  const delay = 1100 - speed * 170;
+  playTimer = setInterval(() => {
+    if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+    stepForward();
+  }, delay);
+}
+function stopPlay() {
+  playing = false;
+  $("playBtn").textContent = "▶ Play";
+  clearInterval(playTimer);
+}
+function togglePlay() { playing ? stopPlay() : play(); }
+
+$("playBtn").addEventListener("click", togglePlay);
+$("fwdBtn").addEventListener("click", () => { stopPlay(); stepForward(); });
+$("backBtn").addEventListener("click", () => { stopPlay(); stepBack(); });
+$("resetBtn").addEventListener("click", () => { stopPlay(); stepIdx = 0; paintStep(); });
+$("speed").addEventListener("input", () => { if (playing) { stopPlay(); play(); } });
+
+// mode toggle
+$("modeToggle").addEventListener("click", e => {
+  const btn = e.target.closest(".mode-btn");
+  if (!btn) return;
+  stopPlay();
+  curMode = btn.dataset.mode;
+  document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+  rebuild();
+});
+
+// example tabs
+function buildTabs() {
+  const wrap = $("exampleTabs");
+  wrap.innerHTML = "";
+  exampleKeys.forEach(k => {
+    const b = document.createElement("button");
+    b.className = "tab" + (k === curExample ? " active" : "");
+    const tagCls = (k === "skew" || k === "leftHeavy" || k === "rightHeavy") ? "tag-edge" : "tag-classic";
+    const tagTxt = (k === "skew" || k === "leftHeavy" || k === "rightHeavy") ? "edge" : "classic";
+    b.innerHTML = `${EXAMPLES[k].label}<span class="tag ${tagCls}">${tagTxt}</span>`;
+    b.addEventListener("click", () => {
+      stopPlay();
+      curExample = k;
+      document.querySelectorAll("#exampleTabs .tab").forEach(t => t.classList.remove("active"));
+      b.classList.add("active");
+      rebuild();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* ---------- Code per mode ---------- */
+const CODE = {
+  level: {
+    title: "C++ — Level Order (LC 102)",
+    html: `<span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; <span class="fn">levelOrder</span>(TreeNode* root) {
+  <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; res;
+  <span class="kw">if</span> (!root) <span class="kw">return</span> res;
+  <span class="kw">queue</span>&lt;TreeNode*&gt; q;
+  q.<span class="fn">push</span>(root);
+  <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+    <span class="kw">int</span> sz = q.<span class="fn">size</span>();        <span class="cm">// nodes on this level</span>
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; level;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; sz; ++i) {
+      TreeNode* node = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+      level.<span class="fn">push_back</span>(node-&gt;val);
+      <span class="kw">if</span> (node-&gt;left)  q.<span class="fn">push</span>(node-&gt;left);
+      <span class="kw">if</span> (node-&gt;right) q.<span class="fn">push</span>(node-&gt;right);
+    }
+    res.<span class="fn">push_back</span>(level);
+  }
+  <span class="kw">return</span> res;
+}`
+  },
+  zigzag: {
+    title: "C++ — Zigzag Level Order (LC 103)",
+    html: `<span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; <span class="fn">zigzagLevelOrder</span>(TreeNode* root) {
+  <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; res;
+  <span class="kw">if</span> (!root) <span class="kw">return</span> res;
+  <span class="kw">queue</span>&lt;TreeNode*&gt; q;
+  q.<span class="fn">push</span>(root);
+  <span class="kw">bool</span> leftToRight = <span class="kw">true</span>;
+  <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+    <span class="kw">int</span> sz = q.<span class="fn">size</span>();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; level(sz);
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; sz; ++i) {
+      TreeNode* node = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+      <span class="cm">// fill front or back based on direction</span>
+      <span class="kw">int</span> idx = leftToRight ? i : (sz - <span class="nm">1</span> - i);
+      level[idx] = node-&gt;val;
+      <span class="kw">if</span> (node-&gt;left)  q.<span class="fn">push</span>(node-&gt;left);
+      <span class="kw">if</span> (node-&gt;right) q.<span class="fn">push</span>(node-&gt;right);
+    }
+    res.<span class="fn">push_back</span>(level);
+    leftToRight = !leftToRight;      <span class="cm">// flip each level</span>
+  }
+  <span class="kw">return</span> res;
+}`
+  },
+  rsv: {
+    title: "C++ — Right Side View (LC 199)",
+    html: `<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">rightSideView</span>(TreeNode* root) {
+  <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; res;
+  <span class="kw">if</span> (!root) <span class="kw">return</span> res;
+  <span class="kw">queue</span>&lt;TreeNode*&gt; q;
+  q.<span class="fn">push</span>(root);
+  <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+    <span class="kw">int</span> sz = q.<span class="fn">size</span>();
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; sz; ++i) {
+      TreeNode* node = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+      <span class="cm">// last node dequeued on this level is visible</span>
+      <span class="kw">if</span> (i == sz - <span class="nm">1</span>) res.<span class="fn">push_back</span>(node-&gt;val);
+      <span class="kw">if</span> (node-&gt;left)  q.<span class="fn">push</span>(node-&gt;left);
+      <span class="kw">if</span> (node-&gt;right) q.<span class="fn">push</span>(node-&gt;right);
+    }
+  }
+  <span class="kw">return</span> res;
+}`
+  }
+};
+
+function updateCode() {
+  $("codeTitle").textContent = CODE[curMode].title;
+  $("codeBlock").innerHTML = CODE[curMode].html;
+}
+
+$("copyBtn").addEventListener("click", () => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = CODE[curMode].html;
+  navigator.clipboard.writeText(tmp.textContent).then(() => {
+    $("copyBtn").textContent = "Copied ✓";
+    setTimeout(() => $("copyBtn").textContent = "Copy", 1400);
+  });
+});
+
+// pin panel
+$("pinBtn").addEventListener("click", () => {
+  const p = $("animPanel");
+  p.classList.toggle("pinned");
+  $("pinBtn").classList.toggle("active");
+  $("pinBtn").textContent = p.classList.contains("pinned") ? "📌 Unpin" : "📌 Pin panel";
+});
+
+// init
+buildTabs();
+rebuild();
+</script>
+
+<!-- ===== FIREBASE: PROGRESS TRACKER + BOOKMARK + NOTES ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const PROBLEM_SLUG = "tree-bfs-variants";
+  let currentUser = null;
+
+  /* ---------- PROGRESS TRACKER ---------- */
+  const trackerBar = document.createElement("div");
+  trackerBar.style.cssText = "max-width:980px;margin:0 auto;padding:0 1.5rem 1rem;";
+  trackerBar.innerHTML = `
+    <button id="markComplete" style="display:flex;align-items:center;gap:8px;padding:8px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .2s;">
+      <span id="mcIcon">○</span> <span id="mcLabel">Mark as Complete</span>
+    </button>`;
+  const mainEl = document.querySelector("main");
+  mainEl.insertBefore(trackerBar, mainEl.firstChild);
+  const markBtn = document.getElementById("markComplete");
+
+  function paintComplete(done) {
+    const icon = document.getElementById("mcIcon");
+    const label = document.getElementById("mcLabel");
+    if (done) {
+      markBtn.style.background = "var(--green-bg)";
+      markBtn.style.borderColor = "var(--green)";
+      markBtn.style.color = "var(--green)";
+      icon.textContent = "✓";
+      label.textContent = "Completed";
+    } else {
+      markBtn.style.background = "var(--surface2)";
+      markBtn.style.borderColor = "var(--border2)";
+      markBtn.style.color = "var(--muted)";
+      icon.textContent = "○";
+      label.textContent = "Mark as Complete";
+    }
+  }
+
+  async function toggleComplete() {
+    if (!currentUser) { alert("Sign in to track your progress."); return; }
+    const ref = doc(db, "users", currentUser.uid, "progress", PROBLEM_SLUG);
+    const snap = await getDoc(ref);
+    const done = snap.exists() && snap.data().completed;
+    await setDoc(ref, { completed: !done, updatedAt: Date.now(), slug: PROBLEM_SLUG }, { merge: true });
+    paintComplete(!done);
+  }
+  markBtn.addEventListener("click", toggleComplete);
+
+  /* ---------- BOOKMARK ---------- */
+  const bookmarkBtn = document.getElementById("bookmarkBtn");
+  function paintBookmark(on) {
+    bookmarkBtn.classList.toggle("active", on);
+    bookmarkBtn.textContent = on ? "★" : "☆";
+  }
+  async function toggleBookmark() {
+    if (!currentUser) { alert("Sign in to bookmark."); return; }
+    const ref = doc(db, "users", currentUser.uid, "bookmarks", PROBLEM_SLUG);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      await setDoc(ref, { active: !snap.data().active, updatedAt: Date.now() }, { merge: true });
+      paintBookmark(!snap.data().active);
+    } else {
+      await setDoc(ref, { active: true, slug: PROBLEM_SLUG, title: document.title, updatedAt: Date.now() });
+      paintBookmark(true);
+    }
+  }
+  bookmarkBtn.addEventListener("click", toggleBookmark);
+
+  /* ---------- NOTES ---------- */
+  const notesHeader = document.getElementById("notesHeader");
+  const notesBody = document.getElementById("notesBody");
+  const notesText = document.getElementById("notesText");
+  const saveStatus = document.getElementById("saveStatus");
+  const charCount = document.getElementById("charCount");
+  const noteIndicator = document.getElementById("noteIndicator");
+  let saveTimer = null;
+
+  notesHeader.addEventListener("click", () => {
+    notesHeader.classList.toggle("open");
+    notesBody.classList.toggle("open");
+  });
+
+  function setStatus(state, txt) {
+    saveStatus.className = "save-status " + state;
+    saveStatus.textContent = txt;
+  }
+
+  notesText.addEventListener("input", () => {
+    charCount.textContent = notesText.value.length + " chars";
+    noteIndicator.classList.toggle("visible", notesText.value.trim().length > 0);
+    setStatus("saving", "Saving…");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNotes, 700);
+  });
+
+  async function saveNotes() {
+    const val = notesText.value;
+    localStorage.setItem("notes_" + PROBLEM_SLUG, val);
+    if (currentUser) {
+      try {
+        const ref = doc(db, "users", currentUser.uid, "notes", PROBLEM_SLUG);
+        await setDoc(ref, { text: val, updatedAt: Date.now(), slug: PROBLEM_SLUG }, { merge: true });
+        setStatus("saved", "Saved to cloud");
+      } catch (e) {
+        setStatus("error", "Saved locally");
+      }
+    } else {
+      setStatus("saved", "Saved locally");
+    }
+  }
+
+  async function loadNotes() {
+    let val = localStorage.getItem("notes_" + PROBLEM_SLUG) || "";
+    if (currentUser) {
+      try {
+        const ref = doc(db, "users", currentUser.uid, "notes", PROBLEM_SLUG);
+        const snap = await getDoc(ref);
+        if (snap.exists() && snap.data().text != null) val = snap.data().text;
+      } catch (e) {}
+    }
+    notesText.value = val;
+    charCount.textContent = val.length + " chars";
+    noteIndicator.classList.toggle("visible", val.trim().length > 0);
+  }
+
+  /* ---------- AUTH STATE ---------- */
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    // progress
+    if (user) {
+      try {
+        const ref = doc(db, "users", user.uid, "progress", PROBLEM_SLUG);
+        const snap = await getDoc(ref);
+        paintComplete(snap.exists() && snap.data().completed);
+      } catch (e) {}
+      try {
+        const bref = doc(db, "users", user.uid, "bookmarks", PROBLEM_SLUG);
+        const bsnap = await getDoc(bref);
+        paintBookmark(bsnap.exists() && bsnap.data().active);
+      } catch (e) {}
+    }
+    loadNotes();
+  });
+</script>
+
+<!-- ALGOCRUX-PRACTICE-ARENA -->
+<script src="../practice/config.js"></script>
+<script src="../practice/languages.js"></script>
+<script src="../practice/practice.js"></script>
+
+</body>
+</html>

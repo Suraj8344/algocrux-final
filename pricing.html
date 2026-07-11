@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing - AlgoCrux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc; --purple-bg:#1e0f33;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171; --red-bg:#2a1111;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65; min-height:100vh;
+  }
+  a{color:inherit; text-decoration:none}
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 2.5rem; backdrop-filter:blur(20px) saturate(1.2);
+    background:rgba(10,11,16,.82); border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-0.03em;}
+  .brand .mark{
+    width:30px; height:30px; position:relative; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    border-radius:8px; transform:rotate(12deg);
+    box-shadow:0 4px 16px rgba(108,143,255,.35);
+  }
+  .brand .mark::after{
+    content:''; position:absolute; inset:5px; border-radius:4px;
+    background:var(--bg); transform:rotate(-12deg) scale(.85);
+  }
+  .nav-right{display:flex; align-items:center; gap:1rem}
+  .nav-right a{color:var(--muted); font-size:14px; font-weight:500; transition:color .2s;}
+  .nav-right a:hover{color:var(--text);}
+
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:14px; padding:.9rem 1.6rem; border-radius:12px;
+    border:1px solid transparent; cursor:pointer; transition:all .2s cubic-bezier(.2,.8,.2,1);
+    display:inline-flex; align-items:center; gap:8px; letter-spacing:0.01em;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff;
+    box-shadow:0 6px 24px rgba(108,143,255,.3); border:none; position:relative; overflow:hidden;
+  }
+  .btn-primary::before{
+    content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+    transition:left .5s;
+  }
+  .btn-primary:hover::before{left:100%;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px rgba(108,143,255,.45)}
+  .btn-ghost{background:var(--surface); border-color:var(--border2); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent); transform:translateY(-2px)}
+  .btn-large{padding:1rem 2rem; font-size:15px;}
+
+  /* HERO */
+  .hero{
+    max-width:800px; margin:0 auto; padding:5rem 2.5rem 3rem; text-align:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
+    color:var(--teal); background:var(--teal-bg); border:1px solid #0e3d38;
+    padding:6px 14px; border-radius:24px; margin-bottom:1.5rem; font-weight:500;
+  }
+  .hero h1{
+    font-family:var(--display); font-weight:700; font-size:clamp(2.4rem,5vw,3.2rem);
+    line-height:1.08; letter-spacing:-0.04em; margin-bottom:1.25rem;
+  }
+  .hero h1 .grad{background:linear-gradient(120deg,var(--accent),var(--teal) 70%); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero p.lead{color:var(--muted); font-size:17px; max-width:520px; margin:0 auto 2rem; line-height:1.7;}
+
+  /* PRICING CARDS */
+  .pricing-grid{
+    max-width:900px; margin:0 auto; padding:0 2.5rem 4rem;
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:1.5rem;
+  }
+  @media(max-width:700px){.pricing-grid{grid-template-columns:1fr}}
+
+  .pricing-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:2.5rem; position:relative; transition:all .3s ease;
+  }
+  .pricing-card:hover{
+    border-color:var(--border2);
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.5);
+  }
+  .pricing-card.featured{
+    border-color:var(--accent-dim);
+    box-shadow:0 0 0 1px rgba(108,143,255,.1), 0 24px 60px -20px rgba(108,143,255,.2);
+  }
+  .pricing-card.featured::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--teal));
+    border-radius:20px 20px 0 0;
+  }
+  .plan-badge{
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.08em;
+    padding:4px 12px; border-radius:20px; display:inline-block; margin-bottom:1rem;
+  }
+  .plan-badge.free{background:var(--surface3); color:var(--muted2)}
+  .plan-badge.premium{background:var(--accent-bg); color:var(--accent)}
+  .plan-price{
+    font-family:var(--display); font-size:3.5rem; font-weight:700;
+    letter-spacing:-0.03em; margin-bottom:.25rem;
+  }
+  .plan-price span{font-size:1rem; color:var(--muted); font-weight:500;}
+  .plan-desc{color:var(--muted); font-size:14px; margin-bottom:1.5rem;}
+  .feature-list{list-style:none; margin-bottom:2rem;}
+  .feature-list li{
+    display:flex; align-items:center; gap:.75rem;
+    padding:.6rem 0; color:var(--muted); font-size:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .feature-list li:last-child{border-bottom:none}
+  .feature-list li .check{
+    width:20px; height:20px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; flex-shrink:0;
+  }
+  .feature-list li .check.yes{background:var(--green-bg); color:var(--green)}
+  .feature-list li .check.no{background:var(--red-bg); color:var(--red)}
+  .feature-list li .check.yes::after{content:'✓'}
+  .feature-list li .check.no::after{content:'✕'}
+
+  /* PAYMENT SECTION */
+  .payment-section{
+    max-width:600px; margin:0 auto; padding:0 2.5rem 4rem; text-align:center;
+  }
+  .payment-box{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:2rem; position:relative;
+  }
+  .payment-box::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  }
+  .upi-options{
+    display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:1.5rem;
+  }
+  .upi-btn{
+    display:flex; align-items:center; gap:.5rem;
+    background:var(--bg2); border:1px solid var(--border);
+    padding:.6rem 1.2rem; border-radius:10px; color:var(--text);
+    font-family:var(--sans); font-size:13px; cursor:pointer; transition:all .2s;
+  }
+  .upi-btn:hover{border-color:var(--accent); background:var(--accent-bg);}
+
+  /* TRUST BADGES */
+  .trust-badges{
+    display:flex; gap:2rem; justify-content:center; flex-wrap:wrap;
+    margin-top:2rem; color:var(--muted2); font-size:12px;
+  }
+  .trust-badges span{display:flex; align-items:center; gap:6px}
+
+  /* FAQ */
+  .faq-section{
+    max-width:700px; margin:0 auto; padding:0 2.5rem 4rem;
+  }
+  .faq-item{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    margin-bottom:1rem; overflow:hidden;
+  }
+  .faq-q{
+    padding:1.1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;
+    cursor:pointer; font-weight:600; font-size:14px;
+  }
+  .faq-q:hover{background:var(--surface2)}
+  .faq-a{
+    padding:0 1.5rem; max-height:0; overflow:hidden; transition:max-height .3s ease;
+    color:var(--muted); font-size:14px; line-height:1.7;
+  }
+  .faq-item.open .faq-a{padding-bottom:1.1rem; max-height:200px}
+  .faq-icon{transition:transform .3s; color:var(--muted2)}
+  .faq-item.open .faq-icon{transform:rotate(180deg)}
+
+  footer{
+    max-width:1180px; margin:0 auto; padding:3rem 2.5rem 2.5rem;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+    gap:1rem; color:var(--muted2); font-size:13.5px; border-top:1px solid var(--border);
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--surface2); border:1px solid var(--border2); border-radius:12px;
+    padding:1rem 1.5rem; display:flex; align-items:center; gap:.75rem;
+    box-shadow:0 20px 50px rgba(0,0,0,.5); z-index:300;
+    transition:transform .4s cubic-bezier(.2,.8,.2,1); font-size:14px; color:var(--text);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:640px){
+    nav{padding:1rem 1.25rem}
+    .hero{padding:3rem 1.25rem}
+    .pricing-grid{padding:0 1.25rem 3rem}
+    .payment-section{padding:0 1.25rem 3rem}
+    .faq-section{padding:0 1.25rem 3rem}
+    .plan-price{font-size:2.5rem}
+  }
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand"><span class="mark"></span>AlgoCrux</a>
+  <div class="nav-right" id="navRight">
+    <a href="login.html">Sign In</a>
+    <a href="register.html" class="btn btn-primary" style="padding:.5rem 1.1rem;font-size:13px">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="eyebrow">Simple Pricing</span>
+  <h1>Start free, go <span class="grad">premium</span> when ready</h1>
+  <p class="lead">Unlock all 141 algorithm animations, track your progress, and build your learning streak with AlgoCrux Premium.</p>
+</header>
+
+<!-- PRICING GRID -->
+<div class="pricing-grid">
+  <!-- FREE -->
+  <div class="pricing-card">
+    <span class="plan-badge free">Free</span>
+    <div class="plan-price">₹0<span>/forever</span></div>
+    <p class="plan-desc">Perfect for getting started</p>
+    <ul class="feature-list">
+      <li><span class="check yes"></span> 3 preview animations</li>
+      <li><span class="check yes"></span> Data structure basics</li>
+      <li><span class="check yes"></span> Complexity cheat sheet</li>
+      <li><span class="check no"></span> Full animation library</li>
+      <li><span class="check no"></span> Progress tracking</li>
+      <li><span class="check no"></span> Bookmark & save</li>
+      <li><span class="check no"></span> Streak & heatmap</li>
+      <li><span class="check no"></span> New content access</li>
+    </ul>
+    <a href="preview.html" class="btn btn-ghost" style="width:100%;justify-content:center">Try Free</a>
+  </div>
+
+  <!-- PREMIUM -->
+  <div class="pricing-card featured">
+    <span class="plan-badge premium">Premium</span>
+    <div class="plan-price" style="color:var(--accent)">₹9<span>/week</span></div>
+    <p class="plan-desc">Billed weekly, cancel anytime</p>
+    <ul class="feature-list">
+      <li><span class="check yes"></span> All 141 animations</li>
+      <li><span class="check yes"></span> Progress tracking</li>
+      <li><span class="check yes"></span> Bookmark & save</li>
+      <li><span class="check yes"></span> Streak & heatmap</li>
+      <li><span class="check yes"></span> New content access</li>
+      <li><span class="check yes"></span> Priority support</li>
+      <li><span class="check yes"></span> Downloadable notes</li>
+      <li><span class="check yes"></span> Interview prep mode</li>
+    </ul>
+    <button id="subscribeBtn" class="btn btn-primary" style="width:100%;justify-content:center">
+      Subscribe Now — ₹9/week
+    </button>
+  </div>
+</div>
+
+<!-- PAYMENT METHODS -->
+<div class="payment-section">
+  <div class="payment-box">
+    <h3 style="font-family:var(--display); font-size:1.2rem; margin-bottom:.5rem">Secure Payment</h3>
+    <p style="color:var(--muted); font-size:14px; margin-bottom:1rem">Powered by Razorpay. Pay via UPI, Card, NetBanking, or Wallet.</p>
+    <div class="upi-options">
+      <button class="upi-btn" onclick="payWithUPI('gpay')">
+        <span style="font-size:16px">📱</span> Google Pay
+      </button>
+      <button class="upi-btn" onclick="payWithUPI('phonepe')">
+        <span style="font-size:16px">💳</span> PhonePe
+      </button>
+      <button class="upi-btn" onclick="payWithUPI('paytm')">
+        <span style="font-size:16px">💰</span> Paytm
+      </button>
+    </div>
+    <div class="trust-badges">
+      <span>🔒 SSL Secure</span>
+      <span>✓ Instant Activation</span>
+      <span>↩ Cancel Anytime</span>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <div class="section-head" style="text-align:center; margin-bottom:2rem">
+    <span class="section-tag" style="display:block; margin-bottom:.5rem">FAQ</span>
+    <h2 style="font-family:var(--display); font-size:1.5rem;">Common questions</h2>
+  </div>
+
+  <div class="faq-item open">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+      What happens after I subscribe?
+      <span class="faq-icon">▼</span>
+    </div>
+    <div class="faq-a">
+      You'll get instant access to all 141 animations, progress tracking, bookmarks, and streak features. Your subscription renews automatically every week.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+      Can I cancel anytime?
+      <span class="faq-icon">▼</span>
+    </div>
+    <div class="faq-a">
+      Yes! You can cancel your subscription at any time from your dashboard. You'll continue to have access until the end of your current billing week.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+      What payment methods are accepted?
+      <span class="faq-icon">▼</span>
+    </div>
+    <div class="faq-a">
+      We accept UPI (Google Pay, PhonePe, Paytm), Credit/Debit cards, NetBanking, and Wallets via Razorpay's secure payment gateway.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+      Is there a refund policy?
+      <span class="faq-icon">▼</span>
+    </div>
+    <div class="faq-a">
+      Due to the digital nature of our content, we don't offer refunds for partial weeks. You can cancel anytime to stop future billing.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="brand" style="font-size:1rem"><span class="mark" style="width:22px;height:22px"></span>AlgoCrux</div>
+  <div>Secure payments powered by Razorpay</div>
+</footer>
+
+<div class="toast" id="toast">
+  <span id="toastMsg">Please sign in to subscribe</span>
+</div>
+
+<!-- Firebase + Auth + Razorpay -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // 👉 CHANGE THIS after you deploy to Vercel — it'll look like
+  // https://algocrux-backend.vercel.app (no trailing slash)
+  const BACKEND_URL = 'https://algocrux-backend.vercel.app';
+  async function callBackend(path, body) {
+    const user = auth.currentUser;
+    const idToken = await user.getIdToken();
+    const resp = await fetch(BACKEND_URL + path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + idToken
+      },
+      body: JSON.stringify(body || {})
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  // Update nav based on auth
+  onAuthStateChanged(auth, (user) => {
+    const navRight = document.getElementById('navRight');
+    if (user) {
+      navRight.innerHTML = `
+        <a href="dashboard.html" style="color:var(--muted);font-size:14px;font-weight:500">Dashboard</a>
+        <a href="dashboard.html" style="display:flex;align-items:center;gap:.5rem;color:var(--text);font-size:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:12px;color:#fff">${(user.displayName || user.email).charAt(0).toUpperCase()}</div>
+        </a>
+      `;
+    }
+  });
+
+  // Toast
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function requireLogin() {
+    showToast('Please sign in to subscribe');
+    setTimeout(() => {
+      window.location.href = 'login.html?redirect=pricing.html';
+    }, 1500);
+  }
+
+  function setSubscribeLoading(loading) {
+    const btn = document.getElementById('subscribeBtn');
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading
+      ? '<span>Opening secure checkout…</span>'
+      : 'Subscribe Now — ₹9/week';
+  }
+
+  // Core checkout flow: ask our Vercel backend for an order, then open
+  // Razorpay's popup, then verify the payment with the backend again.
+  async function startCheckout() {
+    const user = auth.currentUser;
+    if (!user) { requireLogin(); return; }
+
+    setSubscribeLoading(true);
+    try {
+      const data = await callBackend('/api/create-order');
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.orderId,
+        name: 'AlgoCrux',
+        description: 'Premium — ₹9/week',
+        prefill: {
+          name: user.displayName || '',
+          email: user.email || ''
+        },
+        theme: { color: '#6c8fff' },
+        handler: async function (response) {
+          setSubscribeLoading(true);
+          try {
+            await callBackend('/api/verify-payment', {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature
+            });
+            showToast('Payment successful! Redirecting…');
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+          } catch (err) {
+            console.error('Verification error:', err);
+            showToast('Payment received — activating shortly. Check your dashboard.');
+            setSubscribeLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () { setSubscribeLoading(false); }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (resp) {
+        console.error('Payment failed:', resp.error);
+        showToast('Payment failed: ' + resp.error.description);
+        setSubscribeLoading(false);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error('Order creation error:', err);
+      showToast('Could not start checkout. Please try again.');
+      setSubscribeLoading(false);
+    }
+  }
+
+  document.getElementById('subscribeBtn').addEventListener('click', startCheckout);
+
+  // The UPI quick-buttons just open the same Razorpay Checkout — Razorpay
+  // itself presents the UPI app chooser inside the popup.
+  window.payWithUPI = function () {
+    startCheckout();
+  };
+</script>
+
+</body>
+</html>

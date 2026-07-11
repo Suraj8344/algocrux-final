@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<!-- skill:libraries -->
+<script src="https://cdn.jsdelivr.net/npm/mathjs@15.2.0/lib/browser/math.min.js" integrity="sha384-CxR1K3HZUkOaVgBmRwqkpngEKdsI4pZVJqItEffLpTGqVE6C/4X9MYaLZcoZH7Nx" crossorigin="anonymous"></script>
+<!-- /skill:libraries -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arrays — Complete DSA Array Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}.insight.red{background:var(--red-bg);border-color:#5a2020}.insight.red strong{color:var(--red)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.arr-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.75rem 1rem 1.25rem;margin-bottom:1rem;overflow-x:auto}
+.arr-row{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap}
+.arr-cell{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0}
+.arr-idx{font-family:var(--mono);font-size:10px;color:#5c6189}
+.arr-box{width:46px;height:48px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .25s;position:relative}
+.arr-box.lo{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 2px rgba(45,212,191,.25)}
+.arr-box.hi{border-color:var(--pink);color:var(--pink);box-shadow:0 0 0 2px rgba(244,114,182,.25)}
+.arr-box.mid{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.35);transform:translateY(-3px)}
+.arr-box.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.3);transform:translateY(-3px)}
+.arr-box.match{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.arr-box.bad{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.arr-box.range{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.arr-box.ins{border-color:var(--green);color:var(--green);animation:pop .3s}
+.arr-box.shift{border-color:var(--orange);color:var(--orange)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.arr-ptr{font-family:var(--mono);font-size:10px;font-weight:700;min-height:14px}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.red .val{color:var(--red)}.stat-box.acc .val{color:var(--accent)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.num-input,.txt-input{padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}.num-input{width:80px}.num-input:focus,.txt-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="badges"><span class="badge b-ds">Data Structure</span><span class="badge b-cpp">Array</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span></div>
+  <h1>Arrays — Complete DSA Array Theory</h1>
+  <p>Interactive visualization of array structure, traversal, search, insert/delete, two-pointer &amp; sliding-window patterns, from fundamentals to hard interview problems.</p>
+</header>
+<main>
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → types → the interactive visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div><h2>What is an Array?</h2>
+      <p>An <strong style="color:var(--teal)">Array</strong> is a collection of elements stored in <strong style="color:var(--amber)">contiguous memory</strong>, each identified by an index. Because addresses are computed arithmetically, any element is reachable in <strong style="color:var(--teal)">O(1)</strong>.</p>
+      <p>That random access is the array's superpower — and its cost: inserting or deleting in the middle forces every later element to <strong style="color:var(--text)">shift</strong>, which is O(n).</p>
+    </div>
+    <div><h2>Address arithmetic</h2>
+      <div class="formula">
+        <span class="cm">// contiguous layout</span><br>
+        Index:&nbsp;0 &nbsp;1 &nbsp;2 &nbsp;3 &nbsp;4<br>
+        Value:&nbsp;10 20 30 40 50<br><br>
+        <span class="cm">// O(1) access</span><br>
+        addr(a[i]) = base + i * sizeof(elem)
+      </div>
+    </div>
+  </div>
+  <div class="insight purple"><strong>Why Arrays matter.</strong> They're the most fundamental data structure: the backing store for strings, stacks, heaps, hash tables, dynamic arrays (vector), and matrices. Nearly every interview warm-up is an array problem.</div>
+
+  <div class="section-label">Types of Array</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">▭</div><div class="tc-name">Static Array</div><div class="tc-def">Fixed size known at compile time. No resizing.</div><div class="tc-use">Use: fixed buffers, C-style int a[n].</div></div>
+    <div class="type-card"><div class="tc-icon">↔️</div><div class="tc-name">Dynamic Array</div><div class="tc-def">Grows/shrinks at runtime; doubles capacity when full (amortized O(1) push).</div><div class="tc-use">Use: std::vector, the default choice.</div></div>
+    <div class="type-card"><div class="tc-icon">▦</div><div class="tc-name">Multi-dimensional</div><div class="tc-def">Arrays of arrays — matrices, grids, tensors.</div><div class="tc-use">Use: DP tables, images, graphs as matrices.</div></div>
+    <div class="type-card"><div class="tc-icon">🔤</div><div class="tc-name">Character Array</div><div class="tc-def">Contiguous chars; the basis for strings.</div><div class="tc-use">Use: strings, parsing, buffers.</div></div>
+    <div class="type-card"><div class="tc-icon">🔢</div><div class="tc-name">Prefix / Difference</div><div class="tc-def">Derived arrays for O(1) range sums / range updates.</div><div class="tc-use">Use: range queries, subarray sums.</div></div>
+    <div class="type-card"><div class="tc-icon">🧮</div><div class="tc-name">Sorted Array</div><div class="tc-def">Kept in order to enable binary search in O(log n).</div><div class="tc-use">Use: search, two pointers, merge.</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Index</div><div class="ic-desc">Zero-based position of an element, a[0] is the first.</div></div>
+    <div class="info-card"><div class="ic-title">Contiguous memory</div><div class="ic-desc">Elements stored back-to-back, enabling O(1) address math.</div></div>
+    <div class="info-card"><div class="ic-title">Subarray</div><div class="ic-desc">A contiguous slice a[i..j].</div></div>
+    <div class="info-card"><div class="ic-title">Subsequence</div><div class="ic-desc">Elements in order but not necessarily contiguous.</div></div>
+    <div class="info-card"><div class="ic-title">Capacity vs size</div><div class="ic-desc">Dynamic arrays reserve capacity ≥ size to amortize growth.</div></div>
+    <div class="info-card"><div class="ic-title">Shift</div><div class="ic-desc">Moving elements to make room (insert) or close a gap (delete).</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Access a[i]</div><div class="big">O(1)</div><p>Direct address arithmetic.</p></div>
+    <div class="cx-card"><div class="lbl">Search (unsorted)</div><div class="big">O(n)</div><p>Linear scan.</p></div>
+    <div class="cx-card"><div class="lbl">Search (sorted)</div><div class="big">O(log n)</div><p>Binary search.</p></div>
+    <div class="cx-card"><div class="lbl">Insert / Delete</div><div class="big">O(n)</div><p>Middle shifts elements; end is O(1) amortized.</p></div>
+    <div class="cx-card"><div class="lbl">Append (dynamic)</div><div class="big">O(1)*</div><p>Amortized; O(n) on a resize.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n)</div><p>n contiguous elements.</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>O(1) random access by index.</li>
+      <li>Excellent cache locality (contiguous memory).</li>
+      <li>Minimal per-element overhead.</li>
+      <li>Backbone of strings, stacks, heaps, matrices, and DP tables.</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>Insert/delete in the middle is O(n) (shifting).</li>
+      <li>Static arrays have a fixed size.</li>
+      <li>Dynamic-array resizing occasionally copies everything.</li>
+      <li>Wasted capacity when over-reserved.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>array_basics.cpp · std::vector essentials</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    vector&lt;<span class="kw">int</span>&gt; a = {<span class="nm">10</span>,<span class="nm">20</span>,<span class="nm">30</span>,<span class="nm">40</span>,<span class="nm">50</span>};
+    cout &lt;&lt; a[<span class="nm">2</span>] &lt;&lt; <span class="st">"\n"</span>;        <span class="cm">// 30 — O(1) access</span>
+    a.<span class="fn">push_back</span>(<span class="nm">60</span>);           <span class="cm">// append — amortized O(1)</span>
+    a.<span class="fn">insert</span>(a.begin()+<span class="nm">1</span>, <span class="nm">99</span>); <span class="cm">// insert at index 1 — O(n)</span>
+    a.<span class="fn">erase</span>(a.begin()+<span class="nm">3</span>);    <span class="cm">// delete index 3 — O(n)</span>
+    sort(a.<span class="fn">begin</span>(), a.<span class="fn">end</span>());   <span class="cm">// O(n log n)</span>
+    <span class="kw">bool</span> f = binary_search(a.begin(),a.end(),<span class="nm">30</span>); <span class="cm">// O(log n)</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>patterns.cpp · Binary search, two pointers, window</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="cm">// Binary search — sorted array, O(log n)</span>
+<span class="kw">int</span> <span class="fn">bsearch</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> t){
+    <span class="kw">int</span> lo=<span class="nm">0</span>, hi=a.size()-<span class="nm">1</span>;
+    <span class="kw">while</span>(lo&lt;=hi){ <span class="kw">int</span> mid=lo+(hi-lo)/<span class="nm">2</span>;
+        <span class="kw">if</span>(a[mid]==t) <span class="kw">return</span> mid;
+        <span class="kw">if</span>(a[mid]&lt;t) lo=mid+<span class="nm">1</span>; <span class="kw">else</span> hi=mid-<span class="nm">1</span>; }
+    <span class="kw">return</span> -<span class="nm">1</span>;
+}
+
+<span class="cm">// Two pointers — pair sum in sorted array, O(n)</span>
+<span class="kw">bool</span> <span class="fn">pairSum</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> t){
+    <span class="kw">int</span> i=<span class="nm">0</span>, j=a.size()-<span class="nm">1</span>;
+    <span class="kw">while</span>(i&lt;j){ <span class="kw">int</span> s=a[i]+a[j];
+        <span class="kw">if</span>(s==t) <span class="kw">return</span> <span class="kw">true</span>;
+        s&lt;t ? i++ : j--; }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}
+
+<span class="cm">// Sliding window — max sum of k elements, O(n)</span>
+<span class="kw">int</span> <span class="fn">maxSumK</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> k){
+    <span class="kw">int</span> sum=<span class="nm">0</span>; <span class="kw">for</span>(<span class="kw">int</span> i=<span class="nm">0</span>;i&lt;k;i++) sum+=a[i];
+    <span class="kw">int</span> best=sum;
+    <span class="kw">for</span>(<span class="kw">int</span> i=k;i&lt;a.size();i++){ sum+=a[i]-a[i-k]; best=max(best,sum); }
+    <span class="kw">return</span> best;
+}</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive Array Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="traverse">Traverse</button>
+    <button class="tab" data-op="linear">Linear Search</button>
+    <button class="tab" data-op="binary">Binary Search</button>
+    <button class="tab" data-op="insert">Insert</button>
+    <button class="tab" data-op="delete">Delete</button>
+    <button class="tab" data-op="reverse">Reverse</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive Array Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Element</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Current / mid</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>lo pointer</span>
+      <span><span class="dot" style="background:var(--pink-bg);border-color:var(--pink)"></span>hi pointer</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Search range</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Match</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="arr-wrap"><div class="arr-row" id="arrRow"></div></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">Pointer(s)</div><div class="val" id="opPtr">—</div></div>
+        <div class="op-card"><div class="lbl">Result</div><div class="val" id="opRes">—</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Comparisons</div><div class="val" id="sComp">0</div><div class="sub">checks</div></div>
+      <div class="stat-box amber"><div class="lbl">Shifts</div><div class="val" id="sShift">0</div><div class="sub">moves</div></div>
+      <div class="stat-box green"><div class="lbl">Length</div><div class="val" id="sLen">0</div><div class="sub">elements</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — build your own array</div>
+      <label style="font-size:12px;color:var(--muted)">Array: <input type="text" class="txt-input" id="listInput" value="10,20,30,40,50,60,70" style="width:190px"></label>
+      <label style="font-size:12px;color:var(--muted)">Value / index: <input type="number" class="num-input" id="argInput" value="40"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+      <button class="btn" id="sortBtn">Sort</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>lo/i</th><th>hi/mid</th><th>Action</th><th>Array State</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>Two pointers.</strong> On a sorted array, move a pointer from each end inward to solve pair-sum, container-with-most-water, and dedup in O(n) — no extra space. Same-direction pointers handle in-place filtering and partitioning.</div>
+  <div class="insight"><strong>Sliding window &amp; prefix sums.</strong> A moving window gives O(n) answers for "max/min subarray of size k" and variable-size condition problems. A prefix-sum array answers any range sum in O(1) after O(n) preprocessing.</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Access a[i]</td><td class="qcol">O(1)</td><td>O(1)</td><td>Address arithmetic</td></tr>
+      <tr><td>Linear search</td><td>O(n)</td><td>O(1)</td><td>Unsorted</td></tr>
+      <tr><td>Binary search</td><td class="qcol">O(log n)</td><td>O(1)</td><td>Sorted only</td></tr>
+      <tr><td>Insert / delete (mid)</td><td>O(n)</td><td>O(1)</td><td>Shifting</td></tr>
+      <tr><td>Two pointers</td><td class="scol">O(n)</td><td>O(1)</td><td>Sorted; pair/partition</td></tr>
+      <tr><td>Sliding window</td><td>O(n)</td><td>O(1)</td><td>Subarray problems</td></tr>
+      <tr><td>Prefix sum range query</td><td>O(1)</td><td>O(n)</td><td>After O(n) build</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>Array Basics</h4><p>Indexing, traversal, contiguous memory, static vs dynamic (vector), insert/delete costs.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>Searching &amp; Sorting</h4><p>Linear vs binary search, sorting basics, when a sorted array unlocks O(log n).</p></div><span class="rm-time">~3 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>Two Pointers</h4><p>Pair sum, dedup, partition, container with most water, three-sum.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Sliding Window &amp; Prefix Sums</h4><p>Fixed/variable windows, subarray sums, Kadane's algorithm, range queries.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">5</span><div class="rm-body"><h4>Advanced</h4><p>Matrix traversal, in-place tricks, difference arrays, sorting-based greedy.</p></div><span class="rm-time">~4 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Two Sum</div><div class="ic-a">Sorted array → two pointers O(n); unsorted → hash map O(n). Classic warm-up.</div><div class="ic-tag">Two Pointers</div></div>
+    <div class="int-card"><div class="ic-q">Maximum Subarray (Kadane's)</div><div class="ic-a">Track running sum; reset to 0 when it goes negative, keep the best. O(n).</div><div class="ic-tag">DP / Window</div></div>
+    <div class="int-card"><div class="ic-q">Product of Array Except Self</div><div class="ic-a">Prefix products left-to-right, then suffix products right-to-left. O(n), no division.</div><div class="ic-tag">Prefix</div></div>
+    <div class="int-card"><div class="ic-q">Rotate Array</div><div class="ic-a">Reverse whole array, then reverse the two halves. In-place O(n)/O(1).</div><div class="ic-tag">Reversal</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Two Sum</span><span class="ptag">Hash / Pointers</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Best Time to Buy &amp; Sell Stock</span><span class="ptag">Window</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Move Zeroes</span><span class="ptag">Two Pointers</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Maximum Subarray</span><span class="ptag">Kadane's</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Product of Array Except Self</span><span class="ptag">Prefix</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">3Sum</span><span class="ptag">Two Pointers</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Container With Most Water</span><span class="ptag">Two Pointers</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Trapping Rain Water</span><span class="ptag">Two Pointers</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">⚡</span><span><strong style="color:var(--text)">O(1) access, O(n) middle edits:</strong> contiguous memory buys instant indexing but makes insert/delete shift everything after.</span></div>
+    <div class="take"><span class="tk-ic">🔍</span><span><strong style="color:var(--text)">Sort unlocks log n:</strong> a sorted array enables binary search and two-pointer tricks — often worth the O(n log n) upfront.</span></div>
+    <div class="take"><span class="tk-ic">↔️</span><span><strong style="color:var(--text)">Two pointers &amp; windows:</strong> the highest-yield array patterns, turning O(n²) brute force into O(n) with O(1) space.</span></div>
+    <div class="take"><span class="tk-ic">🔢</span><span><strong style="color:var(--text)">Prefix sums:</strong> precompute once, answer any range sum in O(1) — the base for many subarray problems.</span></div>
+  </div>
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={arr:[10,20,30,40,50,60,70],op:'traverse',arg:40,steps:[],idx:-1,playing:false,timer:null};
+const els={row:document.getElementById('arrRow'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opPtr:document.getElementById('opPtr'),opRes:document.getElementById('opRes'),sSteps:document.getElementById('sSteps'),sComp:document.getElementById('sComp'),sShift:document.getElementById('sShift'),sLen:document.getElementById('sLen'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {traverse:'Traverse',linear:'Linear Search',binary:'Binary Search',insert:'Insert',delete:'Delete',reverse:'Reverse'}[op]||op;}
+
+function gen(){
+  const a=[...V.arr],op=V.op,arg=V.arg,steps=[];let comp=0,shift=0;
+  const snap=(e)=>({arr:[...a],comp,shift,...e});
+  steps.push(snap({log:`Start <span class="tea">${opLabel(op)}</span> on [${a.join(', ')}].`,phase:'idle'}));
+  if(op==='traverse'){
+    for(let i=0;i<a.length;i++){steps.push(snap({cur:i,log:`Visit index ${i}: value <span class="acc">${a[i]}</span>.`,phase:'traversing'}));}
+    steps.push(snap({log:`<span class="pos">Traversal complete.</span> Visited all ${a.length} elements.`,phase:'done',done:true,res:'done'}));
+  } else if(op==='linear'){
+    let found=-1;
+    for(let i=0;i<a.length;i++){comp++;steps.push(snap({cur:i,log:`Check index ${i}: ${a[i]} ${a[i]===arg?'== ':'≠ '}${arg}.`,phase:'traversing'}));if(a[i]===arg){found=i;steps.push(snap({match:i,log:`<span class="pos">Found ${arg}</span> at index ${i}.`,phase:'done',done:true,res:`@${i}`}));break;}}
+    if(found<0)steps.push(snap({log:`<span class="neg">${arg} not found.</span>`,phase:'warning',done:true,res:'-1'}));
+  } else if(op==='binary'){
+    const sorted=[...a].sort((x,y)=>x-y);a.length=0;a.push(...sorted);
+    steps.push(snap({log:`Binary search needs a <span class="amb">sorted</span> array → [${a.join(', ')}].`,phase:'visiting'}));
+    let lo=0,hi=a.length-1,found=-1;
+    while(lo<=hi){const mid=lo+((hi-lo)>>1);comp++;steps.push(snap({lo,hi,mid,rangeStart:lo,rangeEnd:hi,log:`lo=${lo}, hi=${hi}, mid=${mid} → a[mid]=${a[mid]}. Compare with ${arg}.`,phase:'traversing'}));if(a[mid]===arg){found=mid;steps.push(snap({match:mid,log:`<span class="pos">Found ${arg}</span> at index ${mid}.`,phase:'done',done:true,res:`@${mid}`}));break;}if(a[mid]<arg){lo=mid+1;steps.push(snap({lo,hi,rangeStart:lo,rangeEnd:hi,log:`${a[mid]} < ${arg} → discard left half, lo = ${lo}.`,phase:'traversing'}));}else{hi=mid-1;steps.push(snap({lo,hi,rangeStart:lo<=hi?lo:0,rangeEnd:hi,log:`${a[mid]} > ${arg} → discard right half, hi = ${hi}.`,phase:'traversing'}));}}
+    if(found<0)steps.push(snap({log:`<span class="neg">${arg} not found</span> (lo > hi).`,phase:'warning',done:true,res:'-1'}));
+  } else if(op==='insert'){
+    let pos=Math.max(0,Math.min(arg,a.length));if(arg>a.length||arg<0){pos=a.length;}
+    const val=99;
+    steps.push(snap({log:`Insert <span class="amb">${val}</span> at index ${pos}. Elements from ${pos} shift right.`,phase:'visiting'}));
+    for(let i=a.length-1;i>=pos;i--){shift++;steps.push(snap({shiftIdx:i,log:`Shift a[${i}]=${a[i]} → index ${i+1}.`,phase:'traversing'}));}
+    a.splice(pos,0,val);
+    steps.push(snap({ins:pos,log:`<span class="pos">Inserted ${val}</span> at index ${pos}. ${shift} shift(s). O(n).`,phase:'done',done:true,res:`+${val}`}));
+  } else if(op==='delete'){
+    let pos=Math.max(0,Math.min(arg,a.length-1));if(arg>=a.length||arg<0)pos=a.length-1;
+    const val=a[pos];
+    steps.push(snap({cur:pos,log:`Delete index ${pos} (value <span class="neg">${val}</span>). Elements after it shift left.`,phase:'visiting'}));
+    for(let i=pos+1;i<a.length;i++){shift++;steps.push(snap({shiftIdx:i,log:`Shift a[${i}]=${a[i]} → index ${i-1}.`,phase:'traversing'}));}
+    a.splice(pos,1);
+    steps.push(snap({log:`<span class="pos">Deleted ${val}.</span> ${shift} shift(s). New: [${a.join(', ')}].`,phase:'done',done:true,res:`-${val}`}));
+  } else if(op==='reverse'){
+    let i=0,j=a.length-1;
+    while(i<j){steps.push(snap({lo:i,hi:j,log:`Swap a[${i}]=${a[i]} ↔ a[${j}]=${a[j]}.`,phase:'traversing'}));const t=a[i];a[i]=a[j];a[j]=t;i++;j--;}
+    steps.push(snap({log:`<span class="pos">Reversed</span> → [${a.join(', ')}].`,phase:'done',done:true,res:'done'}));
+  }
+  return steps;
+}
+function render(){
+  const st=V.steps[V.idx];if(!st)return;const a=st.arr;
+  let html='';
+  for(let i=0;i<a.length;i++){let cls='arr-box';if(st.rangeStart!==undefined&&i>=st.rangeStart&&i<=st.rangeEnd)cls+=' range';if(st.lo===i)cls+=' lo';if(st.hi===i)cls+=' hi';if(st.mid===i)cls+=' mid';if(st.cur===i)cls+=' active';if(st.shiftIdx===i)cls+=' shift';if(st.ins===i)cls+=' ins';if(st.match===i)cls+=' match';if(st.done&&(V.op==='traverse'||V.op==='reverse'))cls+=' match';let ptr='';const tags=[];if(st.lo===i)tags.push('<span style="color:var(--teal)">lo</span>');if(st.hi===i)tags.push('<span style="color:var(--pink)">hi</span>');if(st.mid===i)tags.push('<span style="color:var(--accent)">mid</span>');if(st.cur===i&&st.lo===undefined)tags.push('<span style="color:var(--accent)">i</span>');ptr=tags.join(' ');html+=`<div class="arr-cell"><div class="arr-idx">${i}</div><div class="${cls}">${a[i]}</div><div class="arr-ptr">${ptr}</div></div>`;}
+  els.row.innerHTML=html;
+  els.phase.className='phase-badge '+(st.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Working',visiting:'Preparing',done:'Done',warning:'Not found'}[st.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);
+  const pp=[];if(st.lo!==undefined)pp.push('lo='+st.lo);if(st.hi!==undefined)pp.push('hi='+st.hi);if(st.mid!==undefined)pp.push('mid='+st.mid);if(st.cur!==undefined&&st.lo===undefined)pp.push('i='+st.cur);
+  els.opPtr.textContent=pp.join(' ')||'—';
+  els.opRes.textContent=st.res!==undefined?st.res:'—';
+  els.sSteps.textContent=V.idx;els.sComp.textContent=st.comp;els.sShift.textContent=st.shift;els.sLen.textContent=a.length;
+  els.log.innerHTML=st.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';els.stepLabel.textContent=`Step ${V.idx} of ${total}`;els.pill.style.display=st.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const x=V.steps[i];const plain=x.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${x.lo!==undefined?x.lo:(x.cur!==undefined?x.cur:'—')}</td><td>${x.hi!==undefined?x.hi:(x.mid!==undefined?x.mid:'—')}</td><td>${plain.slice(0,42)}</td><td>[${x.arr.join(', ')}]</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  const a=V.arr;let html='';
+  for(let i=0;i<a.length;i++)html+=`<div class="arr-cell"><div class="arr-idx">${i}</div><div class="arr-box">${a[i]}</div><div class="arr-ptr"></div></div>`;
+  els.row.innerHTML=html;
+  els.sLen.textContent=a.length;els.sSteps.textContent=0;els.sComp.textContent=0;els.sShift.textContent=0;
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';els.phase.className='phase-badge idle';els.phase.textContent='Idle';
+  els.opName.textContent=opLabel(V.op);els.opPtr.textContent='—';els.opRes.textContent='—';
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('listInput').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));if(raw.length<1||raw.length>12){alert('Use 1–12 elements.');return;}V.arr=raw;V.arg=parseInt(document.getElementById('argInput').value);if(isNaN(V.arg))V.arg=raw[0];reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const len=6+Math.floor(Math.random()*3),a=[];for(let i=0;i<len;i++)a.push(Math.floor(Math.random()*90)+5);document.getElementById('listInput').value=a.join(',');V.arr=a;V.arg=a[Math.floor(Math.random()*a.length)];document.getElementById('argInput').value=V.arg;reset();});
+document.getElementById('sortBtn').addEventListener('click',()=>{V.arr=[...V.arr].sort((x,y)=>x-y);document.getElementById('listInput').value=V.arr.join(',');reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;if(V.op==='binary'){V.arr=[...V.arr].sort((x,y)=>x-y);document.getElementById('listInput').value=V.arr.join(',');}V.arg=parseInt(document.getElementById('argInput').value);if(isNaN(V.arg))V.arg=V.arr[0];reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

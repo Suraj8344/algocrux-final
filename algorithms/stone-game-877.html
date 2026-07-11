@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 877 — Stone Game (DP)</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --orange:#fb923c;--orange-bg:#2a1500;
+    --pink:#f472b6;  --pink-bg:#2a0a1a;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+
+    /* player colours */
+    --alice:#6c8fff; --alice-bg:#1a2140; --alice-border:#2a3875;
+    --lee:#f472b6;   --lee-bg:#2a0a1a;   --lee-border:#5a1a3a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+  .badge-med{background:#1e1a06;color:#fbbf24;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #4a3a00}
+  .badge-tag{background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #2a3875}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--accent);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .val{color:var(--amber)}
+
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}
+  @media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--purple)}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66}
+  .tag{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .tag-e{background:var(--orange-bg);color:var(--orange)}
+  .tag-s{background:var(--accent-bg);color:var(--accent)}
+
+  /* ── ANIM PANEL ── */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.55);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted)}
+  .pin-btn.active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* ── PILES ROW ── */
+  .piles-section{margin-bottom:1.1rem}
+  .piles-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;display:flex;align-items:center;gap:10px}
+  .piles-outer{overflow-x:auto;padding-bottom:4px}
+  .piles-row{display:flex;gap:8px;min-width:max-content}
+
+  .pile-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .pile-cell{
+    width:58px;height:64px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    border-radius:10px;border:2px solid var(--border2);background:var(--surface2);
+    font-family:var(--mono);transition:all .22s;
+  }
+  .pile-cell .pv{font-size:18px;font-weight:700;color:var(--text);line-height:1}
+  .pile-cell .pi{font-size:10px;color:var(--muted)}
+  .pile-cell.active-left {border-color:var(--alice);background:var(--alice-bg);transform:translateY(-5px) scale(1.08);box-shadow:0 8px 22px rgba(108,143,255,.3)}
+  .pile-cell.active-right{border-color:var(--lee);background:var(--lee-bg);transform:translateY(-5px) scale(1.08);box-shadow:0 8px 22px rgba(244,114,182,.3)}
+  .pile-cell.taken-alice {border-color:var(--alice-border);background:var(--alice-bg);opacity:.55}
+  .pile-cell.taken-lee   {border-color:var(--lee-border);background:var(--lee-bg);opacity:.55}
+  .pile-cell.in-range    {border-color:var(--purple);background:var(--purple-bg)}
+  .pile-cell.out-range   {border-color:var(--border);background:var(--surface2);opacity:.3}
+
+  .ptr-lbl{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:4px;white-space:nowrap;visibility:hidden}
+  .ptr-lbl.show{visibility:visible}
+  .ptr-alice{background:var(--alice-bg);color:var(--alice);border:1px solid var(--alice-border)}
+  .ptr-lee{background:var(--lee-bg);color:var(--lee);border:1px solid var(--lee-border)}
+  .ptr-range{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66}
+
+  /* ── DP TABLE ── */
+  .dp-section{margin-bottom:1.1rem}
+  .dp-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+  .dp-outer{overflow-x:auto}
+  .dp-table-grid{display:inline-grid;gap:4px;font-family:var(--mono)}
+  .dp-cell{
+    width:50px;height:44px;display:flex;align-items:center;justify-content:center;
+    border-radius:7px;border:1.5px solid var(--border);background:var(--surface2);
+    font-size:13px;font-weight:600;color:var(--muted);transition:all .2s;
+  }
+  .dp-cell.header{background:transparent;border-color:transparent;font-size:11px;color:var(--border2);font-weight:500}
+  .dp-cell.diagonal{border-color:var(--accent-border,#2a3875);background:var(--accent-bg);color:var(--accent)}
+  .dp-cell.filling{border-color:var(--purple);background:var(--purple-bg);color:var(--purple);transform:scale(1.08);box-shadow:0 4px 14px rgba(192,132,252,.3);z-index:2;position:relative;animation:popDP .3s ease}
+  .dp-cell.filled{border-color:#3a2a55;background:#1e1433;color:var(--purple)}
+  .dp-cell.highlight-dep{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
+  .dp-cell.answer{border-color:var(--green);background:var(--green-bg);color:var(--green);box-shadow:0 0 0 2px rgba(74,222,128,.3)}
+  .dp-cell.empty-lower{border-color:var(--border);background:var(--bg);color:var(--border);font-size:10px}
+  @keyframes popDP{0%{transform:scale(.85)}60%{transform:scale(1.12)}100%{transform:scale(1.08)}}
+
+  /* ── PLAYER SCORES ── */
+  .scores-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.1rem}
+  .score-box{border-radius:10px;padding:1rem 1.25rem;border:1.5px solid}
+  .score-box.alice{background:var(--alice-bg);border-color:var(--alice-border)}
+  .score-box.lee  {background:var(--lee-bg);  border-color:var(--lee-border)}
+  .score-box .sp-name{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+  .score-box.alice .sp-name{color:var(--alice)}
+  .score-box.lee   .sp-name{color:var(--lee)}
+  .score-box .sp-score{font-size:28px;font-weight:700;font-family:var(--mono)}
+  .score-box.alice .sp-score{color:var(--alice)}
+  .score-box.lee   .sp-score{color:var(--lee)}
+  .score-box .sp-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--purple),var(--accent));border-radius:2px;transition:width .3s ease;width:0%}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+  .stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+  .stat-box.purple .val{color:var(--purple)}
+  .stat-box.amber  .val{color:var(--amber)}
+  .stat-box.alice  .val{color:var(--alice)}
+  .stat-box.green  .val{color:var(--green)}
+
+  /* LOG */
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:52px;margin-bottom:1.1rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:500}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .ali{color:var(--alice);font-weight:600}
+  .log-box .lee{color:var(--lee);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .btn.primary:hover{background:#2a1044}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--purple)}
+  .done-pill{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+
+  /* WALKTHROUGH */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cp{color:var(--purple)}
+  .cam{color:var(--amber)} .cal{color:var(--alice)} .cle{color:var(--lee)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic} .nm{color:var(--amber)} .st{color:var(--green)}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="badge-med">Medium</span>
+      <span class="badge-tag">Dynamic Programming</span>
+      <span class="badge-tag">Game Theory</span>
+      <span class="badge-tag">Interval DP</span>
+      <h1>877. Stone Game</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/stone-game/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Interval DP — dp[i][j] = score advantage for current player on piles[i..j] — O(n²) time · O(n²) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p><strong style="color:var(--alice)">Alice</strong> and <strong style="color:var(--lee)">Lee</strong> alternate taking piles from either end of a row. Both play optimally. Return <code style="color:var(--green)">true</code> if Alice wins.</p>
+      <p style="margin-top:.75rem">The DP state <code style="color:var(--purple)">dp[i][j]</code> = the <strong style="color:var(--text)">score advantage</strong> the current player gains over their opponent on the subarray <code>piles[i..j]</code>. Positive = current player ahead.</p>
+    </div>
+    <div>
+      <h2>Recurrence</h2>
+      <div class="formula">
+        <span class="cm">// Base: single pile — take it all</span><br>
+        dp[i][i] = piles[i]<br><br>
+        <span class="cm">// Interval: take left or right end</span><br>
+        dp[i][j] = <span class="kw">max</span>(<br>
+        &nbsp;&nbsp;piles[i] − dp[i+1][j],  <span class="cm">// take left</span><br>
+        &nbsp;&nbsp;piles[j] − dp[i][j−1]   <span class="cm">// take right</span><br>
+        )<br><br>
+        <span class="cm">// Alice wins if dp[0][n-1] > 0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Key insight:</strong> <code>dp[i][j]</code> represents how much <strong>more</strong> the <em>current player</em> scores compared to the opponent on range [i..j], assuming both play optimally. When a player takes <code>piles[i]</code>, their opponent then plays optimally on <code>[i+1..j]</code> gaining advantage <code>dp[i+1][j]</code> — so the net gain is <code>piles[i] − dp[i+1][j]</code>. We fill small intervals first (diagonal by diagonal) so dependencies are always ready.
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time</div><div class="big">O(n²)</div><p>We fill every cell of an n×n DP table exactly once. Each cell is O(1).</p></div>
+    <div class="complex-card"><div class="lbl">Space</div><div class="big">O(n²)</div><p>The 2D DP table stores one value per pair (i,j). Can be reduced to O(n) with 1D DP.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">[5,3,4,5] <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(1,this)">[3,7,2,3] <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(2,this)">2 piles [1,2] <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(3,this)">Equal piles [5,5,5,5] <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(4,this)">[7,1,5,3,6,4] <span class="tag tag-s">standard</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — Interval DP bottom-up fill</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--alice-bg);border-color:var(--alice)"></span>Alice (current player advantage)</span>
+      <span><span class="dot" style="background:var(--lee-bg);border-color:var(--lee)"></span>Lee</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span>dp cell being filled</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>dependency cells</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Final answer dp[0][n-1]</span>
+    </div>
+
+    <!-- PILES -->
+    <div class="piles-section">
+      <div class="piles-label">Piles — i=<span id="lbl-i" style="color:var(--accent)">—</span> to j=<span id="lbl-j" style="color:var(--purple)">—</span> (current interval)</div>
+      <div class="piles-outer"><div class="piles-row" id="piles-row"></div></div>
+    </div>
+
+    <!-- Player scores sim -->
+    <div class="scores-row">
+      <div class="score-box alice">
+        <div class="sp-name">👤 Alice (first player)</div>
+        <div class="sp-score" id="alice-score">—</div>
+        <div class="sp-sub" id="alice-sub">waiting...</div>
+      </div>
+      <div class="score-box lee">
+        <div class="sp-name">👤 Lee (second player)</div>
+        <div class="sp-score" id="lee-score">—</div>
+        <div class="sp-sub" id="lee-sub">waiting...</div>
+      </div>
+    </div>
+
+    <!-- DP TABLE -->
+    <div class="dp-section">
+      <div class="dp-label">dp[i][j] table — advantage of current player on piles[i..j]</div>
+      <div class="dp-outer"><div class="dp-table-grid" id="dp-grid"></div></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="lbl">Current cell</div><div class="val" id="s-cell">—</div><div class="sub">dp[i][j]</div></div>
+      <div class="stat-box amber"><div class="lbl">Interval size</div><div class="val" id="s-size">—</div><div class="sub">j − i + 1 piles</div></div>
+      <div class="stat-box alice"><div class="lbl">dp[0][n-1]</div><div class="val" id="s-final">—</div><div class="sub">Alice's advantage</div></div>
+      <div class="stat-box green"><div class="lbl">Alice wins?</div><div class="val" id="s-winner">—</div><div class="sub" id="s-winner-sub">dp[0][n-1] > 0?</div></div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Complete!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step DP fill table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr><th>Step</th><th>i</th><th>j</th><th>Size</th><th>Take left piles[i]</th><th>Take right piles[j]</th><th>dp[i][j] = max</th><th>Meaning</th></tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>stone_game.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">bool</span> <span class="fn">stoneGame</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; piles) {
+    <span class="kw">int</span> n = piles.size();
+    <span class="cm">// dp[i][j] = advantage of current player on piles[i..j]</span>
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(n, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;(n, <span class="nm">0</span>));
+
+    <span class="cm">// Base case: single pile — current player takes it all</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        dp[i][i] = piles[i];
+
+    <span class="cm">// Fill by increasing interval size</span>
+    <span class="kw">for</span> (<span class="kw">int</span> size = <span class="nm">2</span>; size &lt;= n; size++) {
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i + size - <span class="nm">1</span> &lt; n; i++) {
+            <span class="kw">int</span> j = i + size - <span class="nm">1</span>;
+            <span class="cm">// Take left: gain piles[i], opponent gets dp[i+1][j]</span>
+            <span class="kw">int</span> takeLeft  = piles[i] - dp[i + <span class="nm">1</span>][j];
+            <span class="cm">// Take right: gain piles[j], opponent gets dp[i][j-1]</span>
+            <span class="kw">int</span> takeRight = piles[j] - dp[i][j - <span class="nm">1</span>];
+            dp[i][j] = <span class="fn">max</span>(takeLeft, takeRight);
+        }
+    }
+    <span class="cm">// Alice wins if she has positive advantage over full array</span>
+    <span class="kw">return</span> dp[<span class="nm">0</span>][n - <span class="nm">1</span>] &gt; <span class="nm">0</span>;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; piles = {<span class="nm">5</span>, <span class="nm">3</span>, <span class="nm">4</span>, <span class="nm">5</span>};
+    cout &lt;&lt; (stoneGame(piles) ? <span class="st">"Alice wins"</span> : <span class="st">"Lee wins"</span>); <span class="cm">// Alice wins</span>
+}</pre>
+  </div>
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    piles:[5,3,4,5],
+    desc:`<strong style="color:var(--text)">LeetCode Example.</strong> piles=[5,3,4,5], Alice goes first. DP fills dp[i][i] with each pile value, then expands outward. dp[0][3] = <strong style="color:var(--green)">+3</strong> (Alice leads by 3). <span style="color:var(--alice)">Alice wins!</span> One optimal path: Alice takes 5 (right) → Lee takes 5 (left) → Alice takes 4 → Lee takes 3.`
+  },
+  {
+    piles:[3,7,2,3],
+    desc:`<strong style="color:var(--text)">Standard example.</strong> piles=[3,7,2,3]. Despite 7 being in the middle, Alice can force a win by playing optimally from the ends. Watch dp[0][3] resolve to a positive value — <span style="color:var(--alice)">Alice wins</span>.`
+  },
+  {
+    piles:[1,2],
+    desc:`<strong style="color:var(--text)">Edge case: 2 piles.</strong> Alice simply picks the larger pile (2). dp[0][1] = max(1−dp[1][1], 2−dp[0][0]) = max(1−2, 2−1) = max(−1, 1) = <strong style="color:var(--green)">1</strong>. <span style="color:var(--alice)">Alice wins by 1.</span>`
+  },
+  {
+    piles:[5,5,5,5],
+    desc:`<strong style="color:var(--text)">Edge case: all equal piles.</strong> Every pile has 5 stones. Total = 20, each player gets 10 — a draw? No: since the total is guaranteed odd in the real problem (LC 877 guarantees Alice always wins), here we use equal piles to show dp[0][3] = 0 → <span style="color:var(--amber)">it's a tie by score but Alice doesn't lose.</span>`
+  },
+  {
+    piles:[7,1,5,3,6,4],
+    desc:`<strong style="color:var(--text)">Larger 6-pile example.</strong> piles=[7,1,5,3,6,4]. The DP table now has more diagonals to fill. Watch the interval size grow from 1 → 2 → 3 → … → 6, diagonal by diagonal. Final answer dp[0][5] > 0 → <span style="color:var(--alice)">Alice wins.</span>`
+  }
+];
+
+const SPEEDS=[2000,1300,750,380,160];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let piles=[], steps=[], cursor=-1, playing=false, timer=null;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── BUILD STEPS ── */
+function buildSteps(p){
+  const n=p.length;
+  const dp=Array.from({length:n},()=>new Array(n).fill(null));
+  const stps=[];
+
+  // record which cells are dependencies at each step
+  stps.push({type:'init', i:-1, j:-1, size:0, dp:deepCopy(dp), val:null, tL:null, tR:null,
+    note:'Initialize dp table. All cells null. Will fill diagonal by diagonal, size 1 first.'});
+
+  // base: size=1
+  for(let i=0;i<n;i++){
+    dp[i][i]=p[i];
+    stps.push({type:'base', i, j:i, size:1, dp:deepCopy(dp), val:p[i], tL:null, tR:null,
+      depL:-1, depR:-1,
+      note:`Base case: dp[${i}][${i}] = piles[${i}] = ${p[i]}. Single pile — current player takes it all.`});
+  }
+
+  // intervals size 2..n
+  for(let size=2;size<=n;size++){
+    for(let i=0;i<=n-size;i++){
+      const j=i+size-1;
+      const tL = p[i] - dp[i+1][j];
+      const tR = p[j] - dp[i][j-1];
+      const val = Math.max(tL, tR);
+      dp[i][j]=val;
+      const isFinal=(i===0&&j===n-1);
+      stps.push({type:'fill', i, j, size, dp:deepCopy(dp), val, tL, tR,
+        depL_i:i+1, depL_j:j, depR_i:i, depR_j:j-1,
+        isFinal,
+        note:`dp[${i}][${j}]: take left → ${p[i]}−dp[${i+1}][${j}]=${p[i]}−${dp[i+1][j]}=${tL}, take right → ${p[j]}−dp[${i}][${j-1}]=${p[j]}−${dp[i][j-1]}=${tR}. max=${val}.`});
+    }
+  }
+
+  const finalVal=dp[0][n-1];
+  stps.push({type:'done', i:0, j:n-1, size:n, dp:deepCopy(dp), val:finalVal, tL:null, tR:null,
+    note:`Done! dp[0][${n-1}] = ${finalVal}. ${finalVal>0?'Alice wins (advantage > 0)':finalVal===0?'Tie (advantage = 0)':'Lee wins (advantage < 0)'}.`});
+  return stps;
+}
+
+function deepCopy(dp){ return dp.map(r=>[...r]); }
+
+/* ── BUILD PILES ROW ── */
+function buildPilesRow(p){
+  document.getElementById('piles-row').innerHTML=p.map((v,i)=>`
+    <div class="pile-col">
+      <div class="pile-cell" id="pile-${i}"><span class="pv">${v}</span><span class="pi">[${i}]</span></div>
+      <div class="ptr-lbl" id="pilep-${i}">i</div>
+    </div>`).join('');
+}
+
+/* ── BUILD DP GRID ── */
+function buildDPGrid(n){
+  const grid=document.getElementById('dp-grid');
+  grid.style.gridTemplateColumns=`repeat(${n+1},50px)`;
+  let html='';
+  // header row
+  html+=`<div class="dp-cell header"></div>`;
+  for(let j=0;j<n;j++) html+=`<div class="dp-cell header">j=${j}</div>`;
+  // data rows
+  for(let i=0;i<n;i++){
+    html+=`<div class="dp-cell header">i=${i}</div>`;
+    for(let j=0;j<n;j++){
+      const cls=j<i?'empty-lower':'';
+      html+=`<div class="dp-cell ${cls}" id="dp-${i}-${j}">${j<i?'╲':''}</div>`;
+    }
+  }
+  grid.innerHTML=html;
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  const n=piles.length;
+  // reset piles
+  piles.forEach((_,i)=>{
+    const pc=document.getElementById('pile-'+i);
+    const pp=document.getElementById('pilep-'+i);
+    if(pc){pc.className='pile-cell';}
+    if(pp){pp.className='ptr-lbl';}
+  });
+  // reset dp cells
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const c=document.getElementById(`dp-${i}-${j}`);
+    if(!c) continue;
+    if(j<i){c.className='dp-cell empty-lower';c.textContent='╲';continue;}
+    c.className='dp-cell'; c.textContent='';
+  }
+
+  steps.forEach((_,k)=>{ const tr=document.getElementById('tr-'+k); if(tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display='none';
+
+  if(idx<0){
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('s-cell').textContent='—';
+    document.getElementById('s-size').textContent='—';
+    document.getElementById('s-final').textContent='—';
+    document.getElementById('s-winner').textContent='—';
+    document.getElementById('s-winner-sub').textContent='dp[0][n-1] > 0?';
+    document.getElementById('alice-score').textContent='—';
+    document.getElementById('lee-score').textContent='—';
+    document.getElementById('alice-sub').textContent='waiting...';
+    document.getElementById('lee-sub').textContent='waiting...';
+    document.getElementById('lbl-i').textContent='—';
+    document.getElementById('lbl-j').textContent='—';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    return;
+  }
+
+  const s=steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+
+  // Fill dp cells from current state
+  for(let i=0;i<n;i++) for(let j=i;j<n;j++){
+    const c=document.getElementById(`dp-${i}-${j}`);
+    if(!c) continue;
+    const v=s.dp[i][j];
+    if(v===null){c.className='dp-cell';c.textContent='';continue;}
+    // check if this is the active cell
+    if(i===s.i&&j===s.j&&s.type!=='init'&&s.type!=='done'){
+      c.className='dp-cell filling';
+      c.textContent=v;
+    } else if(i===0&&j===n-1&&s.type==='done'){
+      c.className='dp-cell answer';
+      c.textContent=v;
+    } else if(s.type==='fill'&&((i===s.depL_i&&j===s.depL_j)||(i===s.depR_i&&j===s.depR_j))){
+      c.className='dp-cell highlight-dep';
+      c.textContent=v;
+    } else if(v!==null){
+      c.className=i===j?'dp-cell diagonal':'dp-cell filled';
+      c.textContent=v;
+    }
+  }
+
+  // Pile highlighting for current interval
+  if(s.i>=0&&s.j>=0&&s.type!=='done'){
+    document.getElementById('lbl-i').textContent=s.i;
+    document.getElementById('lbl-j').textContent=s.j;
+    for(let k=0;k<n;k++){
+      const pc=document.getElementById('pile-'+k);
+      const pp=document.getElementById('pilep-'+k);
+      if(!pc) continue;
+      if(k<s.i||k>s.j){ pc.className='pile-cell out-range'; }
+      else if(k===s.i){ pc.className='pile-cell active-left'; if(pp){pp.className='ptr-lbl show ptr-alice';pp.textContent='i';} }
+      else if(k===s.j&&s.j!==s.i){ pc.className='pile-cell active-right'; if(pp){pp.className='ptr-lbl show ptr-lee';pp.textContent='j';} }
+      else{ pc.className='pile-cell in-range'; }
+    }
+  } else {
+    document.getElementById('lbl-i').textContent='—';
+    document.getElementById('lbl-j').textContent='—';
+    piles.forEach((_,k)=>{
+      const pc=document.getElementById('pile-'+k);
+      if(pc) pc.className='pile-cell in-range';
+    });
+  }
+
+  // Player scores (simulate from dp[0][n-1])
+  const finalDP=s.dp[0][n-1];
+  const totalSum=piles.reduce((a,b)=>a+b,0);
+  if(finalDP!==null){
+    const aliceScore=Math.round((totalSum+finalDP)/2);
+    const leeScore=totalSum-aliceScore;
+    document.getElementById('alice-score').textContent=isNaN(aliceScore)?'?':aliceScore;
+    document.getElementById('lee-score').textContent=isNaN(leeScore)?'?':leeScore;
+    document.getElementById('alice-sub').textContent=`if playing full game`;
+    document.getElementById('lee-sub').textContent=`if playing full game`;
+  } else {
+    document.getElementById('alice-score').textContent='?';
+    document.getElementById('lee-score').textContent='?';
+    document.getElementById('alice-sub').textContent='computing...';
+    document.getElementById('lee-sub').textContent='computing...';
+  }
+
+  // Stats
+  document.getElementById('s-cell').textContent=s.i>=0&&s.j>=0?`[${s.i}][${s.j}]`:'—';
+  document.getElementById('s-size').textContent=s.size||'—';
+  const fv=s.dp[0][n-1];
+  document.getElementById('s-final').textContent=fv!==null?fv:'?';
+  if(fv!==null){
+    const w=fv>0?'✓ YES':fv===0?'Tie':'✗ NO';
+    document.getElementById('s-winner').textContent=w;
+    document.getElementById('s-winner-sub').textContent=fv>0?'Alice wins':fv===0?'Equal score':'Lee wins';
+  } else {
+    document.getElementById('s-winner').textContent='?';
+    document.getElementById('s-winner-sub').textContent='still computing';
+  }
+
+  // Log
+  let msg='';
+  const st=`<span class="hi">Step ${idx+1}.</span> `;
+  if(s.type==='init') msg=`${st}Initialize n×n DP table to null. Will fill <strong>diagonal by diagonal</strong>, starting with size-1 intervals (base cases) on the main diagonal.`;
+  else if(s.type==='base') msg=`${st}<span class="pur">Base case:</span> dp[${s.i}][${s.i}] = piles[${s.i}] = <span class="ali">${s.val}</span>. Only one pile — current player takes it all, advantage = pile size.`;
+  else if(s.type==='fill'){
+    const better=s.tL>=s.tR?'left':'right';
+    msg=`${st}<span class="pur">dp[${s.i}][${s.j}]</span> (size ${s.size}): Take <span class="ali">left</span> (${piles[s.i]}) − opp gets ${s.tL!=null?s.tL+s.depL_i>0?'':'':""}dp[${s.depL_i}][${s.depL_j}] = <span class="amb">${s.tL}</span>. Take <span class="lee">right</span> (${piles[s.j]}) − opp gets dp[${s.depR_i}][${s.depR_j}] = <span class="amb">${s.tR}</span>. Best: take ${better} → dp[${s.i}][${s.j}] = <span class="pur">${s.val}</span>.`;
+  }
+  else if(s.type==='done'){
+    const w=s.val>0?`<span class="ali">Alice wins!</span> Her advantage = ${s.val}`:s.val===0?`<span class="amb">Tie! Both score equally.</span>`:`<span class="lee">Lee wins!</span>`;
+    msg=`${st}🎉 <span class="pos">Complete!</span> dp[0][${n-1}] = <span class="pur">${s.val}</span>. ${w} Total stones: ${piles.reduce((a,b)=>a+b,0)}.`;
+    document.getElementById('done-pill').style.display='inline-block';
+  }
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    if(s.type==='init') return `<tr id="tr-${i}"><td>${i+1}</td><td colspan="7" class="ca">Initialize dp table</td></tr>`;
+    if(s.type==='done'){
+      const n=piles.length;
+      return `<tr id="tr-${i}"><td>${i+1}</td><td>0</td><td>${n-1}</td><td>${n}</td><td colspan="2">—</td><td class="cp">${s.val}</td><td class="${s.val>0?'cal':s.val===0?'cam':'cle'}">${s.val>0?'Alice wins':s.val===0?'Tie':'Lee wins'}</td></tr>`;
+    }
+    const tLStr=s.tL!==null?`${piles[s.i]}−${s.tL!==null?(piles[s.i]-s.tL):0}=${s.tL}`:'—';
+    const tRStr=s.tR!==null?`${piles[s.j]}−${s.tR!==null?(piles[s.j]-s.tR):0}=${s.tR}`:'—';
+    const action=s.type==='base'?`<span class="ca">Base dp[${s.i}][${s.i}]=${s.val}</span>`:`<span class="cp">Fill dp[${s.i}][${s.j}]=${s.val}</span>`;
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td class="ca">${s.i}</td><td class="cp">${s.j}</td>
+      <td class="cam">${s.size}</td>
+      <td style="font-size:11px">${s.type==='base'?'—':tLStr}</td>
+      <td style="font-size:11px">${s.type==='base'?'—':tRStr}</td>
+      <td class="cp" style="font-weight:700">${s.val}</td>
+      <td style="font-size:11px;color:var(--muted)">${s.val>0?'current leads':'current trails/tie'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadEx(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  piles=[...EXAMPLES[n].piles];
+  document.getElementById('example-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(piles);
+  buildPilesRow(piles);
+  buildDPGrid(piles.length);
+  buildTable(steps);
+  cursor=-1; applyState(-1);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+loadEx(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

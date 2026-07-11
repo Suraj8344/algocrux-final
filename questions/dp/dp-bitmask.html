@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<style>.design-ui-credit{position:fixed;bottom:12px;right:12px;font:11px/1 system-ui,sans-serif;color:rgba(128,128,128,0.5);pointer-events:none;z-index:2147483647;transition:opacity .4s ease;user-select:none;letter-spacing:.02em}@media(hover:none){.design-ui-credit{display:none}}@media print{*{transition:none!important;animation:none!important}.design-ui-credit{display:none!important}}</style>
+<script>(function(){function m(){document.body.classList.add('artifact-editable')}function c(){if(!matchMedia('(hover:hover)').matches)return;var d=document.createElement('div');d.className='design-ui-credit';d.setAttribute('aria-hidden','true');d.innerHTML='\u{1F49C} by ClickUp Brain';document.body.appendChild(d);var t=null,f=function(o){d.style.opacity=o?'0':''};f(true);var s=function(){f(false);clearTimeout(t);t=setTimeout(function(){f(true)},3000)};document.addEventListener('mousemove',s);s()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){m();c()});else{m();c()}})();</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bitmask DP — Travelling Salesman (TSP)</title>
+<style>:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--muted2:#5c6189;--green:#4ade80;--green-bg:#0d2318;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0d2522;--accent:#6c8fff;--accent-bg:#1a2140;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}.badge-row{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}.badge{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}.badge.gfg{background:var(--accent-bg);color:var(--accent);border:1px solid #1a2a60}.badge.px{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155}.badge.hard{background:#2a1111;color:#f87171;border:1px solid #5c2020}header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:2px}main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}@media(max-width:640px){.concept{grid-template-columns:1fr}}.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7}.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--amber);line-height:2.1}.formula .comment{color:var(--muted);font-style:italic}.formula .keyword{color:var(--purple)}.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans)}.copy-btn:hover{color:var(--text)}pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}@media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}.complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}.complex-card p{font-size:12px;color:var(--muted);margin-top:4px}.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}.notes-header:hover{background:var(--border)}.notes-header h3{font-size:.95rem;font-weight:600}.notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}.notes-header.open .toggle-icon{transform:rotate(180deg)}.notes-body{padding:1.25rem;display:none}.notes-body.open{display:block}.notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;resize:vertical;outline:none}.lc-banner{display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,#1a2140,#0c2624);border:1px solid #343a57;border-radius:12px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:14px}.lc-banner .lc-icon{width:36px;height:36px;border-radius:8px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;flex-shrink:0}.lc-banner .lc-text{flex:1;color:#8a8fb5;line-height:1.5}.lc-banner .lc-text b{color:#eef0fa;font-weight:600}.lc-banner .lc-btn{background:linear-gradient(135deg,#6c8fff,#2dd4bf);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;transition:all .2s ease;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}.lc-banner .lc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,143,255,.4)}@media(max-width:640px){.lc-banner{flex-direction:column;align-items:flex-start;gap:.6rem}.lc-banner .lc-btn{width:100%;justify-content:center}}
+.mask-table{width:100%;border-collapse:collapse;font-size:13px;margin:1rem 0}.mask-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}.mask-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted)}.mask-table .highlight{color:var(--teal);font-weight:600}
+</style><link rel="stylesheet" href="../practice/practice.css">
+</head><body>
+<header><div><div class="badge-row"><span class="badge gfg">DP / Advanced</span><span class="badge px">Bitmask DP</span><span class="badge hard">Hard</span></div><h1>Bitmask DP — Travelling Salesman Problem</h1><p>Use a bitmask to track visited nodes. dp[mask][i] = min cost to visit nodes in mask, ending at i. O(2^N × N²).</p></div></header>
+<main>
+  <div class="lc-banner"><div class="lc-icon">GFG</div><div class="lc-text">Practice on <b>GeeksforGeeks: Travelling Salesman</b></div><a href="https://www.geeksforgeeks.org/travelling-salesman-problem-using-dynamic-programming/" target="_blank" rel="noopener" class="lc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open Problem</a></div>
+  <div class="concept"><div><h2>Bitmask DP Pattern</h2><p>When N ≤ 20, represent subsets as <strong style="color:var(--teal)">bitmasks</strong>. Each bit indicates whether an element is "used/visited." State: dp[mask][last], where mask encodes which elements are included. Iterate over all 2^N masks.</p><p style="margin-top:.5rem"><strong style="color:var(--text)">When to use:</strong> permutation problems, assignment problems, TSP, or any problem where you need to track which subset of N items has been processed.</p></div><div><h2>Recurrence (TSP)</h2><div class="formula"><span class="keyword">dp[1][0]</span> = 0 <span class="comment">// start at city 0</span><br><span class="keyword">for</span> each mask (increasing):<br>&nbsp;&nbsp;<span class="keyword">for</span> each last city i in mask:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span> each unvisited city j:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newMask = mask | (1 &lt;&lt; j)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dp[newMask][j] = min(dp[newMask][j],<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dp[mask][i] + dist[i][j])</div></div></div>
+
+  <table class="mask-table"><thead><tr><th>Mask (binary)</th><th>Decimal</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="highlight">0001</td><td>1</td><td>Only city 0 visited</td></tr>
+    <tr><td class="highlight">0101</td><td>5</td><td>Cities 0 and 2 visited</td></tr>
+    <tr><td class="highlight">1111</td><td>15</td><td>All 4 cities visited</td></tr>
+    <tr><td class="highlight">mask | (1&lt;&lt;j)</td><td>—</td><td>Add city j to visited set</td></tr>
+    <tr><td class="highlight">mask & (1&lt;&lt;i)</td><td>—</td><td>Check if city i is visited</td></tr>
+  </tbody></table>
+
+  <div class="code-section"><div class="code-header"><span>C++ — TSP with Bitmask DP</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">int</span> <span class="fn">tsp</span>(<span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; dist) {
+    <span class="kw">int</span> n = dist.<span class="fn">size</span>();
+    <span class="kw">int</span> FULL = (<span class="nm">1</span> &lt;&lt; n) - <span class="nm">1</span>;
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(FULL+<span class="nm">1</span>, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(n, <span class="nm">1e9</span>));
+    dp[<span class="nm">1</span>][<span class="nm">0</span>] = <span class="nm">0</span>; <span class="cm">// start at city 0</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> mask = <span class="nm">1</span>; mask &lt;= FULL; mask++) {
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++) {
+            <span class="kw">if</span> (!(mask &amp; (<span class="nm">1</span> &lt;&lt; i))) <span class="kw">continue</span>;
+            <span class="kw">if</span> (dp[mask][i] >= <span class="nm">1e9</span>) <span class="kw">continue</span>;
+            <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nm">0</span>; j &lt; n; j++) {
+                <span class="kw">if</span> (mask &amp; (<span class="nm">1</span> &lt;&lt; j)) <span class="kw">continue</span>;
+                <span class="kw">int</span> next = mask | (<span class="nm">1</span> &lt;&lt; j);
+                dp[next][j] = <span class="fn">min</span>(dp[next][j],
+                    dp[mask][i] + dist[i][j]);
+            }
+        }
+    }
+    <span class="kw">int</span> ans = <span class="nm">1e9</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        ans = <span class="fn">min</span>(ans, dp[FULL][i] + dist[i][<span class="nm">0</span>]);
+    <span class="kw">return</span> ans;
+}</pre></div>
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid"><div class="complex-card"><div class="lbl">Time</div><div class="big">O(2^N × N²)</div><p>2^N masks × N last cities × N transitions.</p></div><div class="complex-card"><div class="lbl">Space</div><div class="big">O(2^N × N)</div><p>DP table: one entry per (mask, city) pair.</p></div><div class="complex-card"><div class="lbl">Constraint</div><div class="big">N ≤ 20</div><p>2^20 ≈ 1M states is the practical limit.</p></div><div class="complex-card"><div class="lbl">vs Brute Force</div><div class="big">N! → 2^N × N²</div><p>Exponential improvement over trying all permutations.</p></div></div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes on Bitmask DP..."></textarea></div></div>
+</main></body></html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Search on Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--teal:#2dd4bf;--purple:#c084fc;--amber:#fbbf24;--green:#4ade80;--red:#f87171;--accent:#6c8fff;--text:#e6e8ef;--muted:#8b90a5;--dim:#5c6076;--mono:'Fira Code',ui-monospace,monospace;--sans:'Inter',system-ui,sans-serif;--border:rgba(255,255,255,.07);}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;padding:0 20px 80px;background-image:radial-gradient(circle at 20% -10%,rgba(108,143,255,.08),transparent 40%),radial-gradient(circle at 90% 0%,rgba(192,132,252,.06),transparent 35%);}
+.wrap{max-width:1080px;margin:0 auto}::selection{background:var(--accent);color:#fff}
+.practice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding:14px 20px;background:linear-gradient(90deg,rgba(45,212,191,.12),rgba(108,143,255,.10));border:1px solid var(--border);border-radius:14px;font-size:14px}
+.practice .tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:rgba(45,212,191,.12);padding:4px 10px;border-radius:6px}
+.practice a{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px solid var(--dim);transition:border-color .2s}
+.practice a:hover{border-color:var(--accent)}.practice .sep{color:var(--dim)}
+header{margin-top:34px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.badge.b-teal{color:var(--teal);background:rgba(45,212,191,.10)}.badge.b-purple{color:var(--purple);background:rgba(192,132,252,.10)}.badge.b-amber{color:var(--amber);background:rgba(251,191,36,.10)}.badge.b-accent{color:var(--accent);background:rgba(108,143,255,.10)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1}h1 .accent{color:var(--teal)}
+.subtitle{color:var(--muted);font-size:18px;margin-top:10px;max-width:70ch}
+section{margin-top:44px}
+.section-label{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.concept-card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.concept-card h3 .dot{width:9px;height:9px;border-radius:50%}
+.concept-card p{color:var(--muted);font-size:15px}.concept-card p b{color:var(--text);font-weight:600}
+.concept-card code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:5px;color:var(--teal)}
+.concept-card ul{list-style:none;margin-top:10px}.concept-card li{color:var(--muted);font-size:14.5px;padding:5px 0 5px 20px;position:relative}
+.concept-card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:4px}
+.io-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.io-row label{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.io-row input[type=text]{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text)}
+.io-row input#wordInput{width:130px}.io-row input#gridInput{width:220px}
+.io-row input[type=text]:focus{outline:none;border-color:var(--accent)}
+.mini-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 14px;cursor:pointer;transition:.18s}
+.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stage{display:flex;justify-content:center;padding:10px 0 18px}
+#board{display:grid;gap:6px}
+.cell{width:56px;height:56px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:22px;font-weight:700;background:var(--surface2);color:var(--muted);transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s,box-shadow .3s,color .3s;position:relative}
+.cell.path{background:rgba(108,143,255,.18);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(108,143,255,.35)}
+.cell.current{background:rgba(251,191,36,.24);color:var(--amber);box-shadow:0 0 0 2px var(--amber),0 0 16px rgba(251,191,36,.4);transform:scale(1.08);z-index:2}
+.cell.fail{background:rgba(248,113,113,.2);color:var(--red);box-shadow:inset 0 0 0 1px rgba(248,113,113,.4)}
+.cell.found{background:rgba(74,222,128,.22);color:var(--green);box-shadow:0 0 0 2px var(--green),0 0 16px rgba(74,222,128,.4)}
+.cell .order{position:absolute;top:3px;left:5px;font-size:9px;font-weight:600;opacity:.75}
+.word-track{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:6px}
+.word-track .lab{font-family:var(--mono);font-size:11px;color:var(--dim);margin-right:4px}
+.wchip{font-family:var(--mono);font-weight:700;font-size:15px;width:30px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--dim);border:1px solid var(--border)}
+.wchip.matched{background:rgba(74,222,128,.16);color:var(--green);border-color:rgba(74,222,128,.3)}
+.wchip.cur{background:rgba(251,191,36,.2);color:var(--amber);border-color:rgba(251,191,36,.35)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(1.1)}
+.kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:var(--muted)}
+.speed-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:5px;background:var(--surface2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,143,255,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.progress-track{height:7px;background:var(--surface2);border-radius:7px;margin-top:22px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:7px;transition:width .3s ease}
+.progress-caption{text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:16px}
+.stat .label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.stat .val{font-size:24px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.stat.s-teal .val{color:var(--teal)}.stat.s-green .val{color:var(--green)}.stat.s-red .val{color:var(--red)}.stat.s-amber .val{color:var(--amber)}.stat.s-purple .val{color:var(--purple)}
+.log-box{margin-top:22px;background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:16px 18px;font-family:var(--mono);font-size:13px;height:150px;overflow-y:auto}
+.log-box div{padding:2px 0;color:var(--muted)}
+.log-box .l-teal{color:var(--teal)}.log-box .l-amber{color:var(--amber)}.log-box .l-red{color:var(--red)}.log-box .l-green{color:var(--green)}.log-box .l-purple{color:var(--purple)}
+.log-box::-webkit-scrollbar{width:8px}.log-box::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px}
+.code-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-block pre{margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.tok-key{color:var(--purple)}.tok-type{color:var(--teal)}.tok-fn{color:var(--accent)}.tok-num{color:var(--amber)}.tok-str{color:var(--green)}.tok-com{color:var(--dim);font-style:italic}
+.copy-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.18s}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}.copy-btn.done{color:var(--green);border-color:var(--green)}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.cx-card .label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cx-card .big{font-family:var(--mono);font-size:22px;font-weight:700;margin:8px 0;color:var(--amber)}.cx-card .big.good{color:var(--green)}
+.cx-card p{font-size:13px;color:var(--muted)}
+.notes{background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(108,143,255,.05));border:1px solid var(--border);border-radius:16px;padding:26px}
+.notes ul{list-style:none}.notes li{padding:8px 0 8px 26px;position:relative;color:var(--muted);font-size:15px}
+.notes li::before{content:'✦';position:absolute;left:0;color:var(--purple)}.notes li b{color:var(--text);font-weight:600}
+footer{margin-top:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){h1{font-size:30px}.concept-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cx-grid{grid-template-columns:1fr}.cell{width:46px;height:46px;font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="practice">
+    <span class="tag">Practice</span>
+    <a href="https://leetcode.com/problems/word-search/" target="_blank">LeetCode 79 · Word Search</a>
+    <span class="sep">·</span>
+    <a href="https://www.geeksforgeeks.org/search-a-word-in-a-2d-grid-of-characters/" target="_blank">GFG · Word Search in Grid</a>
+  </div>
+  <header>
+    <div class="badges"><span class="badge b-teal">Recursion</span><span class="badge b-accent">Backtracking</span><span class="badge b-purple">Grid DFS</span><span class="badge b-amber">Visited</span></div>
+    <h1>Word Search <span class="accent">·</span> Grid Backtracking</h1>
+    <p class="subtitle">Trace a word through a grid, moving to adjacent cells, never reusing one. DFS follows a promising path letter by letter and backtracks the instant the next character doesn't match.</p>
+  </header>
+  <section>
+    <div class="section-label">Concept</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--teal)"></span>DFS with a visited mark</h3>
+        <p>From each cell matching the first letter, DFS into the 4 neighbors seeking the next letter. Temporarily mark the cell used (so the path can't cross itself), recurse, then unmark on the way back.</p>
+      </div>
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--purple)"></span>Prune the instant it breaks</h3>
+        <ul>
+          <li>Out of bounds → fail this branch</li>
+          <li>Cell letter ≠ needed letter → fail</li>
+          <li>Cell already on the path → fail</li>
+          <li>Matched all letters → word found</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Interactive</div>
+    <h2>Trace the word</h2>
+    <div class="panel">
+      <div class="legend">
+        <span><i class="sw" style="background:var(--surface2)"></i>Untouched</span>
+        <span><i class="sw" style="background:var(--accent)"></i>On path</span>
+        <span><i class="sw" style="background:var(--amber)"></i>Current</span>
+        <span><i class="sw" style="background:var(--red)"></i>Dead end</span>
+        <span><i class="sw" style="background:var(--green)"></i>Found</span>
+      </div>
+      <div class="io-row">
+        <label>Grid (rows by <code style="color:var(--teal);font-family:var(--mono)">;</code>)</label>
+        <input type="text" id="gridInput" value="A,B,C,E;S,F,C,S;A,D,E,E">
+        <label>Word</label>
+        <input type="text" id="wordInput" value="ABCCED">
+        <button class="mini-btn" id="loadBtn">Load</button>
+      </div>
+      <div class="stage"><div id="board"></div></div>
+      <div class="word-track" id="wordTrack"></div>
+      <div class="controls">
+        <button class="btn" id="prevBtn">◀ Prev <span class="kbd">←</span></button>
+        <button class="btn primary" id="playBtn">▶ Play <span class="kbd">space</span></button>
+        <button class="btn" id="nextBtn">Next ▶ <span class="kbd">→</span></button>
+        <button class="btn" id="resetBtn">↺ Reset <span class="kbd">R</span></button>
+      </div>
+      <div class="speed-row"><span>slow</span><input type="range" id="speed" min="120" max="1200" value="480" step="40"><span>fast</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-caption" id="progCaption">Step 0</div>
+      <div class="stats">
+        <div class="stat s-amber"><div class="label">Matched</div><div class="val" id="statMatched">0</div></div>
+        <div class="stat s-teal"><div class="label">Path length</div><div class="val" id="statPath">0</div></div>
+        <div class="stat s-red"><div class="label">Backtracks</div><div class="val" id="statBack">0</div></div>
+        <div class="stat s-green"><div class="label">Found?</div><div class="val" id="statFound">?</div></div>
+      </div>
+      <div class="log-box" id="log"></div>
+    </div>
+  </section>
+  <section>
+    <div class="code-head">
+      <div><div class="section-label" style="margin-bottom:4px">Implementation</div><h2 style="margin:0">C++</h2></div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block">
+<pre><code id="codeText"><span class="tok-key">bool</span> <span class="tok-fn">dfs</span>(vector&lt;vector&lt;<span class="tok-type">char</span>&gt;&gt;&amp; b, <span class="tok-type">int</span> r, <span class="tok-type">int</span> c,
+         string&amp; word, <span class="tok-type">int</span> k) {
+    <span class="tok-key">if</span> (k == word.size()) <span class="tok-key">return</span> <span class="tok-key">true</span>;   <span class="tok-com">// all letters matched</span>
+    <span class="tok-key">if</span> (r &lt; <span class="tok-num">0</span> || c &lt; <span class="tok-num">0</span> || r &gt;= b.size() || c &gt;= b[<span class="tok-num">0</span>].size())
+        <span class="tok-key">return</span> <span class="tok-key">false</span>;               <span class="tok-com">// off the grid</span>
+    <span class="tok-key">if</span> (b[r][c] != word[k]) <span class="tok-key">return</span> <span class="tok-key">false</span>;  <span class="tok-com">// wrong letter</span>
+
+    <span class="tok-type">char</span> tmp = b[r][c];
+    b[r][c] = <span class="tok-str">'#'</span>;                    <span class="tok-com">// mark visited</span>
+    <span class="tok-key">bool</span> found = <span class="tok-fn">dfs</span>(b, r+<span class="tok-num">1</span>, c, word, k+<span class="tok-num">1</span>) ||
+                 <span class="tok-fn">dfs</span>(b, r-<span class="tok-num">1</span>, c, word, k+<span class="tok-num">1</span>) ||
+                 <span class="tok-fn">dfs</span>(b, r, c+<span class="tok-num">1</span>, word, k+<span class="tok-num">1</span>) ||
+                 <span class="tok-fn">dfs</span>(b, r, c-<span class="tok-num">1</span>, word, k+<span class="tok-num">1</span>);
+    b[r][c] = tmp;                     <span class="tok-com">// UNMARK (backtrack)</span>
+    <span class="tok-key">return</span> found;
+}
+
+<span class="tok-key">bool</span> <span class="tok-fn">exist</span>(vector&lt;vector&lt;<span class="tok-type">char</span>&gt;&gt;&amp; b, string word) {
+    <span class="tok-key">for</span> (<span class="tok-type">int</span> r = <span class="tok-num">0</span>; r &lt; b.size(); r++)
+        <span class="tok-key">for</span> (<span class="tok-type">int</span> c = <span class="tok-num">0</span>; c &lt; b[<span class="tok-num">0</span>].size(); c++)
+            <span class="tok-key">if</span> (<span class="tok-fn">dfs</span>(b, r, c, word, <span class="tok-num">0</span>)) <span class="tok-key">return</span> <span class="tok-key">true</span>;
+    <span class="tok-key">return</span> <span class="tok-key">false</span>;
+}</code></pre>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Complexity</div>
+    <div class="cx-grid">
+      <div class="cx-card"><div class="label">Time</div><div class="big">O(m·n·4ᴸ)</div><p>Every cell as a start, 4 directions per step, word length L.</p></div>
+      <div class="cx-card"><div class="label">Space</div><div class="big good">O(L)</div><p>Recursion depth equals the word length.</p></div>
+      <div class="cx-card"><div class="label">Prune</div><div class="big good">letter ≠</div><p>Mismatch kills a branch immediately, that's what tames the 4ᴸ.</p></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Notes</div>
+    <div class="notes">
+      <ul>
+        <li><b>Mark then unmark</b> is the whole trick: <code style="font-family:var(--mono);color:var(--teal)">'#'</code> blocks revisiting during this path, and restoring it lets other paths reuse the cell.</li>
+        <li>The letter-match check acts as a <b>free prune</b>, most branches die on the first wrong character.</li>
+        <li>Mutating the grid in place avoids a separate visited matrix; just remember to restore it.</li>
+        <li>For <b>many words</b> (LC 212, Word Search II), build a Trie so all words share one DFS pass.</li>
+        <li>Same 4-directional grid DFS powers number-of-islands and flood fill, minus the letter constraint.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Word Search · Grid Backtracking — arrow keys to step · space to play/pause · R to reset</footer>
+</div>
+<script>
+(function(){
+  const boardEl=document.getElementById('board'),logEl=document.getElementById('log');
+  const DR=[1,-1,0,0],DC=[0,0,1,-1];
+  let steps=[],idx=0,playing=false,timer=null,grid=[],word='',R=0,C=0;
+  function parseGrid(s){return s.trim().split(';').map(r=>r.split(',').map(x=>x.trim()));}
+  function buildSteps(){
+    const snaps=[];let backtracks=0,found=false;
+    const path=[]; // list of [r,c]
+    const b=grid.map(r=>r.slice());
+    function snap(cur,state,matched,logObj){
+      snaps.push({path:path.map(p=>[...p]),cur:cur?[...cur]:null,state,matched,backtracks,found,log:logObj});
+    }
+    snap(null,'idle',0,{cls:'l-teal',txt:`Searching for "${word}". Trying each cell as a start.`});
+    function dfs(r,c,k){
+      if(found)return true;
+      if(r<0||c<0||r>=R||c>=C){return false;}
+      if(b[r][c]==='#'||b[r][c]!==word[k]){
+        // only log a visible fail for in-bounds mismatch on an unused cell
+        if(b[r][c]!=='#'){snap([r,c],'fail',k,{cls:'l-red',txt:`(${r},${c})='${b[r][c]}' ≠ '${word[k]}' → dead end, backtrack.`});backtracks++;}
+        return false;
+      }
+      path.push([r,c]);const tmp=b[r][c];b[r][c]='#';
+      snap([r,c],'match',k+1,{cls:'l-amber',txt:`(${r},${c})='${tmp}' matches '${word[k]}' (letter ${k+1}/${word.length}).`});
+      if(k+1===word.length){found=true;snap([r,c],'found',k+1,{cls:'l-green',txt:`✓ Full word "${word}" traced. Found!`});b[r][c]=tmp;return true;}
+      let ok=false;
+      for(let d=0;d<4&&!ok;d++){ok=dfs(r+DR[d],c+DC[d],k+1);}
+      b[r][c]=tmp;
+      if(!ok&&!found){path.pop();backtracks++;snap([r,c],'back',k,{cls:'l-purple',txt:`No extension from (${r},${c}) → unmark, backtrack.`});}
+      else if(ok){path.pop();}
+      return ok;
+    }
+    outer:
+    for(let r=0;r<R&&!found;r++)for(let c=0;c<C&&!found;c++){
+      if(b[r][c]===word[0]){snap([r,c],'try',0,{cls:'l-teal',txt:`Start attempt at (${r},${c})='${word[0]}'.`});if(dfs(r,c,0))break outer;}
+    }
+    if(!found)snap(null,'done',0,{cls:'l-red',txt:`✗ Word "${word}" not present in the grid.`});
+    return snaps;
+  }
+  function renderBoard(s){
+    boardEl.style.gridTemplateColumns=`repeat(${C},56px)`;boardEl.innerHTML='';
+    const onPath={};s.path.forEach((p,i)=>onPath[p[0]+','+p[1]]=i+1);
+    const cur=s.cur?s.cur[0]+','+s.cur[1]:'';
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+      const key=r+','+c;const cell=document.createElement('div');let cls='cell';
+      if(cur===key&&s.state==='fail')cls+=' fail';
+      else if(cur===key&&s.state==='found')cls+=' found';
+      else if(cur===key)cls+=' current';
+      else if(onPath[key])cls+=' path';
+      cell.className=cls;cell.textContent=grid[r][c];
+      if(onPath[key]){const o=document.createElement('span');o.className='order';o.textContent=onPath[key];cell.appendChild(o);}
+      boardEl.appendChild(cell);
+    }
+  }
+  function renderWord(s){
+    const wt=document.getElementById('wordTrack');wt.innerHTML='<span class="lab">word:</span>';
+    for(let i=0;i<word.length;i++){const c=document.createElement('div');c.className='wchip'+(i<s.matched?' matched':'')+(i===s.matched&&!s.found?' cur':'');c.textContent=word[i];wt.appendChild(c);}
+  }
+  function renderLog(upto){logEl.innerHTML='';for(let i=0;i<=upto;i++){const d=document.createElement('div');d.className=steps[i].log.cls;d.textContent=steps[i].log.txt;logEl.appendChild(d);}logEl.scrollTop=logEl.scrollHeight;}
+  function update(){
+    const s=steps[idx];renderBoard(s);renderWord(s);renderLog(idx);
+    document.getElementById('statMatched').textContent=s.matched;
+    document.getElementById('statPath').textContent=s.path.length;
+    document.getElementById('statBack').textContent=s.backtracks;
+    const f=document.getElementById('statFound');f.textContent=s.found?'YES':(idx===steps.length-1?'NO':'?');f.style.color=s.found?'var(--green)':(idx===steps.length-1?'var(--red)':'var(--muted)');
+    const pct=steps.length>1?(idx/(steps.length-1))*100:0;document.getElementById('progress').style.width=pct+'%';
+    document.getElementById('progCaption').textContent=`Step ${idx} / ${steps.length-1}`;
+    document.getElementById('prevBtn').disabled=idx===0;document.getElementById('nextBtn').disabled=idx===steps.length-1;
+  }
+  function next(){if(idx<steps.length-1){idx++;update();}else pause();}
+  function prev(){if(idx>0){idx--;update();}}
+  function reset(){pause();idx=0;update();}
+  function play(){if(idx>=steps.length-1)idx=0;playing=true;document.getElementById('playBtn').innerHTML='❚❚ Pause <span class="kbd">space</span>';const spd=+document.getElementById('speed').value;timer=setInterval(()=>{if(idx<steps.length-1)next();else pause();},spd);}
+  function pause(){playing=false;document.getElementById('playBtn').innerHTML='▶ Play <span class="kbd">space</span>';clearInterval(timer);}
+  function togglePlay(){playing?pause():play();}
+  function load(){
+    try{
+      grid=parseGrid(document.getElementById('gridInput').value);word=document.getElementById('wordInput').value.trim().toUpperCase();
+      R=grid.length;C=grid[0].length;
+      if(!R||!word||grid.some(r=>r.length!==C))throw 0;
+      steps=buildSteps();idx=0;pause();update();
+    }catch(e){logEl.innerHTML='<div class="l-red">Grid cells comma-separated, rows by ; and a non-empty word.</div>';}
+  }
+  document.getElementById('nextBtn').onclick=next;document.getElementById('prevBtn').onclick=prev;document.getElementById('resetBtn').onclick=reset;document.getElementById('playBtn').onclick=togglePlay;document.getElementById('loadBtn').onclick=load;
+  document.getElementById('speed').oninput=()=>{if(playing){pause();play();}};
+  document.getElementById('copyBtn').onclick=function(){const txt=document.getElementById('codeText').innerText;navigator.clipboard.writeText(txt).then(()=>{this.textContent='Copied ✓';this.classList.add('done');setTimeout(()=>{this.textContent='Copy';this.classList.remove('done');},1600);});};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){e.preventDefault();pause();next();}else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}else if(e.key===' '){e.preventDefault();togglePlay();}else if(e.key==='r'||e.key==='R'){e.preventDefault();reset();}});
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS with a Queue — FIFO Grid Traversal</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3a4a7a;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace; --sans: 'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.med { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.bfs { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; } .formula .keyword { color: var(--purple); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge { background: var(--purple-bg); color: var(--purple); } .tag-classic { background: var(--accent-bg); color: var(--accent); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); } .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  /* GRID */
+  .grid-wrap { margin-bottom: 1.1rem; }
+  .grid-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .grid-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; display: flex; justify-content: center; }
+  .grid { display: grid; gap: 6px; }
+  .gcell { width: 50px; height: 50px; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s; position: relative; }
+  .gcell .g-dist { font-size: 9px; color: var(--muted); font-family: var(--mono); position: absolute; top: 2px; right: 4px; }
+  .gcell.wall { background: #14161f; border-color: var(--border); color: var(--muted2); }
+  .gcell.unvisited { background: var(--surface); }
+  .gcell.queued { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .gcell.visiting { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.25); transform: scale(1.06); }
+  .gcell.visited { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .gcell.neighbor { box-shadow: 0 0 0 3px rgba(108,143,255,.30); }
+  .gcell.start { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  /* QUEUE */
+  .queue-section { margin-bottom: 1.1rem; }
+  .queue-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .queue-hint { font-family: var(--mono); text-transform:none; letter-spacing:0; color: var(--muted2); }
+  .queue-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; min-height: 72px; overflow-x: auto; }
+  .queue-row { display: flex; gap: 6px; align-items: center; min-width: max-content; }
+  .queue-empty { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .q-end { font-size: 10px; color: var(--muted); font-family: var(--mono); padding: 0 4px; }
+  .q-node { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 1.5px solid var(--border2); border-radius: 8px; background: var(--surface); padding: .4rem .6rem; font-family: var(--mono); transition: background .2s, border-color .2s, transform .2s; }
+  .q-node .qn-cell { font-size: 13px; font-weight: 700; color: var(--text); }
+  .q-node .qn-d { font-size: 9px; color: var(--muted); }
+  .q-node.front { border-color: var(--amber); background: var(--amber-bg); } .q-node.front .qn-cell { color: var(--amber); }
+  .q-node.enq { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-3px); } .q-node.enq .qn-cell { color: var(--accent); }
+  .alloc-section { margin-bottom: 1.1rem; } .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono); display: flex; flex-direction: column; gap: 3px; min-width: 116px; }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; } .alloc-card .ac-books { color: var(--text); } .alloc-card .ac-sum { font-weight: 700; }
+  .alloc-card.amberc { border-color: var(--amber); background: var(--amber-bg); } .alloc-card.amberc .ac-sum { color: var(--amber); }
+  .alloc-card.accentc { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.accentc .ac-sum { color: var(--accent); }
+  .alloc-card.tealc { border-color: var(--teal); background: var(--teal-bg); } .alloc-card.tealc .ac-sum { color: var(--teal); }
+  .alloc-card.ok { border-color: var(--green); background: var(--green-bg); } .alloc-card.ok .ac-sum { color: var(--green); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.info .ac-sum { color: var(--accent); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; } .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-lo { color: var(--amber); } .tp-hi { color: var(--accent); } .tp-mid { color: var(--teal); } .tp-ans { color: var(--green); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; } .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; } .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber .val { color: var(--amber); } .stat-box.accent .val { color: var(--accent); } .stat-box.teal .val { color: var(--teal); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; } .log-box .pos { color: var(--green); font-weight: 600; } .log-box .neg { color: var(--red); font-weight: 600; } .log-box .acc { color: var(--accent); font-weight: 600; } .log-box .amb { color: var(--amber); font-weight: 600; } .log-box .sol { color: var(--purple); font-weight: 600; } .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); } .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); } .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); } .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s} .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px} .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s} .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)} .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none} .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)} .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px} .notes-footer .save-status.saved{color:var(--green)} .notes-footer .save-status.saving{color:var(--amber)} .notes-footer .save-status.error{color:var(--red)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;} .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);} .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">Graph / Grid · Classic</span>
+      <span class="badge bfs">FIFO Queue · BFS</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>BFS with a Queue — Grid Traversal</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">This FIFO pattern powers Number of Islands, Rotting Oranges, Shortest Path in Binary Matrix, and more.</div>
+      <a href="https://leetcode.com/problems/shortest-path-in-binary-matrix/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>A queue processes cells first-in-first-out, so BFS fans out in rings of equal distance from the start — shortest paths for free, O(V+E)</p>
+  </div>
+</header>
+
+<main>
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Breadth-first search explores a graph or grid <strong style="color:var(--teal)">level by level</strong>: all cells 1 step away, then 2 steps, then 3. On an unweighted grid this gives the <strong style="color:var(--teal)">shortest path</strong> in cells from the start.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> a <strong style="color:var(--teal)">FIFO queue</strong> is what makes it breadth-first. Dequeue a cell from the front, mark its unvisited neighbours <em>visited</em> and enqueue them at the back. Because the queue is first-in-first-out, closer cells are always processed before farther ones, so BFS expands in concentric rings. Marking visited on enqueue (not dequeue) prevents the same cell entering twice → <strong style="color:var(--teal)">O(V+E)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        q = [start]; visited = {start}<br>
+        <span class="keyword">while</span> q not empty:<br>
+        &nbsp;&nbsp;cell = q.popleft()   <span class="comment"># FIFO front</span><br>
+        &nbsp;&nbsp;<span class="keyword">for</span> nb <span class="keyword">in</span> neighbours(cell):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> nb open and not visited:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited.add(nb); q.append(nb)
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time complexity</div><div class="big">O(V + E)</div><p>Each cell is enqueued and dequeued once (V); each edge to a neighbour is examined once (E). On an R×C grid that's O(R·C).</p></div>
+    <div class="complex-card"><div class="lbl">Space complexity</div><div class="big">O(V)</div><p>The queue and visited set can hold up to all cells in the worst case (a full ring).</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Open 4×4 <span class="tag tag-classic">rings</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Walls maze <span class="tag tag-classic">obstacles</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Corner start <span class="tag tag-edge">corner</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Narrow corridor <span class="tag tag-edge">1-wide</span></button>
+    <button class="tab" onclick="loadExample(4,this)">Blocked pocket <span class="tag tag-edge">unreachable</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — dequeue front, enqueue neighbours</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> start</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> visiting (dequeued)</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> in queue</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> visited/done</span>
+      <span><span class="dot" style="background:#14161f;border-color:var(--border)"></span> wall</span>
+    </div>
+    <div class="grid-wrap">
+      <div class="grid-label">Grid (number = BFS distance from start)</div>
+      <div class="grid-outer"><div class="grid" id="grid"></div></div>
+    </div>
+    <div class="queue-section">
+      <div class="queue-label">Queue (FIFO) <span class="queue-hint" id="queue-hint"></span></div>
+      <div class="queue-outer"><div class="queue-row" id="queue-row"><span class="queue-empty">empty</span></div></div>
+    </div>
+    <div class="alloc-section"><div class="alloc-label">Current step detail</div><div class="alloc-row" id="need-row"></div></div>
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-lo">visiting = —</span>
+      <span class="tracker-pill tp-hi" id="pill-hi">queue = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">visited = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">frontier = —</span>
+    </div>
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl">visiting cell</div><div class="val" id="s-lo">—</div><div class="sub" id="s-lo-sub">dequeued</div></div>
+      <div class="stat-box accent"><div class="lbl">queue size</div><div class="val" id="s-hi">—</div><div class="sub">waiting</div></div>
+      <div class="stat-box teal"><div class="lbl">visited</div><div class="val" id="s-mid">—</div><div class="sub">of reachable</div></div>
+      <div class="stat-box green"><div class="lbl">BFS level</div><div class="val" id="s-ans">—</div><div class="sub" id="s-ans-sub">current ring</div></div>
+    </div>
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speed" min="1" max="5" value="3" step="1"><span id="spd-lbl" style="min-width:50px">Medium</span></div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table"><thead><tr><th>Step</th><th>phase</th><th>dequeued</th><th>dist</th><th>enqueued</th><th>queue size</th><th>visited</th></tr></thead><tbody id="step-tbody"></tbody></table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>bfs_grid.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// BFS from (sr,sc) on a grid; 0 = open, 1 = wall. Fills dist in cells.</span>
+<span class="kw">void</span> <span class="fn">bfs</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; grid, <span class="kw">int</span> sr, <span class="kw">int</span> sc) {
+    <span class="kw">int</span> R = grid.size(), C = grid[<span class="nm">0</span>].size();
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dist(R, <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;(C, -<span class="nm">1</span>));
+    <span class="fn">queue</span>&lt;<span class="fn">pair</span>&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt; q;
+
+    q.push({sr, sc});
+    dist[sr][sc] = <span class="nm">0</span>;              <span class="cm">// mark visited on enqueue</span>
+
+    <span class="kw">int</span> dr[] = {-<span class="nm">1</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">0</span>}, dc[] = {<span class="nm">0</span>,<span class="nm">0</span>,-<span class="nm">1</span>,<span class="nm">1</span>}; <span class="cm">// 4-dir</span>
+    <span class="kw">while</span> (!q.empty()) {
+        <span class="kw">auto</span> [r, c] = q.front(); q.pop();  <span class="cm">// FIFO front</span>
+        <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nm">0</span>; k &lt; <span class="nm">4</span>; k++) {
+            <span class="kw">int</span> nr = r + dr[k], nc = c + dc[k];
+            <span class="kw">if</span> (nr &lt; <span class="nm">0</span> || nr &gt;= R || nc &lt; <span class="nm">0</span> || nc &gt;= C) <span class="kw">continue</span>;
+            <span class="kw">if</span> (grid[nr][nc] == <span class="nm">1</span> || dist[nr][nc] != -<span class="nm">1</span>) <span class="kw">continue</span>;
+            dist[nr][nc] = dist[r][c] + <span class="nm">1</span>;   <span class="cm">// one ring farther</span>
+            q.push({nr, nc});
+        }
+    }
+}
+</pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader"><h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3><span class="toggle-icon" id="toggleIcon">&#x25BC;</span></div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm..."></textarea>
+      <div class="notes-footer"><span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span><span id="charCount">0 chars</span></div>
+    </div>
+  </div>
+
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="bfs-queue-traversal"></div>
+</main>
+
+<script>
+// grids: 0 open, 1 wall. start [r,c]
+const EXAMPLES = [
+  { g:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], s:[0,0], desc:`<strong style="color:var(--text)">Open 4×4 grid from the corner.</strong> With no walls, BFS fans out in clean diagonal rings: distance = row + col. Watch the queue grow then drain level by level.` },
+  { g:[[0,0,0,0],[1,1,0,1],[0,0,0,0],[0,1,1,0]], s:[0,0], desc:`<strong style="color:var(--text)">Maze with walls.</strong> Walls (dark cells) are skipped. BFS routes around them, and distances reflect the true shortest path length in open cells.` },
+  { g:[[0,0,0],[0,0,0],[0,0,0]], s:[2,2], desc:`<strong style="color:var(--text)">Start in the bottom-right corner.</strong> The frontier expands from the corner, so distances grow toward the opposite corner. Corner starts have fewer initial neighbours.` },
+  { g:[[0,1,0,0,0],[0,1,0,1,0],[0,0,0,1,0]], s:[0,0], desc:`<strong style="color:var(--text)">Narrow corridor.</strong> A one-cell-wide path forces the queue to stay small, BFS becomes almost linear as each cell has one forward neighbour.` },
+  { g:[[0,0,1,0],[0,0,1,0],[1,1,1,0],[0,0,1,0]], s:[0,0], desc:`<strong style="color:var(--text)">Blocked pocket.</strong> A wall of 1s seals off the right side, so those open cells stay unreachable (distance −1). BFS only reaches what's connected to the start.` }
+];
+const SPEEDS=[1600,1000,600,300,120]; const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input',function(){document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];});
+let G=[], R=0, C=0, START=[0,0], steps=[], cursor=-1, playing=false, timer=null;
+const DR=[-1,1,0,0], DC=[0,0,-1,1];
+
+function key(r,c){return r+','+c;}
+function buildSteps(grid,start){
+  G=grid;R=grid.length;C=grid[0].length;START=start;
+  const dist={};const stps=[];
+  const q=[];// each: [r,c]
+  const [sr,sc]=start;
+  q.push([sr,sc]);dist[key(sr,sc)]=0;
+  stps.push({phase:'init',queue:q.map(x=>[...x]),dist:{...dist},visiting:null,enq:[],neighbors:[],msg:`<span class="hi">Start BFS at (${sr},${sc}).</span> Enqueue the start and mark it visited with distance 0. The queue holds the "frontier" of cells to process.`});
+  let guard=0;
+  while(q.length&&guard++<400){
+    const [r,c]=q.shift();
+    const d=dist[key(r,c)];
+    stps.push({phase:'dequeue',queue:q.map(x=>[...x]),dist:{...dist},visiting:[r,c],enq:[],neighbors:[],msg:`<span class="hi">Dequeue the front: (${r},${c}), distance ${d}.</span> FIFO order means this cell entered earliest, so it's closest. Now check its 4 neighbours.`});
+    const enq=[];const neigh=[];
+    for(let k=0;k<4;k++){
+      const nr=r+DR[k],nc=c+DC[k];
+      if(nr<0||nr>=R||nc<0||nc>=C)continue;
+      neigh.push([nr,nc]);
+      if(grid[nr][nc]===1)continue;
+      if(dist[key(nr,nc)]!==undefined)continue;
+      dist[key(nr,nc)]=d+1;q.push([nr,nc]);enq.push([nr,nc]);
+    }
+    stps.push({phase:'expand',queue:q.map(x=>[...x]),dist:{...dist},visiting:[r,c],enq:enq.map(x=>[...x]),neighbors:neigh.map(x=>[...x]),msg: enq.length?`<span class="hi">Neighbours of (${r},${c}):</span> enqueue ${enq.map(e=>`(${e[0]},${e[1]})`).join(', ')} at distance ${d+1}. Marked visited on <span class="acc">enqueue</span> so they can't be added twice.`:`<span class="hi">Neighbours of (${r},${c}):</span> none open &amp; unvisited (walls, edges, or already seen). Nothing to enqueue.`});
+  }
+  const reachable=Object.keys(dist).length;
+  stps.push({phase:'done',queue:[],dist:{...dist},visiting:null,enq:[],neighbors:[],reachable,msg:`<span class="hi">Queue empty — BFS complete.</span> <span class="pos">${reachable} cell(s) reached.</span> Each cell's number is its shortest distance from the start. Any open cell still blank was unreachable.`});
+  return stps;
+}
+function buildTableRows(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    let ph= s.phase==='init'?'<span style="color:var(--green)">Init</span>':s.phase==='dequeue'?'<span style="color:var(--amber)">Dequeue</span>':s.phase==='expand'?'<span style="color:var(--accent)">Expand</span>':'<span style="color:var(--purple)">Done ✓</span>';
+    const dq= s.visiting?`(${s.visiting[0]},${s.visiting[1]})`:'—';
+    const d= s.visiting?s.dist[key(s.visiting[0],s.visiting[1])]:'—';
+    const eq= s.enq&&s.enq.length?s.enq.map(e=>`(${e[0]},${e[1]})`).join(' '):'—';
+    return `<tr id="tr-${i}"><td>${i+1}</td><td>${ph}</td><td style="color:var(--amber)">${dq}</td><td style="color:var(--teal)">${d}</td><td style="color:var(--accent)">${eq}</td><td style="color:var(--accent)">${s.queue.length}</td><td style="color:var(--teal)">${Object.keys(s.dist).length}</td></tr>`;
+  }).join('');
+}
+function renderGrid(st){
+  const grid=document.getElementById('grid');
+  grid.style.gridTemplateColumns=`repeat(${C}, 50px)`;
+  const queuedSet=new Set(st.queue.map(x=>key(x[0],x[1])));
+  const enqSet=new Set((st.enq||[]).map(x=>key(x[0],x[1])));
+  const neighSet=new Set((st.neighbors||[]).map(x=>key(x[0],x[1])));
+  let html='';
+  for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+    const k=key(r,c);const isWall=G[r][c]===1;const d=st.dist[k];
+    let cls='gcell';
+    if(isWall)cls+=' wall';
+    else if(st.visiting&&st.visiting[0]===r&&st.visiting[1]===c)cls+=' visiting';
+    else if(enqSet.has(k))cls+=' queued';
+    else if(queuedSet.has(k))cls+=' queued';
+    else if(START[0]===r&&START[1]===c&&d!==undefined)cls+=' start';
+    else if(d!==undefined)cls+=' visited';
+    else cls+=' unvisited';
+    if(neighSet.has(k)&&!isWall&&st.phase==='expand')cls+=' neighbor';
+    const distTxt= (!isWall&&d!==undefined)?`<span class="g-dist">${d}</span>`:'';
+    const face= isWall?'▓':(START[0]===r&&START[1]===c?'S':(d!==undefined?d:''));
+    html+=`<div class="${cls}">${distTxt}${isWall?'':`<span style="font-size:14px">${face}</span>`}</div>`;
+  }
+  grid.innerHTML=html;
+}
+function renderQueue(st){
+  const row=document.getElementById('queue-row');
+  if(!st.queue.length){row.innerHTML='<span class="queue-empty">empty</span>';document.getElementById('queue-hint').textContent= st.phase==='done'?'· drained':'';return;}
+  const enqSet=new Set((st.enq||[]).map(x=>key(x[0],x[1])));
+  let html='<span class="q-end">front→</span>';
+  st.queue.forEach((cell,i)=>{
+    const k=key(cell[0],cell[1]);
+    let cls='q-node'+(i===0?' front':'')+(enqSet.has(k)?' enq':'');
+    html+=`<div class="${cls}"><div class="qn-cell">(${cell[0]},${cell[1]})</div><div class="qn-d">d=${st.dist[k]}</div></div>`;
+  });
+  html+='<span class="q-end">←back</span>';
+  row.innerHTML=html;
+  document.getElementById('queue-hint').textContent=`· front (${st.queue[0][0]},${st.queue[0][1]}) processed next`;
+}
+function renderNeed(st){
+  const row=document.getElementById('need-row');
+  if(st.phase==='init'){row.innerHTML=`<div class="alloc-card ok"><div class="ac-head">start</div><div class="ac-books">(${START[0]},${START[1]})</div><div class="ac-sum">dist 0, enqueued</div></div>`;return;}
+  if(st.phase==='done'){row.innerHTML=`<div class="alloc-card ok"><div class="ac-head">reached</div><div class="ac-books">${st.reachable} cells</div><div class="ac-sum">done ✓</div></div>`;return;}
+  if(st.phase==='dequeue'){row.innerHTML=`<div class="alloc-card amberc"><div class="ac-head">dequeue front</div><div class="ac-books">(${st.visiting[0]},${st.visiting[1]})</div><div class="ac-sum">dist ${st.dist[key(st.visiting[0],st.visiting[1])]}</div></div>
+    <div class="alloc-card info"><div class="ac-head">FIFO</div><div class="ac-books">oldest first</div><div class="ac-sum">→ closest</div></div>`;return;}
+  row.innerHTML=`<div class="alloc-card accentc"><div class="ac-head">enqueue</div><div class="ac-books">${st.enq.length?st.enq.map(e=>`(${e[0]},${e[1]})`).join(' '):'none'}</div><div class="ac-sum">at back</div></div>
+    <div class="alloc-card tealc"><div class="ac-head">mark visited</div><div class="ac-books">on enqueue</div><div class="ac-sum">no dupes</div></div>`;
+}
+function maxDist(st){let m=0;for(const k in st.dist)m=Math.max(m,st.dist[k]);return m;}
+function applyState(idx){
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('done-pill').style.display='none';
+  if(idx<0){
+    const seed={phase:'idle',queue:[],dist:{},visiting:null,enq:[],neighbors:[]};
+    renderGrid(seed);renderQueue(seed);renderNeed({phase:'init'});
+    document.getElementById('pill-lo').textContent='visiting = —';document.getElementById('pill-hi').textContent='queue = 0';document.getElementById('pill-mid').textContent='visited = 0';document.getElementById('pill-ans').textContent='frontier = —';
+    document.getElementById('s-lo').textContent='—';document.getElementById('s-hi').textContent='0';document.getElementById('s-mid').textContent='0';document.getElementById('s-ans').textContent='—';
+    document.getElementById('step-label').textContent='Step — of —';document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+  const s=steps[idx];renderGrid(s);renderQueue(s);renderNeed(s);
+  const visited=Object.keys(s.dist).length;
+  const level= s.visiting?s.dist[key(s.visiting[0],s.visiting[1])]:(s.phase==='done'?maxDist(s):0);
+  document.getElementById('pill-lo').textContent=`visiting = ${s.visiting?`(${s.visiting[0]},${s.visiting[1]})`:'—'}`;
+  document.getElementById('pill-hi').textContent=`queue = ${s.queue.length}`;
+  document.getElementById('pill-mid').textContent=`visited = ${visited}`;
+  document.getElementById('pill-ans').textContent=`level = ${level}`;
+  document.getElementById('s-lo').textContent=s.visiting?`(${s.visiting[0]},${s.visiting[1]})`:'—';
+  document.getElementById('s-hi').textContent=s.queue.length;
+  document.getElementById('s-mid').textContent=visited;
+  document.getElementById('s-ans').textContent=level;
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML=s.msg;
+  if(s.phase==='done'){const p=document.getElementById('done-pill');p.textContent=`✓ ${s.reachable} cells reached`;p.style.display='inline-block';}
+  const tr=document.getElementById('tr-'+idx);if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+function loadExample(i,btn){
+  stopPlay();document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');
+  steps=buildSteps(EXAMPLES[i].g,EXAMPLES[i].s);
+  document.getElementById('example-desc').innerHTML=EXAMPLES[i].desc;
+  buildTableRows(steps);cursor=-1;applyState(-1);
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){if(playing){stopPlay();return;}if(cursor>=steps.length-1){cursor=-1;applyState(-1);}playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();}
+function tick(){if(!playing)return;if(cursor>=steps.length-1){stopPlay();return;}cursor++;applyState(cursor);timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);}
+function togglePin(){const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');const p=panel.classList.toggle('pinned');btn.classList.toggle('active',p);btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const algoName=document.title.replace(' - AlgoCrux','');
+  let currentUser=null,isCompleted=false;
+  const trackerUI=document.createElement('div');
+  trackerUI.innerHTML=`<div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div><div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div></div><button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button><div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div></div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn=document.getElementById('markCompleteBtn'),trackerStatus=document.getElementById('trackerStatus'),trackerIcon=document.getElementById('trackerIcon'),trackerLogin=document.getElementById('trackerLogin');
+  function setCompletedState(){isCompleted=true;markBtn.innerHTML='<span>&#x2705; Completed</span>';markBtn.style.background='#0d2318';markBtn.style.borderColor='#1a6b3a';markBtn.style.color='#4ade80';markBtn.style.cursor='default';trackerStatus.textContent='Completed!';trackerStatus.style.color='#4ade80';trackerIcon.innerHTML='&#x2705;';trackerIcon.style.background='#0d2318';trackerIcon.style.border='1px solid #1a6b3a';trackerIcon.style.color='#4ade80';}
+  function setLoggedOutState(){markBtn.style.display='none';trackerLogin.style.display='block';trackerStatus.textContent='Sign in to track';}
+  onAuthStateChanged(auth,async(user)=>{if(!user){setLoggedOutState();return;}currentUser=user;markBtn.style.display='flex';trackerLogin.style.display='none';const userDoc=await getDoc(doc(db,'users',user.uid));if(userDoc.exists()&&(userDoc.data().completedAnimations||[]).includes(algoId))setCompletedState();});
+  markBtn.addEventListener('click',async()=>{if(!currentUser||isCompleted)return;markBtn.disabled=true;markBtn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';try{const userRef=doc(db,'users',currentUser.uid);const userDoc=await getDoc(userRef);const today=(function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();if(userDoc.exists())await updateDoc(userRef,{completedAnimations:arrayUnion(algoId),lastActive:new Date().toISOString(),['activityMap.'+today]:increment(1)});else await setDoc(userRef,{name:currentUser.displayName||currentUser.email.split('@')[0],email:currentUser.email,createdAt:new Date().toISOString(),completedAnimations:[algoId],totalTimeSpent:0,lastActive:new Date().toISOString(),activityMap:{[today]:1}});setCompletedState();}catch(err){markBtn.disabled=false;markBtn.innerHTML='<span>Mark as Complete</span>';}});
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth=getAuth();const db=getFirestore();const btn=document.getElementById('algoBookmark');
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');let isBookmarked=false;
+  auth.onAuthStateChanged(async(user)=>{if(!user)return;const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()){const bm=snap.data().bookmarks||[];isBookmarked=bm.includes(algoId);btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);}});
+  btn.addEventListener('click',async()=>{const user=auth.currentUser;if(!user)return;const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const data=snap.exists()?snap.data():{};const bm=new Set(data.bookmarks||[]);if(bm.has(algoId))bm.delete(algoId);else bm.add(algoId);await setDoc(ref,{bookmarks:Array.from(bm)},{merge:true});isBookmarked=!isBookmarked;btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);});
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const LOCAL_KEY='algocrux_notes_'+algoId;
+  const notesHeader=document.getElementById('notesHeader'),notesBody=document.getElementById('notesBody'),toggleIcon=document.getElementById('toggleIcon'),textarea=document.getElementById('notesTextarea'),saveStatus=document.getElementById('saveStatus'),saveText=document.getElementById('saveText'),saveDot=document.getElementById('saveDot'),charCount=document.getElementById('charCount'),noteIndicator=document.getElementById('noteIndicator');
+  let currentUser=null,saveTimer=null,isSaving=false;
+  notesHeader.addEventListener('click',()=>{const isOpen=notesBody.classList.toggle('open');notesHeader.classList.toggle('open',isOpen);toggleIcon.innerHTML=isOpen?'&#x25B2;':'&#x25BC;';if(isOpen)textarea.focus();});
+  textarea.addEventListener('input',()=>{const len=textarea.value.length;charCount.textContent=len+' char'+(len!==1?'s':'');setSaveStatus('unsaved');clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNotes(),1500);});
+  function setSaveStatus(s){saveStatus.className='save-status '+s;if(s==='saved'){saveText.textContent='Saved';saveDot.innerHTML='&#x2705;';noteIndicator.classList.add('visible');}else if(s==='saving'){saveText.textContent='Saving...';saveDot.innerHTML='&#x23F3;';}else if(s==='error'){saveText.textContent='Error saving';saveDot.innerHTML='&#x274C;';}else{saveText.textContent='Unsaved changes';saveDot.innerHTML='&#x25CF;';}}
+  async function saveNotes(){if(isSaving)return;isSaving=true;setSaveStatus('saving');try{if(currentUser){const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);await setDoc(notesRef,{text:textarea.value,updatedAt:new Date().toISOString()},{merge:true});}localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('saved');}catch(err){localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('error');}finally{isSaving=false;}}
+  async function loadNotes(){let text='';if(currentUser){try{const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);const snap=await getDoc(notesRef);if(snap.exists())text=snap.data().text||'';}catch(err){}}if(!text)text=localStorage.getItem(LOCAL_KEY)||'';textarea.value=text;const len=text.length;charCount.textContent=len+' char'+(len!==1?'s':'');if(text.trim()){noteIndicator.classList.add('visible');setSaveStatus('saved');}else setSaveStatus('unsaved');}
+  onAuthStateChanged(auth,async(user)=>{currentUser=user;await loadNotes();});
+  window.addEventListener('beforeunload',()=>{if(textarea.value.trim()){localStorage.setItem(LOCAL_KEY,textarea.value);if(currentUser&&!isSaving)saveNotes();}});
+</script>
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

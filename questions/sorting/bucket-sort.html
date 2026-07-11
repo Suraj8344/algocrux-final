@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bucket Sort — Distribution-Based Sorting</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.easy { background: var(--green-bg); color: var(--green); border: 1px solid #1a6b3a; }
+  .badge.px { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .badge.gfg { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5c4a1a; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .mark-complete { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; flex-shrink: 0; }
+  .mark-complete input { display: none; }
+  .mark-complete .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .mark-complete input:checked ~ .check-box { background: var(--green); border-color: var(--green); }
+  .mark-complete input:checked ~ .check-box svg { opacity: 1; }
+  .mark-complete .check-box svg { opacity: 0; transition: opacity .15s; }
+  .mark-complete span { font-size: 13px; color: var(--muted); font-weight: 500; transition: color .2s; }
+  .mark-complete input:checked ~ span { color: var(--green); }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12.5px; color: var(--amber); line-height: 2.1; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .arr-section { margin-bottom: 1.1rem; }
+  .arr-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 10px; }
+  .arr-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
+  .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cell { min-width: 46px; height: 46px; padding: 0 6px; border-radius: 9px; border: 1.5px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text); transition: background .25s, border-color .25s, color .25s, transform .2s; }
+  .cell.cur { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); transform: translateY(-2px); }
+  .cell.placed { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .cell.done { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .cell-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box.purple .val { color: var(--purple); } .stat-box.amber .val { color: var(--amber); } .stat-box.teal .val { color: var(--teal); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .tl { color: var(--teal); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .buckets-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; justify-content: center; padding: 1rem 0; min-height: 120px; }
+  .bucket-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .bucket-range-label { font-size: 10px; color: var(--muted2); font-family: var(--mono); margin-bottom: 6px; white-space: nowrap; }
+  .bucket-box { border: 1.5px dashed var(--border2); border-radius: 8px; min-width: 58px; min-height: 52px; padding: 6px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: flex-end; transition: border-color .3s, background .3s; }
+  .bucket-box.active { border-color: var(--teal); border-style: solid; background: rgba(45, 212, 191, 0.04); }
+  .bucket-box.sorting { border-color: var(--purple); border-style: solid; background: rgba(192, 132, 252, 0.04); }
+  .bucket-box.done { border-color: var(--green); border-style: solid; background: rgba(74, 222, 128, 0.03); }
+  .bucket-item { width: 44px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; font-weight: 600; background: var(--surface); border: 1px solid var(--border2); color: var(--text); transition: all .25s; }
+  .bucket-item.new-item { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); animation: bPop .35s cubic-bezier(.22,1,.36,1); }
+  .bucket-item.sorted-item { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .bucket-id { font-size: 9px; color: var(--muted); font-family: var(--mono); margin-top: 5px; }
+  @keyframes bPop { from { transform: scale(0.4) translateY(-10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge gfg">Sorting / Distribution</span>
+      <span class="badge px">Bucket Sort</span>
+      <span class="badge medium">Medium</span>
+    </div>
+    <h1>Bucket Sort — Distribute, Sort, Concatenate</h1>
+    <p>Split elements into range-based buckets, sort each individually, then merge. O(N+K) average time.</p>
+  </div>
+  <label class="mark-complete"><input type="checkbox" id="markDone"><span class="check-box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f1117" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span><span>Mark Complete</span></label>
+</header>
+
+<main>
+  <div class="lc-banner">
+    <div class="lc-icon">GFG</div>
+    <div class="lc-text">Practice this algorithm on <b>GeeksforGeeks</b> to reinforce your understanding.</div>
+    <a href="https://www.geeksforgeeks.org/bucket-sort-2/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sorts an array by <strong style="color:var(--teal)">distributing elements into buckets</strong> based on value ranges. Each bucket is sorted individually (often with insertion sort), then all buckets are concatenated to produce the final sorted array.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> if input is <strong style="color:var(--amber)">uniformly distributed</strong>, each bucket gets roughly the same number of elements, making inner sorts fast. This gives <strong style="color:var(--teal)">O(N + K)</strong> average time.</p>
+    </div>
+    <div>
+      <h2>The Formula</h2>
+      <div class="formula">
+        <span class="comment">// Compute bucket index for each element</span><br>
+        <span class="keyword">bucketIdx</span> = floor((val - min) / bucketRange)<br>
+        <span class="comment">// where bucketRange = (max - min + 1) / numBuckets</span><br><br>
+        <span class="comment">// Three phases:</span><br>
+        <span class="keyword">1.</span> Distribute into buckets<br>
+        <span class="keyword">2.</span> Sort each bucket<br>
+        <span class="keyword">3.</span> Concatenate all buckets
+      </div>
+    </div>
+  </div>
+
+  <!-- Animation Panel -->
+  <div class="anim-panel" id="panel-bucket">
+    <div class="anim-panel-head"><span class="title">Interactive Visualization — Bucket Sort</span></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span>Current element</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Placed in bucket</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Sorted / Done</span>
+    </div>
+    <div class="arr-section">
+      <div class="arr-label">Input Array</div>
+      <div class="arr-row" id="inputArr"></div>
+    </div>
+    <div class="buckets-container" id="bucketsContainer"></div>
+    <div class="arr-section" style="margin-top:1rem">
+      <div class="arr-label">Output Array</div>
+      <div class="arr-row" id="outputArr"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Phase</div><div class="val" id="statPhase">—</div></div>
+      <div class="stat-box purple"><div class="lbl">Step</div><div class="val" id="statStep">0</div></div>
+      <div class="stat-box amber"><div class="lbl">Comparisons</div><div class="val" id="statComp">0</div></div>
+      <div class="stat-box green"><div class="lbl">Sorted</div><div class="val" id="statSorted">0</div></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="log-box" id="logBox">Click <span class="tl">Play</span> or <span class="tl">Step</span> to begin the bucket sort animation.</div>
+    <div class="controls">
+      <button class="btn primary" id="btnPlay">▶ Play</button>
+      <button class="btn" id="btnStep">Step</button>
+      <button class="btn" id="btnReset">Reset</button>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speedSlider" min="1" max="10" value="5"><span id="speedVal">5x</span></div>
+    </div>
+  </div>
+
+  <div class="code-section"><div class="code-header"><span>C++ — Bucket Sort</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">void</span> <span class="fn">bucketSort</span>(<span class="kw">vector</span>&lt;<span class="kw">float</span>&gt;&amp; arr) {
+    <span class="kw">int</span> n = arr.<span class="fn">size</span>();
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">float</span>&gt;&gt; buckets(n);
+
+    <span class="cm">// Phase 1: Distribute into buckets</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++) {
+        <span class="kw">int</span> idx = n * arr[i]; <span class="cm">// for [0,1) range</span>
+        buckets[idx].<span class="fn">push_back</span>(arr[i]);
+    }
+
+    <span class="cm">// Phase 2: Sort individual buckets</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        <span class="fn">sort</span>(buckets[i].<span class="fn">begin</span>(), buckets[i].<span class="fn">end</span>());
+
+    <span class="cm">// Phase 3: Concatenate</span>
+    <span class="kw">int</span> idx = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="kw">auto</span>&amp; bucket : buckets)
+        <span class="kw">for</span> (<span class="kw">float</span> val : bucket)
+            arr[idx++] = val;
+}</pre></div>
+
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Average Time</div><div class="big">O(N + K)</div><p>N elements, K buckets. Uniform distribution assumed.</p></div>
+    <div class="complex-card"><div class="lbl">Worst Time</div><div class="big" style="color:var(--red)">O(N²)</div><p>All elements in one bucket: degrades to inner sort.</p></div>
+    <div class="complex-card"><div class="lbl">Space</div><div class="big">O(N + K)</div><p>Extra space for K buckets holding N elements.</p></div>
+    <div class="complex-card"><div class="lbl">Stable?</div><div class="big" style="color:var(--green)">Yes</div><p>Preserves relative order within each bucket.</p></div>
+  </div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes on Bucket Sort..."></textarea></div></div>
+</main>
+
+<script>
+(function() {
+  const DATA = [29, 25, 3, 49, 9, 37, 21, 43];
+  const NUM_BUCKETS = 5;
+  const MAX_VAL = 50;
+
+  let steps = [];
+  let stepIdx = 0;
+  let playing = false;
+  let timer = null;
+
+  function buildSteps() {
+    steps = [];
+    let buckets = Array.from({length: NUM_BUCKETS}, () => []);
+    let bucketRange = MAX_VAL / NUM_BUCKETS;
+    let comparisons = 0;
+
+    steps.push({ phase: 'init', input: [...DATA], buckets: buckets.map(b => [...b]), output: [], current: -1, comp: 0, sorted: 0, msg: 'Array: [' + DATA.join(', ') + ']. Creating ' + NUM_BUCKETS + ' buckets.' });
+
+    // Phase 1: Distribute
+    for (let i = 0; i < DATA.length; i++) {
+      let bIdx = Math.min(Math.floor(DATA[i] / bucketRange), NUM_BUCKETS - 1);
+      buckets[bIdx].push(DATA[i]);
+      steps.push({
+        phase: 'distribute',
+        input: [...DATA],
+        buckets: buckets.map(b => [...b]),
+        output: [],
+        current: i,
+        activeBucket: bIdx,
+        comp: comparisons,
+        sorted: 0,
+        msg: `Distribute: ${DATA[i]} → bucket ${bIdx} (range ${Math.floor(bIdx * bucketRange)}-${Math.floor((bIdx + 1) * bucketRange - 1)})`
+      });
+    }
+
+    // Phase 2: Sort each bucket
+    for (let b = 0; b < NUM_BUCKETS; b++) {
+      if (buckets[b].length <= 1) continue;
+      buckets[b].sort((a, c) => a - c);
+      comparisons += buckets[b].length; // approximate
+      steps.push({
+        phase: 'sort',
+        input: [...DATA],
+        buckets: buckets.map(x => [...x]),
+        output: [],
+        current: -1,
+        sortingBucket: b,
+        comp: comparisons,
+        sorted: 0,
+        msg: `Sort bucket ${b}: [${buckets[b].join(', ')}]`
+      });
+    }
+
+    // Phase 3: Concatenate
+    let output = [];
+    for (let b = 0; b < NUM_BUCKETS; b++) {
+      for (let val of buckets[b]) {
+        output.push(val);
+        steps.push({
+          phase: 'concat',
+          input: [...DATA],
+          buckets: buckets.map(x => [...x]),
+          output: [...output],
+          current: -1,
+          concatBucket: b,
+          comp: comparisons,
+          sorted: output.length,
+          msg: `Concatenate: take ${val} from bucket ${b}. Output: [${output.join(', ')}]`
+        });
+      }
+    }
+
+    steps.push({
+      phase: 'done',
+      input: [...DATA],
+      buckets: buckets.map(x => [...x]),
+      output: [...output],
+      current: -1,
+      comp: comparisons,
+      sorted: output.length,
+      msg: `✓ Sorted! [${output.join(', ')}]`
+    });
+  }
+
+  function renderInputArr(data, current) {
+    const container = document.getElementById('inputArr');
+    container.innerHTML = '';
+    data.forEach((val, i) => {
+      let wrap = document.createElement('div');
+      wrap.className = 'cell-wrap';
+      let cell = document.createElement('div');
+      cell.className = 'cell' + (i === current ? ' cur' : '');
+      cell.textContent = val;
+      let idx = document.createElement('div');
+      idx.className = 'cell-idx';
+      idx.textContent = i;
+      wrap.appendChild(cell);
+      wrap.appendChild(idx);
+      container.appendChild(wrap);
+    });
+  }
+
+  function renderBuckets(buckets, activeBucket, sortingBucket, concatBucket, phase) {
+    const container = document.getElementById('bucketsContainer');
+    container.innerHTML = '';
+    let bucketRange = MAX_VAL / NUM_BUCKETS;
+    buckets.forEach((bucket, b) => {
+      let col = document.createElement('div');
+      col.className = 'bucket-col';
+      let rangeLabel = document.createElement('div');
+      rangeLabel.className = 'bucket-range-label';
+      rangeLabel.textContent = `${Math.floor(b * bucketRange)}-${Math.floor((b + 1) * bucketRange - 1)}`;
+      col.appendChild(rangeLabel);
+      let box = document.createElement('div');
+      box.className = 'bucket-box';
+      if (b === activeBucket) box.classList.add('active');
+      if (b === sortingBucket) box.classList.add('sorting');
+      if (phase === 'done' || (phase === 'concat' && concatBucket !== undefined && b < concatBucket)) box.classList.add('done');
+      bucket.forEach((val, vi) => {
+        let item = document.createElement('div');
+        item.className = 'bucket-item';
+        if (b === activeBucket && vi === bucket.length - 1) item.classList.add('new-item');
+        if (phase === 'done' || b === sortingBucket) item.classList.add('sorted-item');
+        item.textContent = val;
+        box.appendChild(item);
+      });
+      if (bucket.length === 0) {
+        let empty = document.createElement('div');
+        empty.style.cssText = 'font-size:9px;color:var(--muted2);padding:6px 0;font-family:var(--mono)';
+        empty.textContent = 'empty';
+        box.appendChild(empty);
+      }
+      col.appendChild(box);
+      let id = document.createElement('div');
+      id.className = 'bucket-id';
+      id.textContent = `B${b}`;
+      col.appendChild(id);
+      container.appendChild(col);
+    });
+  }
+
+  function renderOutputArr(output) {
+    const container = document.getElementById('outputArr');
+    container.innerHTML = '';
+    output.forEach((val, i) => {
+      let wrap = document.createElement('div');
+      wrap.className = 'cell-wrap';
+      let cell = document.createElement('div');
+      cell.className = 'cell done';
+      cell.textContent = val;
+      let idx = document.createElement('div');
+      idx.className = 'cell-idx';
+      idx.textContent = i;
+      wrap.appendChild(cell);
+      wrap.appendChild(idx);
+      container.appendChild(wrap);
+    });
+    if (output.length === 0) {
+      container.innerHTML = '<span style="font-size:12px;color:var(--muted2);font-family:var(--mono)">waiting...</span>';
+    }
+  }
+
+  function renderStep(idx) {
+    if (idx < 0 || idx >= steps.length) return;
+    let s = steps[idx];
+    document.getElementById('statStep').textContent = idx;
+    document.getElementById('statComp').textContent = s.comp;
+    document.getElementById('statSorted').textContent = s.sorted;
+    document.getElementById('progressFill').style.width = ((idx / (steps.length - 1)) * 100) + '%';
+
+    let phaseLabel = { init: 'Init', distribute: 'Distribute', sort: 'Sort', concat: 'Concat', done: 'Done' };
+    document.getElementById('statPhase').textContent = phaseLabel[s.phase] || '—';
+
+    renderInputArr(s.input, s.current);
+    renderBuckets(s.buckets, s.activeBucket, s.sortingBucket, s.concatBucket, s.phase);
+    renderOutputArr(s.output);
+
+    if (s.phase === 'done') {
+      document.getElementById('logBox').innerHTML = `<span class="pos">${s.msg}</span>`;
+    } else {
+      document.getElementById('logBox').innerHTML = `<span class="hi">${s.msg}</span>`;
+    }
+  }
+
+  function doStep() {
+    if (stepIdx >= steps.length) { stopPlay(); return; }
+    renderStep(stepIdx);
+    stepIdx++;
+  }
+
+  function startPlay() {
+    if (stepIdx >= steps.length) reset();
+    playing = true;
+    document.getElementById('btnPlay').textContent = '⏸ Pause';
+    let speed = parseInt(document.getElementById('speedSlider').value);
+    let delay = Math.max(150, 1400 - speed * 120);
+    timer = setInterval(() => {
+      if (stepIdx >= steps.length) { stopPlay(); return; }
+      doStep();
+    }, delay);
+  }
+
+  function stopPlay() {
+    playing = false;
+    document.getElementById('btnPlay').textContent = '▶ Play';
+    clearInterval(timer);
+  }
+
+  function reset() {
+    stopPlay();
+    stepIdx = 0;
+    document.getElementById('statPhase').textContent = '—';
+    document.getElementById('statStep').textContent = '0';
+    document.getElementById('statComp').textContent = '0';
+    document.getElementById('statSorted').textContent = '0';
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('logBox').innerHTML = 'Click <span class="tl">Play</span> or <span class="tl">Step</span> to begin the bucket sort animation.';
+    renderInputArr(DATA, -1);
+    renderBuckets(Array.from({length: NUM_BUCKETS}, () => []), -1, -1, -1, 'init');
+    renderOutputArr([]);
+  }
+
+  document.getElementById('btnPlay').onclick = () => { playing ? stopPlay() : startPlay(); };
+  document.getElementById('btnStep').onclick = () => { stopPlay(); doStep(); };
+  document.getElementById('btnReset').onclick = reset;
+  document.getElementById('speedSlider').oninput = (e) => {
+    document.getElementById('speedVal').textContent = e.target.value + 'x';
+    if (playing) { stopPlay(); startPlay(); }
+  };
+
+  buildSteps();
+  reset();
+})();
+</script>
+</body>
+</html>

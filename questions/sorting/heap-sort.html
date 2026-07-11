@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heap Sort — In-Place Comparison Sorting</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.easy { background: var(--green-bg); color: var(--green); border: 1px solid #1a6b3a; }
+  .badge.px { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .badge.gfg { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5c4a1a; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .progress-card{position:fixed;bottom:20px;right:20px;z-index:100;width:310px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem;box-shadow:0 16px 44px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:.85rem}
+  .progress-card .pc-top{display:flex;align-items:center;gap:12px}
+  .pc-icon{width:38px;height:38px;border-radius:9px;background:var(--purple-bg);border:1px solid #3a2155;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple);transition:background .25s,border-color .25s,color .25s}
+  .pc-icon svg{width:18px;height:18px}
+  .pc-ic-done{display:none}.progress-card.done .pc-ic-todo{display:none}.progress-card.done .pc-ic-done{display:block}
+  .pc-meta{flex:1;min-width:0}.pc-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.3}.pc-status{font-size:12px;color:var(--muted);margin-top:1px;transition:color .2s}
+  .pc-btn{width:100%;padding:.6rem;border-radius:9px;border:1px solid var(--accent-dim);background:var(--accent-bg);color:var(--accent);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}.pc-btn:hover{filter:brightness(1.15)}
+  .progress-card.done .pc-icon{background:var(--green-bg);border-color:var(--green);color:var(--green)}.progress-card.done .pc-status{color:var(--green)}.progress-card.done .pc-btn{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  @media(max-width:640px){.progress-card{left:16px;right:16px;width:auto;bottom:12px}}
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 8rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12.5px; color: var(--amber); line-height: 2.1; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .arr-section { margin-bottom: 1.1rem; }
+  .arr-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .arr-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
+  .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cell { min-width: 46px; height: 46px; padding: 0 6px; border-radius: 9px; border: 1.5px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text); transition: background .25s, border-color .25s, color .25s, box-shadow .25s, transform .2s; }
+  .cell.comparing { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .cell.swapping { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); transform: translateY(-3px); }
+  .cell.inseg { background: var(--teal-bg); border-color: var(--teal); }
+  .cell.sorted { background: var(--green-bg); border-color: var(--green); color: var(--green); opacity: .85; }
+  .cell.match { background: var(--green-bg); border-color: var(--green); box-shadow: 0 0 0 2px rgba(74,222,128,.25); }
+  .cell-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box.purple .val { color: var(--purple); } .stat-box.amber .val { color: var(--amber); } .stat-box.teal .val { color: var(--teal); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .input-row label { font-size: 12px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
+  .input-row input[type=text] { flex: 1; min-width: 160px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; transition: border-color .15s; }
+  .input-row input[type=text]:focus { border-color: var(--accent-dim); }
+  .tree-wrap { width: 100%; margin: .75rem 0; overflow-x: auto; }
+  .tree-wrap svg { display: block; margin: 0 auto; }
+  .tree-wrap svg text { pointer-events: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge-row">
+    <span class="badge gfg">Sorting / Comparison</span>
+    <span class="badge px">Heap Sort</span>
+    <span class="badge medium">Medium</span>
+  </div>
+  <h1>Heap Sort — Build, Extract, Repeat</h1>
+  <p>Build a max heap, then extract the maximum repeatedly. O(N log N) guaranteed, in-place.</p>
+</header>
+
+<div class="progress-card" id="progressCard">
+  <div class="pc-top">
+    <div class="pc-icon">
+      <svg class="pc-ic-todo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+      <svg class="pc-ic-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="pc-meta">
+      <div class="pc-title">Heap Sort — Comparison Sort</div>
+      <div class="pc-status" id="pcStatus">Not completed</div>
+    </div>
+  </div>
+  <button class="pc-btn" id="pcBtn">Mark as Complete</button>
+</div>
+
+<main>
+
+  <div class="lc-banner">
+    <div class="lc-icon">GFG</div>
+    <div class="lc-text">Practice this algorithm on <b>GeeksforGeeks</b> to reinforce your understanding.</div>
+    <a href="https://www.geeksforgeeks.org/heap-sort/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sorts an array <strong style="color:var(--purple)">in-place</strong> by treating it as a binary heap. First, <strong style="color:var(--teal)">build a max heap</strong> so the root is the largest element. Then repeatedly swap the root with the last unsorted element and restore the heap property.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> after each extraction, the heap shrinks by one and the sorted portion at the end grows by one. The heapify operation runs in <strong style="color:var(--amber)">O(log N)</strong>, and we do it N times: total <strong style="color:var(--teal)">O(N log N)</strong>.</p>
+    </div>
+    <div>
+      <h2>Heap Navigation</h2>
+      <div class="formula">
+        <span class="comment">// For node at index i:</span><br>
+        <span class="keyword">parent</span>(i) = floor((i - 1) / 2)<br>
+        <span class="keyword">left</span>(i)&nbsp;&nbsp; = 2 * i + 1<br>
+        <span class="keyword">right</span>(i)&nbsp; = 2 * i + 2<br><br>
+        <span class="comment">// Max heap property:</span><br>
+        arr[parent] >= arr[child]
+      </div>
+    </div>
+  </div>
+
+  <div class="anim-panel" id="panel-heap">
+    <div class="anim-panel-head">
+      <span class="title">Interactive Visualization</span>
+      <button class="pin-btn" onclick="togglePin()">📌 Pin</button>
+    </div>
+
+    <div class="legend">
+      <span><div class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></div> Comparing</span>
+      <span><div class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></div> Swapping</span>
+      <span><div class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></div> Current Node</span>
+      <span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Sorted</span>
+    </div>
+
+    <div class="input-row">
+      <label>Array:</label>
+      <input type="text" id="hs-input" value="4, 10, 3, 5, 1, 8, 7">
+      <button class="btn" onclick="applyArray()">Apply</button>
+      <button class="btn" onclick="randomArray()">Random</button>
+    </div>
+
+    <div class="arr-section">
+      <div class="arr-label">Array Representation</div>
+      <div class="arr-row" id="hs-arr-row"></div>
+    </div>
+
+    <div class="arr-section">
+      <div class="arr-label">Binary Heap Tree</div>
+      <div class="tree-wrap">
+        <svg id="hs-tree-svg" viewBox="0 0 620 280" preserveAspectRatio="xMidYMid meet" style="width:100%;max-height:300px;"></svg>
+      </div>
+    </div>
+
+    <div class="step-label" id="hs-step-label">Step 0 of 0</div>
+    <div class="progress-track"><div class="progress-fill" id="hs-progress-fill"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="lbl">Phase</div><div class="val" id="hs-stat-phase" style="font-size:13px">Init</div></div>
+      <div class="stat-box amber"><div class="lbl">Comparisons</div><div class="val" id="hs-stat-comp">0</div></div>
+      <div class="stat-box teal"><div class="lbl">Swaps</div><div class="val" id="hs-stat-swaps">0</div></div>
+      <div class="stat-box green"><div class="lbl">Heap Size</div><div class="val" id="hs-stat-heap">0</div></div>
+    </div>
+
+    <div class="log-box" id="hs-log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start the Heap Sort animation.</div>
+
+    <div class="controls">
+      <button class="btn" onclick="stepBack()">← Prev</button>
+      <button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button>
+      <button class="btn" onclick="stepForward()">Next →</button>
+      <button class="btn" onclick="resetAlgo()">↺ Reset</button>
+      <span class="done-pill" id="done-pill">✓ Sorted</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" min="1" max="5" value="3" id="speed-slider">
+      </div>
+    </div>
+  </div>
+
+  <div class="code-section" style="margin-bottom:2rem;">
+    <div class="code-header"><span>Step-by-Step Walkthrough</span></div>
+    <div style="padding:1rem;max-height:340px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;position:sticky;top:0;background:var(--surface);">Phase</th>
+            <th style="text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;position:sticky;top:0;background:var(--surface);">Description</th>
+          </tr>
+        </thead>
+        <tbody style="font-family:var(--mono);color:var(--muted);">
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--teal);">1. Build Heap</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Starting from last non-leaf, call heapify on each node going upward to build a max heap</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--amber);">2. Heapify</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Compare node with children, swap with largest child if needed, recurse down</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--purple);">3. Extract</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Swap root (max) with last heap element, reduce heap size, heapify root</td></tr>
+          <tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--green);">4. Sorted</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);">Extracted elements accumulate at the end of the array in sorted order</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <div class="code-header">
+      <span>C++ — Heap Sort</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="hs-code"><span class="kw">void</span> <span class="fn">heapify</span>(<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">int</span> n, <span class="kw">int</span> root) {
+    <span class="kw">int</span> largest = root;
+    <span class="kw">int</span> left  = <span class="nm">2</span> * root + <span class="nm">1</span>;
+    <span class="kw">int</span> right = <span class="nm">2</span> * root + <span class="nm">2</span>;
+
+    <span class="kw">if</span> (left &lt; n &amp;&amp; arr[left] &gt; arr[largest])
+        largest = left;
+    <span class="kw">if</span> (right &lt; n &amp;&amp; arr[right] &gt; arr[largest])
+        largest = right;
+
+    <span class="kw">if</span> (largest != root) {
+        <span class="fn">swap</span>(arr[root], arr[largest]);
+        <span class="fn">heapify</span>(arr, n, largest);  <span class="cm">// recurse down</span>
+    }
+}
+
+<span class="kw">void</span> <span class="fn">heapSort</span>(<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr) {
+    <span class="kw">int</span> n = arr.<span class="fn">size</span>();
+
+    <span class="cm">// Build max heap</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = n / <span class="nm">2</span> - <span class="nm">1</span>; i &gt;= <span class="nm">0</span>; i--)
+        <span class="fn">heapify</span>(arr, n, i);
+
+    <span class="cm">// Extract elements one by one</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = n - <span class="nm">1</span>; i &gt; <span class="nm">0</span>; i--) {
+        <span class="fn">swap</span>(arr[<span class="nm">0</span>], arr[i]);  <span class="cm">// move max to end</span>
+        <span class="fn">heapify</span>(arr, i, <span class="nm">0</span>);   <span class="cm">// restore heap</span>
+    }
+}</pre>
+  </div>
+
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time (All Cases)</div>
+      <div class="big">O(N log N)</div>
+      <p>Guaranteed O(N log N) in best, average, and worst case.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space</div>
+      <div class="big">O(1)</div>
+      <p>In-place sort. Only constant extra memory needed.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Stable?</div>
+      <div class="big" style="color:var(--red)">No</div>
+      <p>Relative order of equal elements is not preserved.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">In-Place?</div>
+      <div class="big" style="color:var(--green)">Yes</div>
+      <p>Sorts within the original array using heap structure.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="notes-section">
+    <div class="notes-header" onclick="toggleNotes()">
+      <h3>📝 Notes</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="notes-body">
+      <textarea placeholder="Jot down observations, edge cases, or insights about heap sort..."></textarea>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const st = { steps: [], idx: -1, playing: false, timer: null, arr: [4,10,3,5,1,8,7] };
+
+const COMPLETE_KEY = 'algo-progress:heap-sort';
+function initComplete() {
+  const card = document.getElementById('progressCard'), btn = document.getElementById('pcBtn'), status = document.getElementById('pcStatus');
+  function apply(done){ card.classList.toggle('done',done); status.textContent = done?'Completed':'Not completed'; btn.textContent = done?'Completed ✓':'Mark as Complete'; }
+  let done=false; try{ done=localStorage.getItem(COMPLETE_KEY)==='1'; }catch(e){} apply(done);
+  btn.addEventListener('click',function(){ let d=false; try{ d=localStorage.getItem(COMPLETE_KEY)==='1'; }catch(e){} const nx=!d; try{ localStorage.setItem(COMPLETE_KEY,nx?'1':'0'); }catch(e){} apply(nx); });
+}
+
+function togglePin() {
+  const p = document.getElementById('panel-heap');
+  const b = p.querySelector('.pin-btn');
+  p.classList.toggle('pinned'); b.classList.toggle('active');
+}
+function toggleNotes() {
+  document.querySelector('.notes-header').classList.toggle('open');
+  document.querySelector('.notes-body').classList.toggle('open');
+}
+function copyCode() {
+  const text = document.getElementById('hs-code').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.querySelector('.copy-btn'); b.textContent = 'Copied!';
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  });
+}
+function getSpeed() { return [1800,1200,750,400,180][parseInt(document.getElementById('speed-slider').value)-1]; }
+
+function applyArray() {
+  const raw = document.getElementById('hs-input').value;
+  const arr = raw.split(/[,\s]+/).map(Number).filter(n => !isNaN(n) && n >= 0);
+  if (arr.length < 2) { alert('Need at least 2 numbers.'); return; }
+  if (arr.length > 15) { alert('Max 15 elements for clear visualization.'); return; }
+  st.arr = arr; resetAlgo();
+}
+function randomArray() {
+  const len = 6 + Math.floor(Math.random()*4);
+  const arr = []; for (let i = 0; i < len; i++) arr.push(Math.floor(Math.random()*90)+1);
+  document.getElementById('hs-input').value = arr.join(', ');
+  st.arr = arr; resetAlgo();
+}
+
+function genSteps(arr) {
+  const a = [...arr], n = a.length, steps = [];
+  let comps = 0, swaps = 0;
+
+  steps.push({ phase:'init', arr:[...a], heapSize:n, hl:{}, comps, swaps,
+    log:`Array: <span class="hi">[${a.join(', ')}]</span>. Press Next to start building the max heap.` });
+  steps.push({ phase:'build-start', arr:[...a], heapSize:n, hl:{}, comps, swaps,
+    log:`<span class="sol">Building max heap</span>. Starting from last non-leaf node at index <span class="amb">${Math.floor(n/2)-1}</span>.` });
+
+  function heapifySteps(size, root) {
+    let largest = root;
+    const left = 2*root+1, right = 2*root+2;
+    if (left < size) {
+      comps++;
+      steps.push({ phase:'compare', arr:[...a], heapSize:size, hl:{ comparing:[root,left] }, comps, swaps,
+        log:`Compare <span class="amb">${a[root]}</span> (i=${root}) with left child <span class="amb">${a[left]}</span> (i=${left}).` });
+      if (a[left] > a[largest]) largest = left;
+    }
+    if (right < size) {
+      comps++;
+      steps.push({ phase:'compare', arr:[...a], heapSize:size, hl:{ comparing:[largest,right] }, comps, swaps,
+        log:`Compare <span class="amb">${a[largest]}</span> (i=${largest}) with right child <span class="amb">${a[right]}</span> (i=${right}).` });
+      if (a[right] > a[largest]) largest = right;
+    }
+    if (largest !== root) {
+      swaps++;
+      const oldR = a[root], oldL = a[largest];
+      [a[root], a[largest]] = [a[largest], a[root]];
+      steps.push({ phase:'swap', arr:[...a], heapSize:size, hl:{ swapped:[root,largest] }, comps, swaps,
+        log:`Swap <span class="sol">${oldR}</span> (i=${root}) ↔ <span class="sol">${oldL}</span> (i=${largest}).` });
+      heapifySteps(size, largest);
+    } else {
+      steps.push({ phase:'no-swap', arr:[...a], heapSize:size, hl:{ current:root }, comps, swaps,
+        log:`<span class="tl">${a[root]}</span> at index ${root} is already the largest. No swap needed.` });
+    }
+  }
+
+  for (let i = Math.floor(n/2)-1; i >= 0; i--) {
+    steps.push({ phase:'heapify-node', arr:[...a], heapSize:n, hl:{ current:i }, comps, swaps,
+      log:`Heapifying subtree rooted at index <span class="tl">${i}</span> (value: <span class="hi">${a[i]}</span>).` });
+    heapifySteps(n, i);
+  }
+
+  steps.push({ phase:'heap-built', arr:[...a], heapSize:n, hl:{}, comps, swaps,
+    log:`<span class="pos">Max heap built!</span> Root is <span class="hi">${a[0]}</span> (maximum). Now extracting elements...` });
+
+  for (let i = n-1; i > 0; i--) {
+    swaps++;
+    const rootVal = a[0], lastVal = a[i];
+    [a[0], a[i]] = [a[i], a[0]];
+    steps.push({ phase:'extract', arr:[...a], heapSize:i, hl:{ extracted:i, swapped:[0,i] }, comps, swaps,
+      log:`Extract max <span class="pos">${rootVal}</span>: swap with <span class="sol">${lastVal}</span> at end. Sorted: [<span class="pos">${a.slice(i).join(', ')}</span>].` });
+    if (i > 1) heapifySteps(i, 0);
+  }
+
+  steps.push({ phase:'done', arr:[...a], heapSize:0, hl:{}, comps, swaps,
+    log:`✓ <span class="pos">Sorted!</span> Result: <span class="hi">[${a.join(', ')}]</span>. Comparisons: <span class="amb">${comps}</span>, Swaps: <span class="amb">${swaps}</span>.` });
+  return steps;
+}
+
+function renderTree(a, n, heapSize, hl, phase) {
+  const svg = document.getElementById('hs-tree-svg');
+  const W = 620, nodeR = 22;
+  function pos(i) {
+    const level = Math.floor(Math.log2(i+1));
+    const posInLevel = i - (Math.pow(2,level)-1);
+    const nodesInLevel = Math.pow(2,level);
+    return { x: (2*posInLevel+1)*W/(2*nodesInLevel), y: 38 + level*78 };
+  }
+  let s = '';
+  for (let i = 1; i < n; i++) {
+    const p = pos(Math.floor((i-1)/2)), c = pos(i);
+    const isSorted = i >= heapSize && phase !== 'init' && phase !== 'build-start';
+    let stroke = '#3d4266', op = isSorted ? 0.25 : 0.6;
+    if (hl.comparing && hl.comparing.includes(i)) stroke = '#fbbf24';
+    if (hl.swapped && hl.swapped.includes(i)) stroke = '#c084fc';
+    s += `<line x1="${p.x}" y1="${p.y}" x2="${c.x}" y2="${c.y}" stroke="${stroke}" stroke-width="2" opacity="${op}" />`;
+  }
+  for (let i = 0; i < n; i++) {
+    const {x,y} = pos(i);
+    const isSorted = i >= heapSize && phase !== 'init' && phase !== 'build-start';
+    let fill = '#22263a', stroke = '#3d4266', textFill = '#e8eaf6', op = 1;
+    if (isSorted) { fill='#0d2318'; stroke='#4ade80'; textFill='#4ade80'; op=0.65; }
+    if (hl.comparing && hl.comparing.includes(i)) { fill='#2a1e06'; stroke='#fbbf24'; textFill='#fbbf24'; op=1; }
+    if (hl.swapped && hl.swapped.includes(i)) { fill='#1e0f33'; stroke='#c084fc'; textFill='#c084fc'; op=1; }
+    if (hl.current === i) { fill='#0d2522'; stroke='#2dd4bf'; textFill='#2dd4bf'; op=1; }
+    if (hl.extracted === i) { fill='#0d2318'; stroke='#4ade80'; textFill='#4ade80'; op=1; }
+    if (phase === 'done') { fill='#0d2318'; stroke='#4ade80'; textFill='#4ade80'; op=0.85; }
+    s += `<circle cx="${x}" cy="${y}" r="${nodeR}" fill="${fill}" stroke="${stroke}" stroke-width="2.5" opacity="${op}"/>`;
+    s += `<text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="central" fill="${textFill}" font-family="'Fira Code','Consolas',monospace" font-weight="700" font-size="15" opacity="${op}">${a[i]}</text>`;
+    s += `<text x="${x}" y="${y+nodeR+14}" text-anchor="middle" fill="#5c6189" font-family="'Fira Code','Consolas',monospace" font-size="9" opacity="${isSorted?0.35:0.7}">${i}</text>`;
+  }
+  svg.innerHTML = s;
+}
+
+function render() {
+  const step = st.steps[st.idx]; if (!step) return;
+  const a = step.arr, n = a.length, hs = step.heapSize;
+
+  const arrRow = document.getElementById('hs-arr-row');
+  let h = '';
+  for (let i = 0; i < n; i++) {
+    let cls = 'cell';
+    if (step.hl.comparing && step.hl.comparing.includes(i)) cls += ' comparing';
+    if (step.hl.swapped && step.hl.swapped.includes(i)) cls += ' swapping';
+    if (step.hl.current === i) cls += ' inseg';
+    if (i >= hs && step.phase !== 'init' && step.phase !== 'build-start') cls += ' sorted';
+    if (step.hl.extracted === i) cls += ' match';
+    if (step.phase === 'done') cls += ' match';
+    h += `<div class="cell-wrap"><div class="${cls}">${a[i]}</div><div class="cell-idx">${i}</div></div>`;
+  }
+  arrRow.innerHTML = h;
+
+  renderTree(a, n, hs, step.hl, step.phase);
+
+  const phases = { init:'Init', 'build-start':'Build Heap', 'heapify-node':'Heapify', compare:'Compare', swap:'Swap', 'no-swap':'No Swap', 'heap-built':'Heap Ready', extract:'Extract Max', done:'Done ✓' };
+  document.getElementById('hs-stat-phase').textContent = phases[step.phase] || step.phase;
+  document.getElementById('hs-stat-comp').textContent = step.comps;
+  document.getElementById('hs-stat-swaps').textContent = step.swaps;
+  document.getElementById('hs-stat-heap').textContent = hs;
+  document.getElementById('hs-log').innerHTML = step.log;
+  const total = st.steps.length - 1;
+  document.getElementById('hs-progress-fill').style.width = (total > 0 ? (st.idx/total)*100 : 0) + '%';
+  document.getElementById('hs-step-label').textContent = `Step ${st.idx+1} of ${st.steps.length}`;
+  document.getElementById('done-pill').style.display = step.phase === 'done' ? 'inline-block' : 'none';
+}
+
+function stepForward() {
+  if (st.steps.length === 0) { st.steps = genSteps(st.arr); st.idx = -1; }
+  if (st.idx < st.steps.length - 1) { st.idx++; render(); }
+}
+function stepBack() { if (st.idx > 0) { st.idx--; render(); } }
+function togglePlay() {
+  if (st.playing) { st.playing = false; clearTimeout(st.timer); document.getElementById('play-btn').textContent = '▶ Play'; return; }
+  if (st.steps.length === 0) { st.steps = genSteps(st.arr); st.idx = -1; }
+  if (st.idx >= st.steps.length - 1) st.idx = -1;
+  st.playing = true; document.getElementById('play-btn').textContent = '⏸ Pause';
+  (function advance() {
+    if (!st.playing) return;
+    if (st.idx >= st.steps.length - 1) { st.playing = false; document.getElementById('play-btn').textContent = '▶ Play'; return; }
+    st.idx++; render(); st.timer = setTimeout(advance, getSpeed());
+  })();
+}
+function resetAlgo() {
+  st.playing = false; clearTimeout(st.timer); st.steps = []; st.idx = -1;
+  document.getElementById('play-btn').textContent = '▶ Play';
+  document.getElementById('done-pill').style.display = 'none';
+  let h = '';
+  for (let i = 0; i < st.arr.length; i++) h += `<div class="cell-wrap"><div class="cell">${st.arr[i]}</div><div class="cell-idx">${i}</div></div>`;
+  document.getElementById('hs-arr-row').innerHTML = h;
+  renderTree(st.arr, st.arr.length, st.arr.length, {}, 'init');
+  document.getElementById('hs-progress-fill').style.width = '0%';
+  document.getElementById('hs-step-label').textContent = 'Step 0 of 0';
+  document.getElementById('hs-stat-phase').textContent = 'Init';
+  document.getElementById('hs-stat-comp').textContent = '0';
+  document.getElementById('hs-stat-swaps').textContent = '0';
+  document.getElementById('hs-stat-heap').textContent = st.arr.length;
+  document.getElementById('hs-log').innerHTML = 'Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start the Heap Sort animation.';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'l') stepForward();
+  if (e.key === 'ArrowLeft' || e.key === 'h') stepBack();
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'r') resetAlgo();
+});
+document.addEventListener('DOMContentLoaded', () => { initComplete(); resetAlgo(); });
+</script>
+</body>
+</html>

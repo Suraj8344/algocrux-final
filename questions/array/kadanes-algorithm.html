@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kadane's Algorithm — Maximum Subarray Sum</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.med  { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.dp   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.lc   { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* ── BAR CHART (signed) ── */
+  .hist-wrap { margin-bottom: 1.1rem; }
+  .hist-label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .hist-label .k { font-family: var(--mono); text-transform: none; letter-spacing: 0; color: var(--teal); }
+  .hist-outer {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .hist-row { display: flex; gap: 6px; align-items: stretch; min-width: max-content; }
+  .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .bar-ptr { height: 15px; font-size: 10px; font-weight: 700; font-family: var(--mono); color: var(--amber); }
+  .bar-col { width: 42px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .bar-half { width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .bar-half.top { align-items: flex-end; }
+  .bar-half.bot { align-items: flex-start; }
+  .bar-fill {
+    width: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; font-family: var(--mono);
+    border: 1.5px solid var(--border2); background: var(--surface); color: var(--muted);
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+    min-height: 20px;
+  }
+  .bar-fill.pos { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .bar-fill.neg { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .bar-fill.inrun { box-shadow: 0 0 0 3px rgba(45,212,191,.25); }
+  .bar-fill.best  { box-shadow: 0 0 0 3px rgba(192,132,252,.30); border-color: var(--purple); }
+  .bar-fill.cur   { box-shadow: 0 0 0 3px rgba(251,191,36,.30); transform: scale(1.06); }
+  .bar-fill.reset { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .zero-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--border2); top: 50%; }
+  .bar-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); margin-top: 3px; }
+
+  /* ── RUNNING METER ── */
+  .meter-strip {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1.1rem;
+    font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.9;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .meter-chip { padding: 2px 10px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border2); background: var(--surface); }
+  .meter-chip.cur   { color: var(--amber);  border-color: var(--amber); }
+  .meter-chip.run   { color: var(--teal);   border-color: var(--teal); }
+  .meter-chip.best  { color: var(--purple); border-color: var(--purple); }
+  .meter-chip.reset { color: var(--red);    border-color: var(--red); }
+  .meter-op { color: var(--muted2); }
+
+  /* ── DETAIL CARDS ── */
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono);
+    display: flex; flex-direction: column; gap: 3px; min-width: 116px;
+  }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); }
+  .alloc-card .ac-sum  { font-weight: 700; }
+  .alloc-card.tealc { border-color: var(--teal); background: var(--teal-bg); }
+  .alloc-card.tealc .ac-sum { color: var(--teal); }
+  .alloc-card.redc  { border-color: var(--red); background: var(--red-bg); }
+  .alloc-card.redc .ac-sum { color: var(--red); }
+  .alloc-card.purplec { border-color: var(--purple); background: var(--purple-bg); }
+  .alloc-card.purplec .ac-sum { color: var(--purple); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); }
+  .alloc-card.info .ac-sum { color: var(--accent); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-lo  { color: var(--amber); }
+  .tp-hi  { color: var(--teal); }
+  .tp-mid { color: var(--purple); }
+  .tp-ans { color: var(--green); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.green  .val { color: var(--green); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+
+  /* ===== LEETCODE LINK ===== */
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge dp">Kadane · DP</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>Kadane's Algorithm — Maximum Subarray</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+      <a href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>At each element decide: extend the running sum, or start fresh here. Track the best seen along the way — O(N) time, O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Find the contiguous subarray with the <strong style="color:var(--teal)">largest sum</strong>. Checking every subarray is O(N²); Kadane's does it in one pass by turning it into a tiny dynamic program.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> let <code style="color:var(--accent)">cur</code> be the best subarray sum <em>ending at i</em>. Either extend the previous run (<code style="color:var(--accent)">cur + a[i]</code>) or start over at <code style="color:var(--accent)">a[i]</code>, whichever is larger. If the running sum ever goes negative it can only hurt what follows, so <strong style="color:var(--red)">drop it</strong> and restart. Keep <code style="color:var(--accent)">best</code> = max of all <code style="color:var(--accent)">cur</code> → <strong style="color:var(--teal)">O(N) time, O(1) space</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// cur = best sum ending at i</span><br>
+        cur = a[0], best = a[0]<br>
+        <span class="keyword">for</span> i <span class="keyword">in</span> 1..n-1:<br>
+        &nbsp;&nbsp;cur = max(a[i], cur + a[i])<br>
+        &nbsp;&nbsp;best = max(best, cur)<br>
+        <span class="keyword">return</span> best
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N)</div>
+      <p>One left-to-right pass, doing constant work per element: two comparisons and two updates.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Just <code>cur</code> and <code>best</code> (plus optional start/end indices to recover the subarray). No DP table.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[-2,1,-3,4,-1,2,1,-5,4] <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[5,4,-1,7,8] <span class="tag tag-classic">mostly positive</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[-3,-1,-4,-2] <span class="tag tag-edge">all negative</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[1,2,3,4] <span class="tag tag-edge">all positive</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[-1,3,-5,4,2] <span class="tag tag-edge">restart wins</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — extend or restart, track the best run</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> current element</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> in current run</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> restart (drop run)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> best subarray</span>
+    </div>
+
+    <!-- BAR CHART -->
+    <div class="hist-wrap">
+      <div class="hist-label">
+        Values (positive up, negative down) <span class="k" id="arr-label"></span>
+      </div>
+      <div class="hist-outer">
+        <div class="hist-row" id="hist-row"></div>
+      </div>
+    </div>
+
+    <!-- RUNNING METER -->
+    <div class="meter-strip" id="meter-strip">Press Play to begin…</div>
+
+    <!-- DETAIL CARDS -->
+    <div class="alloc-section">
+      <div class="alloc-label" id="need-label">Current decision</div>
+      <div class="alloc-row" id="need-row"></div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo"  id="pill-lo">i = —</span>
+      <span class="tracker-pill tp-hi"  id="pill-hi">cur = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">best = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">range = —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">nums[i]</div>
+        <div class="val" id="s-lo">—</div>
+        <div class="sub">current value</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">cur (ends at i)</div>
+        <div class="val" id="s-hi">—</div>
+        <div class="sub" id="s-hi-sub">running sum</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">best so far</div>
+        <div class="val" id="s-mid">—</div>
+        <div class="sub" id="s-mid-sub">max subarray</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">decision</div>
+        <div class="val" id="s-ans">—</div>
+        <div class="sub" id="s-ans-sub">extend / restart</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>i</th>
+          <th>nums[i]</th>
+          <th>cur+a[i]</th>
+          <th>decision</th>
+          <th>cur</th>
+          <th>best</th>
+          <th>range</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>kadanes_algorithm.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Maximum contiguous subarray sum (Kadane's)</span>
+<span class="kw">int</span> <span class="fn">maxSubArray</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; a) {
+    <span class="kw">int</span> cur = a[<span class="nm">0</span>], best = a[<span class="nm">0</span>];
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; (<span class="kw">int</span>)a.size(); i++) {
+        <span class="cm">// extend the run, or start fresh at a[i]</span>
+        cur = max(a[i], cur + a[i]);
+        best = max(best, cur);
+    }
+    <span class="kw">return</span> best;
+}
+
+<span class="cm">// Variant that also recovers the subarray [lo, hi]</span>
+<span class="kw">int</span> <span class="fn">maxSubArrayRange</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span>&amp; lo, <span class="kw">int</span>&amp; hi) {
+    <span class="kw">int</span> cur = a[<span class="nm">0</span>], best = a[<span class="nm">0</span>], start = <span class="nm">0</span>;
+    lo = hi = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; (<span class="kw">int</span>)a.size(); i++) {
+        <span class="kw">if</span> (a[i] &gt; cur + a[i]) { cur = a[i]; start = i; } <span class="cm">// restart</span>
+        <span class="kw">else</span> cur += a[i];                                <span class="cm">// extend</span>
+        <span class="kw">if</span> (cur &gt; best) { best = cur; lo = start; hi = i; }
+    }
+    <span class="kw">return</span> best;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; a = {-<span class="nm">2</span>,<span class="nm">1</span>,-<span class="nm">3</span>,<span class="nm">4</span>,-<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">1</span>,-<span class="nm">5</span>,<span class="nm">4</span>};
+    cout &lt;&lt; <span class="fn">maxSubArray</span>(a) &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 6  ([4,-1,2,1])</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="kadanes-algorithm"></div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { a:[-2,1,-3,4,-1,2,1,-5,4], desc:`<strong style="color:var(--text)">[-2,1,-3,4,-1,2,1,-5,4] — best 6.</strong> The textbook case. The run resets after early negatives, then [4,-1,2,1] builds to <strong style="color:var(--purple)">6</strong>. Watch cur drop and restart whenever it would go negative.` },
+  { a:[5,4,-1,7,8], desc:`<strong style="color:var(--text)">[5,4,-1,7,8] — best 23.</strong> Mostly positive, so the run never restarts: the whole array sums to <strong style="color:var(--purple)">23</strong>. The dip at -1 isn't enough to make restarting worthwhile.` },
+  { a:[-3,-1,-4,-2], desc:`<strong style="color:var(--text)">[-3,-1,-4,-2] — best -1.</strong> All negative. Kadane's still works: the answer is the single largest element <strong style="color:var(--purple)">-1</strong>. Note we init best = a[0], not 0.` },
+  { a:[1,2,3,4], desc:`<strong style="color:var(--text)">[1,2,3,4] — best 10.</strong> All positive: cur keeps growing and the whole array is the answer, <strong style="color:var(--purple)">10</strong>. No restarts ever.` },
+  { a:[-1,3,-5,4,2], desc:`<strong style="color:var(--text)">[-1,3,-5,4,2] — best 6.</strong> After 3, the -5 drags cur negative, so at index 3 we restart at 4. Then [4,2] gives the best <strong style="color:var(--purple)">6</strong>.` }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+let A = [], MAXABS = 1;
+let steps = [], cursor = -1, playing = false, timer = null;
+
+function buildSteps(a) {
+  A = a; MAXABS = Math.max(1, ...a.map(x=>Math.abs(x)));
+  const n = a.length;
+  const stps = [];
+
+  let cur = a[0], best = a[0], start = 0, bestLo = 0, bestHi = 0;
+  stps.push({ phase:'init', i:0, val:a[0], sum:a[0], cur, best, decision:'seed', runStart:0, bestLo:0, bestHi:0,
+    msg:`<span class="hi">Seed with the first element.</span> cur = best = ${a[0]}. cur is the best subarray sum ending at the current index; best is the answer so far. Run starts at index 0.` });
+
+  for (let i = 1; i < n; i++) {
+    const extend = cur + a[i];
+    const restart = a[i] > extend;
+    if (restart) { cur = a[i]; start = i; }
+    else { cur = extend; }
+    let updated = false;
+    if (cur > best) { best = cur; bestLo = start; bestHi = i; updated = true; }
+
+    stps.push({ phase: restart?'restart':'extend', i, val:a[i], sum:extend, cur, best,
+      decision: restart?'restart':'extend', runStart:start, bestLo, bestHi, updated,
+      msg:`<span class="hi">i=${i}, nums[i] = <span class="amb">${a[i]}</span>.</span> ` +
+          (restart
+            ? `Extending gives ${extend}, but starting fresh at ${a[i]} is better → <span class="neg">restart</span>. cur = <span class="tl">${cur}</span>, run now begins at ${i}.`
+            : `Extend the run: cur = ${cur - a[i]} + ${a[i]} = <span class="tl">${cur}</span>.`) +
+          (updated ? ` <span class="pos">New best = <span class="sol">${best}</span></span> over [${bestLo}..${bestHi}].` : ` best stays ${best}.`)
+    });
+  }
+
+  stps.push({ phase:'done', i:n-1, val:null, sum:null, cur, best, decision:null, runStart:start, bestLo, bestHi,
+    msg:`<span class="hi">Scan complete.</span> <span class="pos">Maximum subarray sum = <span class="sol">${best}</span></span> over indices [${bestLo}..${bestHi}] = [${a.slice(bestLo,bestHi+1).join(', ')}].` });
+  return stps;
+}
+
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx) => {
+    let phaseLbl, dec;
+    if (s.phase==='init')       { phaseLbl=`<span style="color:var(--muted)">Seed</span>`; dec='—'; }
+    else if(s.phase==='extend') { phaseLbl=`<span style="color:var(--teal)">Extend</span>`; dec=`<span style="color:var(--teal)">extend</span>`; }
+    else if(s.phase==='restart'){ phaseLbl=`<span style="color:var(--red)">Restart</span>`; dec=`<span style="color:var(--red)">restart</span>`; }
+    else                        { phaseLbl=`<span style="color:var(--purple)">Done ✓</span>`; dec='—'; }
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td style="color:var(--amber)">${s.phase!=='done'?s.i:'—'}</td>
+      <td style="color:var(--text)">${s.val!==null?s.val:'—'}</td>
+      <td style="color:var(--muted)">${s.phase==='extend'||s.phase==='restart'?s.sum:'—'}</td>
+      <td>${dec}</td>
+      <td style="color:var(--teal)">${s.cur}</td>
+      <td style="color:var(--purple);font-weight:600">${s.best}</td>
+      <td style="color:var(--muted)">[${s.bestLo}..${s.bestHi}]</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHist(st) {
+  const row = document.getElementById('hist-row');
+  const unit = 66 / MAXABS; // half-height budget
+  let html = '';
+  for (let k = 0; k < A.length; k++) {
+    const v = A[k];
+    const h = Math.max(20, Math.abs(v) * unit);
+    const inRun = st.phase!=='done' && st.phase!=='init' ? (k >= st.runStart && k <= st.i) : (k >= st.runStart && k <= st.i);
+    const inBest = k >= st.bestLo && k <= st.bestHi && (st.best !== null);
+    let cls = 'bar-fill ' + (v >= 0 ? 'pos' : 'neg');
+    if (st.phase==='done' && inBest) cls += ' best';
+    else if (k === st.i && st.phase!=='done') cls += ' cur';
+    else if (st.phase==='restart' && k === st.i) cls += ' reset';
+    else if (inBest && st.updated) cls += ' best';
+    else if (inRun && st.phase!=='done') cls += ' inrun';
+    let ptr = (k === st.i && st.phase!=='done') ? '<span>i</span>' : '';
+    const topH = v >= 0 ? h : 0;
+    const botH = v < 0 ? h : 0;
+    html += `<div class="bar-wrap">
+      <div class="bar-ptr">${ptr}</div>
+      <div class="bar-col">
+        <div class="zero-line"></div>
+        <div class="bar-half top" style="height:66px">${v>=0?`<div class="${cls}" style="height:${topH}px">${v}</div>`:''}</div>
+        <div class="bar-half bot" style="height:66px">${v<0?`<div class="${cls}" style="height:${botH}px">${v}</div>`:''}</div>
+      </div>
+      <div class="bar-idx">${k}</div>
+    </div>`;
+  }
+  row.innerHTML = html;
+}
+
+function renderMeter(st) {
+  const strip = document.getElementById('meter-strip');
+  if (st.phase === 'init') {
+    strip.innerHTML = `<span class="meter-op">seed:</span> cur = <span class="meter-chip run">${st.cur}</span> , best = <span class="meter-chip best">${st.best}</span>`;
+    return;
+  }
+  if (st.phase === 'done') {
+    strip.innerHTML = `<span class="meter-op">answer:</span> best = <span class="meter-chip best">${st.best}</span> <span class="meter-op">over</span> [${st.bestLo}..${st.bestHi}]`;
+    return;
+  }
+  const prev = st.cur - st.val;
+  if (st.phase === 'restart') {
+    strip.innerHTML = `max( <span class="meter-chip cur">${st.val}</span> , ${prev}+${st.val}=${st.sum} ) <span class="meter-op">→</span> <span class="meter-chip reset">restart, cur=${st.cur}</span> <span class="meter-op">·</span> best <span class="meter-chip best">${st.best}</span>`;
+  } else {
+    strip.innerHTML = `cur <span class="meter-op">=</span> <span class="meter-chip run">${prev}</span> + <span class="meter-chip cur">${st.val}</span> = <span class="meter-chip run">${st.cur}</span> <span class="meter-op">·</span> best <span class="meter-chip best">${st.best}</span>`;
+  }
+}
+
+function renderNeed(st) {
+  const row = document.getElementById('need-row');
+  if (st.phase === 'init') { row.innerHTML = `<div class="alloc-card info"><div class="ac-head">seed</div><div class="ac-books">cur = best = ${st.cur}</div><div class="ac-sum">start index 0</div></div>`; return; }
+  if (st.phase === 'done') { row.innerHTML = `<div class="alloc-card purplec"><div class="ac-head">max subarray</div><div class="ac-books">[${A.slice(st.bestLo,st.bestHi+1).join(', ')}]</div><div class="ac-sum">sum ${st.best} ✓</div></div>`; return; }
+  const prev = st.cur - st.val;
+  if (st.phase === 'restart') {
+    row.innerHTML = `<div class="alloc-card redc"><div class="ac-head">extend?</div><div class="ac-books">${prev}+${st.val} = ${st.sum}</div><div class="ac-sum">worse</div></div>
+      <div class="alloc-card tealc"><div class="ac-head">restart</div><div class="ac-books">cur = ${st.val}</div><div class="ac-sum">fresh start ✓</div></div>
+      ${st.updated?`<div class="alloc-card purplec"><div class="ac-head">best</div><div class="ac-books">${st.best}</div><div class="ac-sum">new best ✓</div></div>`:''}`;
+  } else {
+    row.innerHTML = `<div class="alloc-card tealc"><div class="ac-head">extend</div><div class="ac-books">${prev}+${st.val} = ${st.cur}</div><div class="ac-sum">keep run ✓</div></div>
+      ${st.updated?`<div class="alloc-card purplec"><div class="ac-head">best</div><div class="ac-books">${st.best}</div><div class="ac-sum">new best ✓</div></div>`:`<div class="alloc-card info"><div class="ac-head">best</div><div class="ac-books">${st.best}</div><div class="ac-sum">unchanged</div></div>`}`;
+  }
+}
+
+function applyState(idx) {
+  steps.forEach((_,i) => { const tr = document.getElementById('tr-'+i); if (tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    const seed = { phase:'idle', i:0, val:A[0], sum:A[0], cur:A[0], best:A[0], runStart:0, bestLo:0, bestHi:0, updated:false };
+    renderHist(seed); renderNeed({ phase:'init', cur:A[0], best:A[0] });
+    document.getElementById('pill-lo').textContent  = 'i = —';
+    document.getElementById('pill-hi').textContent  = 'cur = —';
+    document.getElementById('pill-mid').textContent = 'best = —';
+    document.getElementById('pill-ans').textContent = 'range = —';
+    document.getElementById('s-lo').textContent = '—';
+    document.getElementById('s-hi').textContent = '—';
+    document.getElementById('s-mid').textContent = '—';
+    document.getElementById('s-ans').textContent = '—';
+    document.getElementById('s-hi-sub').textContent = 'running sum';
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('meter-strip').innerHTML = 'Press Play to begin…';
+    document.getElementById('log').innerHTML = 'Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s = steps[idx];
+  renderHist(s); renderMeter(s); renderNeed(s);
+
+  document.getElementById('pill-lo').textContent  = `i = ${s.phase!=='done'?s.i:'—'}`;
+  document.getElementById('pill-hi').textContent  = `cur = ${s.cur}`;
+  document.getElementById('pill-mid').textContent = `best = ${s.best}`;
+  document.getElementById('pill-ans').textContent = `range = [${s.bestLo}..${s.bestHi}]`;
+
+  document.getElementById('s-lo').textContent = s.val!==null ? s.val : '—';
+  document.getElementById('s-hi').textContent = s.cur;
+  document.getElementById('s-mid').textContent = s.best;
+  document.getElementById('s-ans').textContent = s.phase==='extend' ? 'extend' : s.phase==='restart' ? 'restart' : (s.phase==='init'?'seed':'done');
+  document.getElementById('s-ans-sub').textContent = s.phase==='restart' ? 'run dropped' : s.phase==='extend' ? 'run continues' : 'extend / restart';
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.phase === 'done') {
+    const pill = document.getElementById('done-pill');
+    pill.textContent = `✓ Max sum: ${s.best}`;
+    pill.style.display = 'inline-block';
+  }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  steps = buildSteps(EXAMPLES[i].a);
+  document.getElementById('arr-label').textContent = `· [${A.join(', ')}]`;
+  document.getElementById('example-desc').innerHTML = EXAMPLES[i].desc;
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+  let currentUser = null, isCompleted = false;
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318'; markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80'; markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+  function setLoggedOutState() { markBtn.style.display = 'none'; trackerLogin.style.display = 'block'; trackerStatus.textContent = 'Sign in to track'; }
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) setCompletedState();
+  });
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      else await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+  let currentUser = null, saveTimer = null, isSaving = false;
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') { saveText.textContent = 'Saved'; saveDot.innerHTML = '&#x2705;'; noteIndicator.classList.add('visible'); }
+    else if (status === 'saving') { saveText.textContent = 'Saving...'; saveDot.innerHTML = '&#x23F3;'; }
+    else if (status === 'error') { saveText.textContent = 'Error saving'; saveDot.innerHTML = '&#x274C;'; }
+    else { saveText.textContent = 'Unsaved changes'; saveDot.innerHTML = '&#x25CF;'; }
+  }
+  async function saveNotes() {
+    if (isSaving) return; isSaving = true; setSaveStatus('saving');
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, { text: textarea.value, updatedAt: new Date().toISOString() }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) { localStorage.setItem(LOCAL_KEY, textarea.value); setSaveStatus('error'); }
+    finally { isSaving = false; }
+  }
+  async function loadNotes() {
+    let text = '';
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) {}
+    }
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    if (text.trim()) { noteIndicator.classList.add('visible'); setSaveStatus('saved'); } else setSaveStatus('unsaved');
+  }
+  onAuthStateChanged(auth, async (user) => { currentUser = user; await loadNotes(); });
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) { localStorage.setItem(LOCAL_KEY, textarea.value); if (currentUser && !isSaving) saveNotes(); }
+  });
+</script>
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

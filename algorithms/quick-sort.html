@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Sort — Algorithm Animation</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+  }
+  .badge {
+    background: var(--purple-bg);
+    color: var(--purple);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #3a2155;
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: .75rem;
+  }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--red-bg); color: var(--red); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  @media(max-width:700px){ .anim-panel.pinned{ top:8px; max-height:calc(100vh - 16px); } }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+
+  /* RECURSION DEPTH BADGE */
+  .depth-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .depth-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 12px; font-size: 12px;
+    font-family: var(--mono); color: var(--teal); display: flex; align-items: center; gap: 6px;
+  }
+  .range-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 12px; font-size: 12px;
+    font-family: var(--mono); color: var(--muted);
+  }
+
+  /* BAR / ARRAY VISUAL */
+  .array-outer { overflow-x: auto; padding-bottom: .5rem; }
+  .array-row { display: flex; gap: 8px; align-items: flex-end; min-height: 160px; margin-bottom: 6px; }
+  .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .bar {
+    width: 46px;
+    border-radius: 6px 6px 4px 4px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border2);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    transition: background .25s, border-color .25s, height .35s ease, transform .2s, opacity .25s;
+    position: relative;
+  }
+  .bar.sorted      { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .bar.pivot       { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .bar.comparing   { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .bar.lt-region   { box-shadow: inset 0 0 0 2px var(--teal); }
+  .bar.out-range   { opacity: .3; }
+  .bar.swapping    { animation: swapbar .35s ease; }
+  .bar.partition-i { box-shadow: inset 0 0 0 2px var(--purple); }
+  @keyframes swapbar {
+    0%{ transform: translateY(0); }
+    50%{ transform: translateY(-10px); }
+    100%{ transform: translateY(0); }
+  }
+  .idx-label { font-size: 11px; color: var(--muted); font-family: var(--mono); height: 14px; }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.green  .val { color: var(--green); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65; transition: all .2s;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .btn.primary:hover { background: #3a2155; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--purple); }
+  .done-pill {
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid #1a4a2e; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  .walkthrough {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+  }
+  .step-table td {
+    padding: 7px 10px; border-bottom: 1px solid var(--border);
+    font-family: var(--mono); color: var(--muted); white-space: nowrap;
+  }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .step-table .action-recurse  { color: var(--teal); }
+  .step-table .action-compare  { color: var(--accent); }
+  .step-table .action-swap     { color: var(--red); }
+  .step-table .action-pivotput { color: var(--amber); }
+  .step-table .action-sorted   { color: var(--green); }
+  .step-table .arr-str { color: var(--text); }
+
+  .code-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--purple); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Divide &amp; Conquer</span>
+      <h1>Quick Sort</h1>
+    </div>
+    <p>Partition around a pivot, then recursively sort each side — O(N log N) average · O(log N) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sorts an array by picking a <strong style="color:var(--amber)">pivot</strong> element and <strong style="color:var(--text)">partitioning</strong> the array around it: everything smaller goes left, everything larger goes right. The pivot lands in its final sorted position.</p>
+      <p style="margin-top:.75rem">The two resulting sub-arrays are then sorted <strong style="color:var(--text)">recursively</strong> using the same process — divide and conquer — until each sub-array has zero or one element.</p>
+    </div>
+    <div>
+      <h2>The core idea (Lomuto partition)</h2>
+      <div class="formula">
+        <span class="comment">// pivot = arr[high], i = boundary</span><br>
+        i = low - 1<br>
+        <span class="keyword">for</span> j = low <span class="keyword">to</span> high-1:<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> arr[j] &lt; pivot:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;i++; swap(arr[i], arr[j])<br>
+        swap(arr[i+1], arr[high])
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N log N)</div>
+      <p>Average case with balanced partitions. Worst case is O(N²) when the pivot repeatedly lands at an extreme, e.g. already-sorted input with a naive pivot choice.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(log N)</div>
+      <p>In-place partitioning — space is only used by the recursion call stack, which is O(N) in the worst case.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[10,80,30,90,40,50,70] — standard <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[5,4,3,2,1] — reverse sorted <span class="tag tag-edge">edge / worst case</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[1,2,3,4,5] — already sorted <span class="tag tag-edge">edge / worst case</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[4,4,4,4,4] — all duplicates <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[7] — single element <span class="tag tag-edge">edge</span></button>
+  </div>
+
+  <!-- EXAMPLE DESCRIPTION -->
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> Pivot</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> Comparing (j)</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--purple)"></span> Boundary (i)</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--border2);opacity:.4"></span> Outside current range</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> Final position</span>
+    </div>
+
+    <div class="depth-row">
+      <span class="depth-pill" id="depth-pill">depth: —</span>
+      <span class="range-pill" id="range-pill">range: —</span>
+    </div>
+
+    <div class="array-outer">
+      <div class="array-row" id="array-row"></div>
+      <div class="array-row" id="idx-row" style="min-height:auto;margin-bottom:0"></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">Pivot value</div>
+        <div class="val" id="s-pivot">—</div>
+        <div class="sub" id="s-pivot-sub">at index —</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Comparing (j)</div>
+        <div class="val" id="s-j">—</div>
+        <div class="sub" id="s-j-sub">—</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">Boundary (i)</div>
+        <div class="val" id="s-i">—</div>
+        <div class="sub" id="s-i-sub">—</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">Swaps so far</div>
+        <div class="val" id="s-swaps">—</div>
+        <div class="sub">total</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Sorted</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Range</th>
+          <th>Pivot</th>
+          <th>i</th>
+          <th>j</th>
+          <th>Action</th>
+          <th>Array state</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation (Lomuto partition)</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>quick_sort.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">partition</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">int</span> low, <span class="kw">int</span> high) {
+    <span class="kw">int</span> pivot = arr[high];      <span class="cm">// choose last element as pivot</span>
+    <span class="kw">int</span> i = low - <span class="nm">1</span>;          <span class="cm">// boundary of "less than pivot" region</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> j = low; j &lt; high; j++) {
+        <span class="kw">if</span> (arr[j] &lt; pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + <span class="nm">1</span>], arr[high]);  <span class="cm">// place pivot in final position</span>
+    <span class="kw">return</span> i + <span class="nm">1</span>;
+}
+
+<span class="kw">void</span> <span class="fn">quickSort</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr, <span class="kw">int</span> low, <span class="kw">int</span> high) {
+    <span class="kw">if</span> (low &lt; high) {
+        <span class="kw">int</span> pi = <span class="fn">partition</span>(arr, low, high);
+        <span class="fn">quickSort</span>(arr, low, pi - <span class="nm">1</span>);   <span class="cm">// left of pivot</span>
+        <span class="fn">quickSort</span>(arr, pi + <span class="nm">1</span>, high);  <span class="cm">// right of pivot</span>
+    }
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; arr = {<span class="nm">10</span>, <span class="nm">80</span>, <span class="nm">30</span>, <span class="nm">90</span>, <span class="nm">40</span>, <span class="nm">50</span>, <span class="nm">70</span>};
+    <span class="fn">quickSort</span>(arr, <span class="nm">0</span>, arr.size() - <span class="nm">1</span>);
+
+    <span class="kw">for</span> (<span class="kw">int</span> x : arr) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>;
+    cout &lt;&lt; <span class="st">"\n"</span>;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    arr: [10,80,30,90,40,50,70],
+    desc: `<strong style="color:var(--text)">Classic example</strong> — a mixed unsorted array. Watch the pivot (last element of each range) partition the array into a "less than" and "greater than" region, then recursion dives into each side.`
+  },
+  {
+    arr: [5,4,3,2,1],
+    desc: `<strong style="color:var(--text)">Edge case: reverse sorted — worst case.</strong> With the last element always chosen as pivot, partitions become maximally unbalanced (one side empty) — recursion depth grows to O(N) and total time degrades to <strong style="color:var(--red)">O(N²)</strong>.`
+  },
+  {
+    arr: [1,2,3,4,5],
+    desc: `<strong style="color:var(--text)">Edge case: already sorted — also worst case.</strong> Same issue as reverse-sorted: the pivot (largest remaining element) never splits the array evenly, so quick sort degenerates to <strong style="color:var(--red)">O(N²)</strong> with this pivot strategy. Randomized or median-of-three pivot selection avoids this.`
+  },
+  {
+    arr: [4,4,4,4,4],
+    desc: `<strong style="color:var(--text)">Edge case: all duplicate values.</strong> Since the partition condition is strict (<code style="color:var(--accent)">arr[j] &lt; pivot</code>), every element is "not less than" the pivot, so nothing moves into the left region — the pivot ends up at the end of its range each time.`
+  },
+  {
+    arr: [7],
+    desc: `<strong style="color:var(--text)">Edge case: single element.</strong> The base condition <code style="color:var(--accent)">low &lt; high</code> is false immediately (low=high=0), so quickSort returns without doing any work — a single element is trivially sorted.`
+  }
+];
+
+const SPEEDS = [1800,1200,700,380,150];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+
+let ARR = [];
+let steps = [];
+let cursor = -1;
+let playing = false;
+let timer = null;
+
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+function buildSteps(arr) {
+  const a = [...arr];
+  const n = a.length;
+  const stps = [];
+  let swapCount = 0;
+  const finalized = new Set();
+
+  stps.push({ type:'start', arr:[...a], low:0, high:n-1, depth:0, i:-1, j:-1, pivotIdx:-1, swaps:0, finalized:new Set() });
+
+  function qs(low, high, depth) {
+    if (low > high) return;
+    if (low === high) {
+      finalized.add(low);
+      stps.push({ type:'trivial', arr:[...a], low, high, depth, i:-1, j:-1, pivotIdx:low, swaps:swapCount, finalized:new Set(finalized) });
+      return;
+    }
+
+    const pivotIdx0 = high;
+    const pivot = a[pivotIdx0];
+    stps.push({ type:'pivotpick', arr:[...a], low, high, depth, i:low-1, j:-1, pivotIdx:pivotIdx0, swaps:swapCount, finalized:new Set(finalized) });
+
+    let i = low - 1;
+    for (let j = low; j < high; j++) {
+      stps.push({ type:'compare', arr:[...a], low, high, depth, i, j, pivotIdx:pivotIdx0, swaps:swapCount, finalized:new Set(finalized) });
+      if (a[j] < pivot) {
+        i++;
+        if (i !== j) {
+          const tmp=a[i]; a[i]=a[j]; a[j]=tmp;
+          swapCount++;
+          stps.push({ type:'swap', arr:[...a], low, high, depth, i, j, pivotIdx:pivotIdx0, swaps:swapCount, finalized:new Set(finalized) });
+        } else {
+          stps.push({ type:'noswapneeded', arr:[...a], low, high, depth, i, j, pivotIdx:pivotIdx0, swaps:swapCount, finalized:new Set(finalized) });
+        }
+      }
+    }
+    const pi = i + 1;
+    if (pi !== high) {
+      const tmp=a[pi]; a[pi]=a[high]; a[high]=tmp;
+      swapCount++;
+    }
+    finalized.add(pi);
+    stps.push({ type:'pivotplace', arr:[...a], low, high, depth, i, j:-1, pivotIdx:pi, swaps:swapCount, finalized:new Set(finalized) });
+
+    qs(low, pi-1, depth+1);
+    qs(pi+1, high, depth+1);
+  }
+
+  qs(0, n-1, 0);
+  stps.push({ type:'done', arr:[...a], low:0, high:n-1, depth:0, i:-1, j:-1, pivotIdx:-1, swaps:swapCount, finalized:new Set(Array.from({length:n},(_,k)=>k)) });
+  return stps;
+}
+
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx) => {
+    let actionLabel;
+    if (s.type==='start')          actionLabel = `<span style="color:var(--muted)">Init</span>`;
+    else if (s.type==='trivial')   actionLabel = `<span class="action-sorted">Base case</span>`;
+    else if (s.type==='pivotpick') actionLabel = `<span style="color:var(--amber)">Pick pivot</span>`;
+    else if (s.type==='compare')   actionLabel = `<span class="action-compare">Compare</span>`;
+    else if (s.type==='swap')      actionLabel = `<span class="action-swap">⇄ Swap</span>`;
+    else if (s.type==='noswapneeded') actionLabel = `<span style="color:var(--muted)">i==j, no swap</span>`;
+    else if (s.type==='pivotplace')actionLabel = `<span class="action-pivotput">⇄ Place pivot</span>`;
+    else                            actionLabel = `<span class="action-sorted">✓ Sorted</span>`;
+    const range = (s.low!==undefined && s.high!==undefined && s.low<=s.high) ? `[${s.low}..${s.high}]` : '—';
+    const pivotVal = s.pivotIdx>=0 ? s.arr[s.pivotIdx] : '—';
+    const ii = s.i>=0 ? s.i : '—';
+    const jj = s.j>=0 ? s.j : '—';
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td style="color:var(--teal)">${range}</td>
+      <td style="color:var(--amber)">${pivotVal}</td>
+      <td style="color:var(--purple)">${ii}</td>
+      <td style="color:var(--accent)">${jj}</td>
+      <td>${actionLabel}</td>
+      <td class="arr-str">[${s.arr.join(',')}]</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderArrayShell(n) {
+  const row = document.getElementById('array-row');
+  const idxRow = document.getElementById('idx-row');
+  row.innerHTML = '';
+  idxRow.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    row.innerHTML += `<div class="bar-wrap"><div class="bar" id="bar-${i}"></div></div>`;
+    idxRow.innerHTML += `<div class="bar-wrap"><div class="idx-label">${i}</div></div>`;
+  }
+}
+
+function applyState(idx) {
+  steps.forEach((_,i) => {
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+
+  if (idx < 0) {
+    const s0 = steps[0];
+    drawBars(s0.arr, -1, -1, -1, -1, -1, new Set());
+    document.getElementById('s-pivot').textContent='—';
+    document.getElementById('s-pivot-sub').textContent='at index —';
+    document.getElementById('s-i').textContent='—';
+    document.getElementById('s-i-sub').textContent='—';
+    document.getElementById('s-j').textContent='—';
+    document.getElementById('s-j-sub').textContent='—';
+    document.getElementById('s-swaps').textContent='—';
+    document.getElementById('depth-pill').textContent='depth: —';
+    document.getElementById('range-pill').textContent='range: —';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    document.getElementById('done-pill').style.display='none';
+    return;
+  }
+
+  const s = steps[idx];
+
+  drawBars(s.arr, s.low, s.high, s.i, s.j, s.pivotIdx, s.finalized);
+
+  document.getElementById('s-pivot').textContent = s.pivotIdx>=0 ? s.arr[s.pivotIdx] : '—';
+  document.getElementById('s-pivot-sub').textContent = s.pivotIdx>=0 ? `at index ${s.pivotIdx}` : 'at index —';
+  document.getElementById('s-i').textContent = s.i>=0 ? s.i : '—';
+  document.getElementById('s-i-sub').textContent = s.i>=0 ? 'boundary' : '—';
+  document.getElementById('s-j').textContent = s.j>=0 ? s.j : '—';
+  document.getElementById('s-j-sub').textContent = s.j>=0 ? 'scanning' : '—';
+  document.getElementById('s-swaps').textContent = s.swaps;
+  document.getElementById('depth-pill').textContent = `depth: ${s.depth!==undefined ? s.depth : '—'}`;
+  document.getElementById('range-pill').textContent = (s.low!==undefined && s.high!==undefined && s.low<=s.high) ? `range: [${s.low}..${s.high}]` : 'range: —';
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  let msg = '';
+  if (s.type==='start') {
+    msg = `<span class="hi">Starting array:</span> <span class="acc">[${s.arr.join(', ')}]</span>. Quick sort will recursively partition this around chosen pivots.`;
+  } else if (s.type==='trivial') {
+    msg = `<span class="hi">Base case at range [${s.low}..${s.high}].</span> A single element is trivially sorted — no work needed at this recursion level.`;
+  } else if (s.type==='pivotpick') {
+    msg = `<span class="hi">New partition call on range [${s.low}..${s.high}] (depth ${s.depth}).</span> Pivot chosen: <span class="amb">arr[${s.pivotIdx}]=${s.arr[s.pivotIdx]}</span> (last element of range).`;
+  } else if (s.type==='compare') {
+    msg = `<span class="hi">Comparing.</span> Is <span class="acc">arr[${s.j}]=${s.arr[s.j]}</span> less than pivot <span class="amb">${s.arr[s.pivotIdx]}</span>?`;
+  } else if (s.type==='swap') {
+    msg = `<span class="hi">Smaller found!</span> <span class="acc">arr[${s.j}]=${s.arr[s.j]}</span> &lt; pivot — increment boundary to i=<span class="sol">${s.i}</span> and <span class="neg">swap</span> arr[${s.i}] with arr[${s.j}].`;
+  } else if (s.type==='noswapneeded') {
+    msg = `<span class="hi">Smaller found.</span> Boundary i=<span class="sol">${s.i}</span> already equals j=${s.j}, so no swap is needed — element is already in place.`;
+  } else if (s.type==='pivotplace') {
+    msg = `<span class="hi">Partition complete for range [${s.low}..${s.high}].</span> <span class="neg">Swap</span> pivot into position <span class="amb">${s.pivotIdx}</span> — it's now in its <span class="pos">final sorted spot</span>. Recurse into the left and right sub-ranges.`;
+  } else {
+    msg = `<span class="hi">Done!</span> <span class="pos">Array fully sorted:</span> <span class="acc">[${s.arr.join(', ')}]</span> — ${s.swaps} swap(s) performed in total.`;
+    document.getElementById('done-pill').style.display='inline-block';
+  }
+  if (idx < steps.length-1) document.getElementById('done-pill').style.display='none';
+  document.getElementById('log').innerHTML = msg;
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function drawBars(arr, low, high, i, j, pivotIdx, finalized) {
+  const n = arr.length;
+  const maxVal = Math.max(...arr, 1);
+  for (let k = 0; k < n; k++) {
+    const bar = document.getElementById('bar-'+k);
+    if (!bar) continue;
+    const heightPx = 36 + (arr[k]/maxVal)*110;
+    bar.style.height = heightPx + 'px';
+    bar.textContent = arr[k];
+    let cls = 'bar';
+    if (finalized.has(k)) cls += ' sorted';
+    else if (k === pivotIdx) cls += ' pivot';
+    else if (k === j) cls += ' comparing';
+    else if (low>=0 && high>=0 && (k < low || k > high)) cls += ' out-range';
+    if (k === i && i >= 0 && k !== pivotIdx && !finalized.has(k)) cls += ' partition-i';
+    bar.className = cls;
+  }
+}
+
+function loadExample(idx, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[idx];
+  ARR = ex.arr;
+  document.getElementById('example-desc').innerHTML = ex.desc;
+  steps = buildSteps(ARR);
+  renderArrayShell(ARR.length);
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward() {
+  if (cursor < steps.length-1) { cursor++; applyState(cursor); }
+}
+function stepBack() {
+  if (cursor > 0) { cursor--; applyState(cursor); }
+  else if (cursor===0) { cursor=-1; applyState(-1); }
+}
+function resetAnim() { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay() {
+  playing=false; clearTimeout(timer);
+  document.getElementById('btn-play').textContent='▶ Play';
+}
+function playPause() {
+  if (playing) { stopPlay(); return; }
+  if (cursor >= steps.length-1) { cursor=-1; applyState(-1); }
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor >= steps.length-1) { stopPlay(); return; }
+  cursor++; applyState(cursor);
+  const spd = SPEEDS[document.getElementById('speed').value-1];
+  timer = setTimeout(tick, spd);
+}
+function togglePin() {
+  const panel = document.getElementById('anim-panel');
+  const btn   = document.getElementById('pin-btn');
+  const isPinned = panel.classList.toggle('pinned');
+  btn.classList.toggle('active', isPinned);
+  btn.textContent = isPinned ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  const code = document.getElementById('code-block').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+// init
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

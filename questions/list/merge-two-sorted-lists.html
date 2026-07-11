@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked List — Merge Two Sorted Lists</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.easy { background: var(--green-bg); color: var(--green); border: 1px solid #1a5e37; }
+  .badge.tp   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.lc   { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 12.5px; color: var(--amber); line-height: 2.0;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── LINKED LISTS (two input rows) ── */
+  .list-wrap { margin-bottom: 1.1rem; }
+  .list-label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .list-label .k { font-family: var(--mono); text-transform: none; letter-spacing: 0; }
+  .list-label .ka { color: var(--amber); }
+  .list-label .kb { color: var(--accent); }
+  .list-label .kr { color: var(--green); }
+  .list-outer {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 2rem 1.25rem 1.25rem; overflow-x: auto;
+  }
+  .list-row { display: flex; gap: 0; align-items: center; min-width: max-content; min-height: 60px; }
+  .node-group { display: flex; align-items: center; }
+  .node-col { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
+  .ptr-slot { height: 22px; display: flex; gap: 3px; align-items: flex-end; justify-content: center; }
+  .ptr-tag {
+    font-size: 10px; font-weight: 700; font-family: var(--mono); padding: 1px 6px; border-radius: 10px;
+    line-height: 1.5; transition: all .2s;
+  }
+  .ptr-tag.pa { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber); }
+  .ptr-tag.pb { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+  .node {
+    min-width: 44px; height: 44px; border-radius: 50%;
+    border: 1.5px solid var(--border2); background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--text);
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s;
+  }
+  .node.a-node { border-color: var(--amber); color: var(--amber); }
+  .node.b-node { border-color: var(--accent); color: var(--accent); }
+  .node.consumed { opacity: .3; border-style: dashed; }
+  .node.cur { box-shadow: 0 0 0 3px rgba(45,212,191,.28); transform: translateY(-3px); }
+  .node.picked { border-color: var(--green); background: var(--green-bg); color: var(--green); box-shadow: 0 0 0 3px rgba(74,222,128,.30); }
+  .node.merged { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .node-idx { font-size: 9px; color: var(--muted2); font-family: var(--mono); }
+  .arrow { color: var(--muted2); font-size: 19px; padding: 0 3px; margin-bottom: 12px; font-family: var(--mono); }
+  .list-tag { font-size: 11px; color: var(--muted2); font-family: var(--mono); margin-right: 10px; align-self: center; min-width: 28px; }
+
+  /* compare bubble */
+  .compare-bubble {
+    display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px;
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .5rem .9rem; color: var(--muted);
+  }
+  .compare-bubble .va { color: var(--amber); font-weight: 700; }
+  .compare-bubble .vb { color: var(--accent); font-weight: 700; }
+  .compare-bubble .op { color: var(--text); font-weight: 700; }
+  .compare-bubble .win { color: var(--green); font-weight: 700; }
+
+  /* DETAIL CARDS */
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .alloc-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono);
+    display: flex; flex-direction: column; gap: 3px; min-width: 104px;
+  }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); }
+  .alloc-card .ac-sum  { font-weight: 700; }
+  .alloc-card.amberc { border-color: var(--amber); background: var(--amber-bg); }
+  .alloc-card.amberc .ac-sum { color: var(--amber); }
+  .alloc-card.accentc { border-color: var(--accent); background: var(--accent-bg); }
+  .alloc-card.accentc .ac-sum { color: var(--accent); }
+  .alloc-card.ok { border-color: var(--green); background: var(--green-bg); }
+  .alloc-card.ok .ac-sum { color: var(--green); }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-lo  { color: var(--amber); }
+  .tp-hi  { color: var(--accent); }
+  .tp-mid { color: var(--teal); }
+  .tp-ans { color: var(--green); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.green  .val { color: var(--green); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid #1a5e37; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+
+  /* ===== LEETCODE LINK ===== */
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge tp">Linked List · Two-Pointer Merge</span>
+      <span class="badge easy">Easy</span>
+    </div>
+    <h1>Linked List — Merge Two Sorted Lists</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this on <b>LeetCode</b> — "Merge Two Sorted Lists" is the building block of merge sort on lists.</div>
+      <a href="https://leetcode.com/problems/merge-two-sorted-lists/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>Weave two sorted lists into one sorted list by repeatedly linking the smaller head. A dummy node keeps the stitching clean. O(N+M) time, O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Combine two already-sorted lists into a single <strong style="color:var(--green)">sorted</strong> list, reusing the existing nodes (no copies). It's the merge half of merge sort, and the pattern behind merging k lists.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> keep a pointer into each list, <code style="color:var(--amber)">a</code> and <code style="color:var(--accent)">b</code>. Compare their heads, splice the <em>smaller</em> one onto the result tail, and advance that pointer. Repeat until one list empties, then attach the rest of the other (already sorted). A <strong style="color:var(--teal)">dummy head</strong> removes the "is the result empty yet?" special case: you always append to <code>tail.next</code> and return <code>dummy.next</code> at the end.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// dummy + tail, pick smaller head</span><br>
+        <span class="keyword">while</span> a &amp;&amp; b:<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> a.val &lt;= b.val: tail.next=a; a=a.next<br>
+        &nbsp;&nbsp;<span class="keyword">else</span>: tail.next=b; b=b.next<br>
+        &nbsp;&nbsp;tail = tail.next<br>
+        tail.next = a ? a : b   <span class="comment">// attach remainder</span><br>
+        <span class="keyword">return</span> dummy.next
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N+M)</div>
+      <p>Each node from both lists is looked at once and linked once. No node is revisited.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>The merge is in place: it re-links existing nodes. Only the dummy and a couple of pointers are extra.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Inputs &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[1,2,4] + [1,3,4] <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[1,3,5] + [2,4,6] <span class="tag tag-edge">interleave</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[] + [0] <span class="tag tag-edge">one empty</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[1,2,3] + [4,5,6] <span class="tag tag-edge">disjoint</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[2,2] + [1,2] <span class="tag tag-edge">duplicates</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — compare the two heads, splice the smaller onto the result</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> list A / pointer a</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> list B / pointer b</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> merged result</span>
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2);opacity:.4"></span> already consumed</span>
+    </div>
+
+    <!-- LIST A -->
+    <div class="list-wrap">
+      <div class="list-label">List A <span class="k ka" id="labelA"></span></div>
+      <div class="list-outer">
+        <div class="list-row" id="rowA"></div>
+      </div>
+    </div>
+
+    <!-- LIST B -->
+    <div class="list-wrap">
+      <div class="list-label">List B <span class="k kb" id="labelB"></span></div>
+      <div class="list-outer">
+        <div class="list-row" id="rowB"></div>
+      </div>
+    </div>
+
+    <!-- COMPARE -->
+    <div class="alloc-section">
+      <div class="alloc-label">Compare heads</div>
+      <div class="alloc-row"><span class="compare-bubble" id="compare"></span></div>
+    </div>
+
+    <!-- MERGED RESULT -->
+    <div class="list-wrap">
+      <div class="list-label">Merged result <span class="k kr" id="labelR"></span></div>
+      <div class="list-outer">
+        <div class="list-row" id="rowR"></div>
+      </div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-a">a = —</span>
+      <span class="tracker-pill tp-hi" id="pill-b">b = —</span>
+      <span class="tracker-pill tp-mid" id="pill-cmp">picked = —</span>
+      <span class="tracker-pill tp-ans" id="pill-len">merged = —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">a head</div>
+        <div class="val" id="s-a">—</div>
+        <div class="sub">list A</div>
+      </div>
+      <div class="stat-box accent">
+        <div class="lbl">b head</div>
+        <div class="val" id="s-b">—</div>
+        <div class="sub">list B</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">picked</div>
+        <div class="val" id="s-pick">—</div>
+        <div class="sub">smaller head</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">merged len</div>
+        <div class="val" id="s-len">—</div>
+        <div class="sub" id="s-len-sub">nodes linked</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an input and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>a head</th>
+          <th>b head</th>
+          <th>Compare</th>
+          <th>Picked</th>
+          <th>Merged so far</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>merge_two_lists.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">struct</span> <span class="fn">ListNode</span> { <span class="kw">int</span> val; <span class="fn">ListNode</span>* next; };
+
+<span class="cm">// Merge two sorted lists by splicing the smaller head each step.</span>
+<span class="fn">ListNode</span>* <span class="fn">mergeTwoLists</span>(<span class="fn">ListNode</span>* a, <span class="fn">ListNode</span>* b) {
+    <span class="fn">ListNode</span> dummy;              <span class="cm">// sentinel: no empty-result special case</span>
+    <span class="fn">ListNode</span>* tail = &amp;dummy;
+
+    <span class="kw">while</span> (a &amp;&amp; b) {
+        <span class="kw">if</span> (a-&gt;val &lt;= b-&gt;val) {   <span class="cm">// &lt;= keeps the merge stable</span>
+            tail-&gt;next = a; a = a-&gt;next;
+        } <span class="kw">else</span> {
+            tail-&gt;next = b; b = b-&gt;next;
+        }
+        tail = tail-&gt;next;
+    }
+    tail-&gt;next = a ? a : b;       <span class="cm">// attach the leftover sorted tail</span>
+    <span class="kw">return</span> dummy.next;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Dummy head removes the empty-result edge case&#10;- Use <= (not <) so equal values keep stable order&#10;- When one list ends, attach the WHOLE other list (already sorted)&#10;- This is the merge step of merge sort; extends to Merge k Sorted Lists"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="merge-two-sorted-lists"></div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { a:[1,2,4], b:[1,3,4], desc:`<strong style="color:var(--text)">[1,2,4] + [1,3,4] → [1,1,2,3,4,4].</strong> The textbook case. On the first tie (1 vs 1) we take from A because of <code style="color:var(--accent)">&lt;=</code>, keeping the merge stable.` },
+  { a:[1,3,5], b:[2,4,6], desc:`<strong style="color:var(--text)">[1,3,5] + [2,4,6] → [1,2,3,4,5,6].</strong> Perfect interleave: the pick alternates A, B, A, B… every comparison flips to the other list.` },
+  { a:[], b:[0], desc:`<strong style="color:var(--text)">[] + [0] → [0].</strong> One list empty: the while loop never runs, and the leftover attach step grabs all of B. The dummy makes this trivial.` },
+  { a:[1,2,3], b:[4,5,6], desc:`<strong style="color:var(--text)">[1,2,3] + [4,5,6] → [1,2,3,4,5,6].</strong> Disjoint ranges: A drains completely first, then the whole of B is attached in one move.` },
+  { a:[2,2], b:[1,2], desc:`<strong style="color:var(--text)">[2,2] + [1,2] → [1,2,2,2].</strong> Lots of duplicates. B's 1 goes first, then the ties resolve to A each time (<code style="color:var(--accent)">&lt;=</code>), showing stable behavior with repeats.` }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+let A = [], B = [], NA = 0, NB = 0;
+let steps = [], cursor = -1, playing = false, timer = null;
+
+function buildSteps() {
+  const stps = [];
+  let ai = 0, bi = 0;
+  const merged = []; // {v, from:'a'|'b'}
+
+  stps.push({ phase:'init', ai, bi, merged:[], pick:null,
+    msg:`<span class="hi">Dummy node ready.</span> Compare the heads of <span class="amb">A</span> and <span class="acc">B</span>, splice the smaller onto the result, and advance that list. Ties go to A (<span class="tl">&lt;=</span>).` });
+
+  while (ai < NA && bi < NB) {
+    const av = A[ai], bv = B[bi];
+    const takeA = av <= bv;
+    if (takeA) merged.push({v:av, from:'a'}); else merged.push({v:bv, from:'b'});
+    stps.push({ phase:'pick', ai, bi, av, bv, takeA, merged:merged.map(m=>({...m})), pick: takeA?'a':'b',
+      msg:`<span class="hi">Compare <span class="amb">${av}</span> ${takeA?'≤':'>'} <span class="acc">${bv}</span>.</span> Take <span class="${takeA?'amb':'acc'}">${takeA?av:bv}</span> from <span class="${takeA?'amb':'acc'}">${takeA?'A':'B'}</span>, append to result, advance ${takeA?'a':'b'}.` });
+    if (takeA) ai++; else bi++;
+  }
+
+  // attach remainder
+  if (ai < NA) {
+    const rest = A.slice(ai).map(v=>({v, from:'a'}));
+    rest.forEach(r=>merged.push(r));
+    stps.push({ phase:'attach', ai:NA, bi, merged:merged.map(m=>({...m})), pick:'a', restFrom:'A', rest:A.slice(ai),
+      msg:`<span class="hi">B is empty.</span> Attach the rest of <span class="amb">A</span> ([${A.slice(ai).join(', ')}]) — already sorted — to the tail in one move.` });
+  } else if (bi < NB) {
+    const rest = B.slice(bi).map(v=>({v, from:'b'}));
+    rest.forEach(r=>merged.push(r));
+    stps.push({ phase:'attach', ai, bi:NB, merged:merged.map(m=>({...m})), pick:'b', restFrom:'B', rest:B.slice(bi),
+      msg:`<span class="hi">A is empty.</span> Attach the rest of <span class="acc">B</span> ([${B.slice(bi).join(', ')}]) — already sorted — to the tail in one move.` });
+  }
+
+  stps.push({ phase:'done', ai:NA, bi:NB, merged:merged.map(m=>({...m})), pick:null,
+    msg:`<span class="hi">Both lists consumed.</span> <span class="pos">Merged: [${merged.map(m=>m.v).join(', ')}]</span> in O(N+M), all in place.` });
+  return stps;
+}
+
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx) => {
+    const aHead = s.ai < NA ? A[s.ai] : '∅';
+    const bHead = s.bi < NB ? B[s.bi] : '∅';
+    let cmp = '—', pick = '—';
+    if (s.phase==='pick') { cmp = `${s.av} ${s.takeA?'≤':'>'} ${s.bv}`; pick = `${s.takeA?s.av:s.bv} (${s.takeA?'A':'B'})`; }
+    else if (s.phase==='attach') { cmp = 'one empty'; pick = `rest of ${s.restFrom}`; }
+    else if (s.phase==='done') { cmp = 'done'; pick = '—'; }
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td style="color:var(--amber)">${aHead}</td>
+      <td style="color:var(--accent)">${bHead}</td>
+      <td style="color:var(--muted)">${cmp}</td>
+      <td style="color:var(--teal)">${pick}</td>
+      <td style="color:var(--green)">[${s.merged.map(m=>m.v).join(',')}]</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInput(rowId, arr, ptr, cls, headActive) {
+  const row = document.getElementById(rowId);
+  if (!arr.length) { row.innerHTML = `<span class="list-tag">${cls==='a-node'?'A':'B'}</span><div class="node"><span style="color:var(--muted2);font-size:12px">∅</span></div>`; return; }
+  let html = `<span class="list-tag">${cls==='a-node'?'A':'B'}</span>`;
+  for (let k = 0; k < arr.length; k++) {
+    const consumed = k < ptr;
+    const isHead = k === ptr;
+    let c = 'node ' + cls;
+    if (consumed) c += ' consumed';
+    else if (isHead && headActive) c += ' cur';
+    let tag = '';
+    if (isHead && ptr < arr.length) tag = `<span class="ptr-tag ${cls==='a-node'?'pa':'pb'}">${cls==='a-node'?'a':'b'}</span>`;
+    html += `<div class="node-group"><div class="node-col"><div class="ptr-slot">${tag}</div><div class="${c}">${arr[k]}</div><div class="node-idx">${k}</div></div>`;
+    if (k < arr.length-1) html += `<div class="arrow">→</div>`;
+    else html += `<div class="arrow">→ <span style="color:var(--muted2)">∅</span></div>`;
+    html += `</div>`;
+  }
+  row.innerHTML = html;
+}
+
+function renderMerged(s) {
+  const row = document.getElementById('rowR');
+  if (!s.merged.length) { row.innerHTML = `<span class="list-tag" style="color:var(--green)">R</span><div class="node" style="border-style:dashed"><span style="color:var(--muted2);font-size:12px">∅</span></div>`; return; }
+  let html = `<span class="list-tag" style="color:var(--green)">R</span>`;
+  for (let k = 0; k < s.merged.length; k++) {
+    const m = s.merged[k];
+    const justAdded = (s.phase==='pick' && k===s.merged.length-1);
+    let c = 'node merged' + (justAdded ? ' picked' : '');
+    html += `<div class="node-group"><div class="node-col"><div class="ptr-slot"></div><div class="${c}">${m.v}</div><div class="node-idx" style="color:${m.from==='a'?'var(--amber)':'var(--accent)'}">${m.from.toUpperCase()}</div></div>`;
+    if (k < s.merged.length-1) html += `<div class="arrow" style="color:var(--green)">→</div>`;
+    else html += `<div class="arrow" style="color:var(--green)">→ <span style="color:var(--muted2)">∅</span></div>`;
+    html += `</div>`;
+  }
+  row.innerHTML = html;
+}
+
+function renderCompare(s) {
+  const el = document.getElementById('compare');
+  if (s.phase === 'pick') {
+    el.innerHTML = `<span class="va">A: ${s.av}</span> <span class="op">${s.takeA?'≤':'>'}</span> <span class="vb">B: ${s.bv}</span> → take <span class="win">${s.takeA?s.av:s.bv}</span> from ${s.takeA?'A':'B'}`;
+  } else if (s.phase === 'attach') {
+    el.innerHTML = `one list empty → attach rest of <span class="win">${s.restFrom}</span>: [${s.rest.join(', ')}]`;
+  } else if (s.phase === 'done') {
+    el.innerHTML = `<span class="win">merge complete</span>`;
+  } else {
+    el.innerHTML = `waiting to compare heads…`;
+  }
+}
+
+function applyState(idx) {
+  steps.forEach((_,i) => { const tr = document.getElementById('tr-'+i); if (tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    const seed = { phase:'idle', ai:0, bi:0, merged:[], pick:null };
+    renderInput('rowA', A, 0, 'a-node', false);
+    renderInput('rowB', B, 0, 'b-node', false);
+    renderMerged(seed); renderCompare(seed);
+    document.getElementById('pill-a').textContent = `a = ${NA?A[0]:'∅'}`;
+    document.getElementById('pill-b').textContent = `b = ${NB?B[0]:'∅'}`;
+    document.getElementById('pill-cmp').textContent = 'picked = —';
+    document.getElementById('pill-len').textContent = 'merged = 0';
+    document.getElementById('s-a').textContent = NA?A[0]:'∅';
+    document.getElementById('s-b').textContent = NB?B[0]:'∅';
+    document.getElementById('s-pick').textContent = '—';
+    document.getElementById('s-len').textContent = '0';
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('log').innerHTML = 'Select an input and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s = steps[idx];
+  const headActive = s.phase === 'pick';
+  renderInput('rowA', A, s.ai, 'a-node', headActive);
+  renderInput('rowB', B, s.bi, 'b-node', headActive);
+  renderMerged(s); renderCompare(s);
+
+  const aHead = s.ai < NA ? A[s.ai] : '∅';
+  const bHead = s.bi < NB ? B[s.bi] : '∅';
+  const pickVal = s.phase==='pick' ? (s.takeA?s.av:s.bv) : (s.phase==='attach'?`rest ${s.restFrom}`:'—');
+
+  document.getElementById('pill-a').textContent = `a = ${aHead}`;
+  document.getElementById('pill-b').textContent = `b = ${bHead}`;
+  document.getElementById('pill-cmp').textContent = `picked = ${pickVal}`;
+  document.getElementById('pill-len').textContent = `merged = ${s.merged.length}`;
+
+  document.getElementById('s-a').textContent = aHead;
+  document.getElementById('s-b').textContent = bHead;
+  document.getElementById('s-pick').textContent = s.phase==='pick' ? (s.takeA?s.av:s.bv) : '—';
+  document.getElementById('s-len').textContent = s.merged.length;
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.phase === 'done') {
+    const pill = document.getElementById('done-pill');
+    pill.textContent = `✓ [${s.merged.map(m=>m.v).join(', ')}]`;
+    pill.style.display = 'inline-block';
+  }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  A = [...EXAMPLES[i].a]; B = [...EXAMPLES[i].b]; NA = A.length; NB = B.length;
+  document.getElementById('labelA').textContent = `· [${A.join(', ')}]`;
+  document.getElementById('labelB').textContent = `· [${B.join(', ')}]`;
+  document.getElementById('labelR').textContent = '· building…';
+  document.getElementById('example-desc').innerHTML = EXAMPLES[i].desc;
+  steps = buildSteps();
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+  let currentUser = null, isCompleted = false;
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318'; markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80'; markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+  function setLoggedOutState() { markBtn.style.display = 'none'; trackerLogin.style.display = 'block'; trackerStatus.textContent = 'Sign in to track'; }
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) setCompletedState();
+  });
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      else await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+  let currentUser = null, saveTimer = null, isSaving = false;
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') { saveText.textContent = 'Saved'; saveDot.innerHTML = '&#x2705;'; noteIndicator.classList.add('visible'); }
+    else if (status === 'saving') { saveText.textContent = 'Saving...'; saveDot.innerHTML = '&#x23F3;'; }
+    else if (status === 'error') { saveText.textContent = 'Error saving'; saveDot.innerHTML = '&#x274C;'; }
+    else { saveText.textContent = 'Unsaved changes'; saveDot.innerHTML = '&#x25CF;'; }
+  }
+  async function saveNotes() {
+    if (isSaving) return; isSaving = true; setSaveStatus('saving');
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, { text: textarea.value, updatedAt: new Date().toISOString() }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) { localStorage.setItem(LOCAL_KEY, textarea.value); setSaveStatus('error'); }
+    finally { isSaving = false; }
+  }
+  async function loadNotes() {
+    let text = '';
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) {}
+    }
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    if (text.trim()) { noteIndicator.classList.add('visible'); setSaveStatus('saved'); } else setSaveStatus('unsaved');
+  }
+  onAuthStateChanged(auth, async (user) => { currentUser = user; await loadNotes(); });
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) { localStorage.setItem(LOCAL_KEY, textarea.value); if (currentUser && !isSaving) saveNotes(); }
+  });
+</script>
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

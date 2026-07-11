@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMP — Failure Function &amp; Pattern Matching</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.med  { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.pm   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.lc   { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* ── CHARACTER GRID (text + pattern) ── */
+  .grid-wrap { margin-bottom: 1.1rem; }
+  .grid-label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .grid-label .k { font-family: var(--mono); text-transform: none; letter-spacing: 0; }
+  .grid-outer {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .grid-row { display: flex; gap: 5px; align-items: flex-end; min-width: max-content; }
+  .grid-row + .grid-row { margin-top: 6px; }
+  .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ptr-slot { height: 15px; display: flex; gap: 3px; align-items: center; font-size: 11px; font-weight: 700; font-family: var(--mono); }
+  .ptr-slot .pi { color: var(--amber); }
+  .ptr-slot .pj { color: var(--accent); }
+  .gcell {
+    width: 34px; height: 40px; border-radius: 6px;
+    border: 1.5px solid var(--border2); background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--text);
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+  }
+  .gcell.dim      { color: var(--muted); }
+  .gcell.matched  { background: var(--green-bg); border-color: #1a6b3a; color: var(--green); }
+  .gcell.cur-i    { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.18); }
+  .gcell.cur-j    { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px rgba(108,143,255,.18); }
+  .gcell.clash    { background: var(--red-bg); border-color: var(--red); color: var(--red); box-shadow: 0 0 0 3px rgba(248,113,113,.22); }
+  .gcell.found    { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .gcell.pat-offset { visibility: hidden; }
+  .cell-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+
+  /* ── LPS TABLE ── */
+  .lps-section { margin-bottom: 1.1rem; }
+  .lps-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .lps-outer { overflow-x: auto; }
+  .lps-grid { display: flex; gap: 5px; min-width: max-content; }
+  .lps-col { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .lps-cap { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .lps-cell {
+    width: 34px; height: 34px; border-radius: 6px;
+    border: 1.5px solid var(--border2); background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; font-family: var(--mono); color: var(--text);
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .lps-cell.chr   { color: var(--purple); border-color: #3a2155; background: var(--purple-bg); }
+  .lps-cell.set   { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .lps-cell.active { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.18); }
+  .lps-cell.empty { color: var(--muted); }
+
+  /* ── COMPARISON CARDS ── */
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono);
+    display: flex; flex-direction: column; gap: 3px; min-width: 118px;
+  }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); }
+  .alloc-card .ac-sum  { font-weight: 700; }
+  .alloc-card.over { border-color: var(--red);    background: var(--red-bg); }
+  .alloc-card.over .ac-sum { color: var(--red); }
+  .alloc-card.ok   { border-color: var(--green);  background: var(--green-bg); }
+  .alloc-card.ok   .ac-sum { color: var(--green); }
+  .alloc-card.active-card { border-color: var(--amber); background: var(--amber-bg); }
+  .alloc-card.active-card .ac-sum { color: var(--amber); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-lo  { color: var(--amber); }
+  .tp-hi  { color: var(--accent); }
+  .tp-mid { color: var(--teal); }
+  .tp-ans { color: var(--purple); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.purple .val { color: var(--purple); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* MODE TOGGLE */
+  .mode-row { display: flex; gap: 6px; margin-bottom: 1.1rem; }
+  .mode-btn {
+    flex: 1; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--muted); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans); transition: all .15s; text-align: center;
+  }
+  .mode-btn:hover { color: var(--text); border-color: var(--muted); }
+  .mode-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .mode-btn small { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .mode-btn.active small { color: var(--teal); }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+
+  /* ===== LEETCODE LINK ===== */
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge pm">Pattern Matching</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>KMP — Knuth–Morris–Pratt</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+      <a href="https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>Match a pattern in text without ever re-scanning: a precomputed failure function tells you where to fall back — O(N + M) time</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Find every occurrence of a pattern <code style="color:var(--accent)">P</code> inside a text <code style="color:var(--accent)">T</code>. Naive matching restarts the pattern on every mismatch, wasting work. KMP never moves the text pointer backwards.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> precompute the <strong style="color:var(--teal)">failure function</strong> (LPS array): <code style="color:var(--accent)">lps[i]</code> is the length of the longest proper prefix of <code style="color:var(--accent)">P[0..i]</code> that is also a suffix. On a mismatch at pattern index <code style="color:var(--accent)">j</code>, jump to <code style="color:var(--accent)">j = lps[j-1]</code> instead of 0, reusing what already matched. Both phases are linear → <strong style="color:var(--teal)">O(N + M)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// search with the failure function</span><br>
+        i = 0, j = 0<br>
+        <span class="keyword">while</span> i &lt; n:<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> T[i] == P[j]: i++, j++<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> j == m: report i-m; j = lps[j-1]<br>
+        &nbsp;&nbsp;<span class="keyword">elif</span> j &gt; 0: j = lps[j-1]<br>
+        &nbsp;&nbsp;<span class="keyword">else</span>: i++
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N + M)</div>
+      <p>O(M) to build the LPS array, O(N) to scan the text. The text pointer i never decreases, so the search is strictly linear.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(M)</div>
+      <p>The failure function stores one integer per pattern character. Nothing scales with the text length.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">T="ABABDABACDABABCABAB", P="ABABCABAB" <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">T="AABAACAADAABAABA", P="AABA" <span class="tag tag-classic">multi-hit</span></button>
+    <button class="tab" onclick="loadExample(2,this)">T="ABABABAB", P="ABAB" <span class="tag tag-edge">overlapping</span></button>
+    <button class="tab" onclick="loadExample(3,this)">T="ABCDE", P="XYZ" <span class="tag tag-edge">no match</span></button>
+    <button class="tab" onclick="loadExample(4,this)">T="AAAAA", P="AA" <span class="tag tag-edge">all same</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — build the failure function, then search</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <!-- MODE TOGGLE -->
+    <div class="mode-row">
+      <button class="mode-btn active" id="mode-lps" onclick="setMode('lps')">1 · Build LPS<small>the failure function</small></button>
+      <button class="mode-btn" id="mode-search" onclick="setMode('search')">2 · Search text<small>match with fallback</small></button>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <!-- CHARACTER GRID -->
+    <div class="grid-wrap">
+      <div class="grid-label" id="grid-label">Text &amp; pattern</div>
+      <div class="grid-outer">
+        <div class="grid-row" id="text-row"></div>
+        <div class="grid-row" id="pat-row"></div>
+      </div>
+    </div>
+
+    <!-- LPS TABLE -->
+    <div class="lps-section">
+      <div class="lps-label">Failure function — lps[i] = longest proper prefix that is also a suffix</div>
+      <div class="lps-outer">
+        <div class="lps-grid" id="lps-grid"></div>
+      </div>
+    </div>
+
+    <!-- COMPARISON CARDS -->
+    <div class="alloc-section">
+      <div class="alloc-label" id="need-label">Current comparison</div>
+      <div class="alloc-row" id="need-row"></div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo"  id="pill-lo">i = —</span>
+      <span class="tracker-pill tp-hi"  id="pill-hi">j = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">len = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">matches = —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl" id="s-lo-lbl">text index i</div>
+        <div class="val" id="s-lo">—</div>
+        <div class="sub" id="s-lo-sub">scanning text</div>
+      </div>
+      <div class="stat-box accent">
+        <div class="lbl" id="s-hi-lbl">pattern index j</div>
+        <div class="val" id="s-hi">—</div>
+        <div class="sub" id="s-hi-sub">matched prefix</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">prefix length</div>
+        <div class="val" id="s-mid">—</div>
+        <div class="sub" id="s-mid-sub">current border</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl" id="s-ans-lbl">matches found</div>
+        <div class="val" id="s-ans">—</div>
+        <div class="sub" id="s-ans-sub">occurrences</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Pick a phase and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr id="thead-row"></tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>kmp.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Build the failure function (LPS = Longest Proper Prefix which is also Suffix)</span>
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">buildLPS</span>(<span class="kw">const string</span>&amp; p) {
+    <span class="kw">int</span> m = p.size();
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; lps(m, <span class="nm">0</span>);
+    <span class="kw">int</span> len = <span class="nm">0</span>;                 <span class="cm">// length of the current longest border</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; m; ) {
+        <span class="kw">if</span> (p[i] == p[len]) {
+            lps[i++] = ++len;      <span class="cm">// extend the border</span>
+        } <span class="kw">else if</span> (len &gt; <span class="nm">0</span>) {
+            len = lps[len - <span class="nm">1</span>];    <span class="cm">// fall back, don't reset to 0</span>
+        } <span class="kw">else</span> {
+            lps[i++] = <span class="nm">0</span>;
+        }
+    }
+    <span class="kw">return</span> lps;
+}
+
+<span class="cm">// Return all start indices where p occurs in t</span>
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">kmpSearch</span>(<span class="kw">const string</span>&amp; t, <span class="kw">const string</span>&amp; p) {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; res, lps = <span class="fn">buildLPS</span>(p);
+    <span class="kw">int</span> n = t.size(), m = p.size(), i = <span class="nm">0</span>, j = <span class="nm">0</span>;
+    <span class="kw">while</span> (i &lt; n) {
+        <span class="kw">if</span> (t[i] == p[j]) {
+            i++; j++;
+            <span class="kw">if</span> (j == m) {          <span class="cm">// full match</span>
+                res.push_back(i - m);
+                j = lps[j - <span class="nm">1</span>];    <span class="cm">// keep going for overlaps</span>
+            }
+        } <span class="kw">else if</span> (j &gt; <span class="nm">0</span>) {
+            j = lps[j - <span class="nm">1</span>];        <span class="cm">// reuse matched prefix</span>
+        } <span class="kw">else</span> {
+            i++;
+        }
+    }
+    <span class="kw">return</span> res;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">auto</span> hits = <span class="fn">kmpSearch</span>(<span class="st">"ABABDABACDABABCABAB"</span>, <span class="st">"ABABCABAB"</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> idx : hits) cout &lt;&lt; idx &lt;&lt; <span class="st">" "</span>; <span class="cm">// 10</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="kmp"></div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  EXAMPLES
+// ─────────────────────────────────────────────
+const EXAMPLES = [
+  {
+    t: "ABABDABACDABABCABAB", p: "ABABCABAB",
+    desc: `<strong style="color:var(--text)">T="ABABDABACDABABCABAB", P="ABABCABAB".</strong> The textbook KMP case. Its LPS is [0,0,1,2,0,1,2,3,4], and the single match starts at index <strong style="color:var(--purple)">10</strong>. Watch how mismatches jump j back via the failure function instead of restarting.`
+  },
+  {
+    t: "AABAACAADAABAABA", p: "AABA",
+    desc: `<strong style="color:var(--text)">T="AABAACAADAABAABA", P="AABA" — multiple hits.</strong> LPS = [0,1,0,1]. Matches at indices <strong style="color:var(--purple)">0, 9, 12</strong>. The border of length 1 lets the search resume without rescanning the leading 'A'.`
+  },
+  {
+    t: "ABABABAB", p: "ABAB",
+    desc: `<strong style="color:var(--text)">T="ABABABAB", P="ABAB" — overlapping matches.</strong> LPS = [0,0,1,2]. After a full match, j resets to lps[m-1]=2, so the next match overlaps the previous one. Hits at <strong style="color:var(--purple)">0, 2, 4</strong>.`
+  },
+  {
+    t: "ABCDE", p: "XYZ",
+    desc: `<strong style="color:var(--text)">T="ABCDE", P="XYZ" — no match.</strong> LPS = [0,0,0] (no repeated prefixes). Every comparison fails at j=0, so i simply advances. Result: <strong style="color:var(--purple)">no occurrences</strong>.`
+  },
+  {
+    t: "AAAAA", p: "AA",
+    desc: `<strong style="color:var(--text)">T="AAAAA", P="AA" — all identical.</strong> LPS = [0,1]. After each match j falls back to 1, giving dense overlapping hits at <strong style="color:var(--purple)">0, 1, 2, 3</strong>. Shows the failure function reusing a full border.`
+  }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+let T = "", P = "", LPS = [];
+let mode = 'lps';
+let steps = [], cursor = -1, playing = false, timer = null;
+
+// ─────────────────────────────────────────────
+//  BUILD LPS STEPS
+// ─────────────────────────────────────────────
+function buildLPSSteps(p) {
+  const m = p.length;
+  const lps = new Array(m).fill(0);
+  const stps = [];
+
+  stps.push({
+    kind:'lps', i:1, len:0, cmp:null, lps:[...lps], setIdx:-1,
+    msg:`<span class="hi">Start building the failure function.</span> lps[0] = <span class="tl">0</span> always (a single char has no proper border). Set i = 1, len = 0. len tracks the longest border matched so far.`
+  });
+
+  let len = 0, i = 1;
+  while (i < m) {
+    if (p[i] === p[len]) {
+      len++;
+      lps[i] = len;
+      stps.push({
+        kind:'lps', i, len, cmp:'match', lps:[...lps], setIdx:i, matchLen:len,
+        msg:`<span class="hi">P[${i}]='<span class="acc">${p[i]}</span>' == P[${len-1}]='<span class="tl">${p[len-1]}</span>'.</span> <span class="pos">Border extends</span> to length <span class="tl">${len}</span>. Set lps[${i}] = ${len}, advance i → ${i+1}.`
+      });
+      i++;
+    } else if (len > 0) {
+      const oldLen = len;
+      len = lps[len - 1];
+      stps.push({
+        kind:'lps', i, len, cmp:'fallback', lps:[...lps], setIdx:-1, fallbackFrom:oldLen,
+        msg:`<span class="hi">P[${i}]='<span class="acc">${p[i]}</span>' ≠ P[${oldLen}]='<span class="neg">${p[oldLen]}</span>'.</span> Don't reset to 0 — fall back: len = lps[${oldLen-1}] = <span class="tl">${len}</span>, then retry the comparison at i=${i}.`
+      });
+    } else {
+      lps[i] = 0;
+      stps.push({
+        kind:'lps', i, len:0, cmp:'zero', lps:[...lps], setIdx:i,
+        msg:`<span class="hi">P[${i}]='<span class="acc">${p[i]}</span>' ≠ P[0]='<span class="neg">${p[0]}</span>' and len is 0.</span> No border here: set lps[${i}] = 0, advance i → ${i+1}.`
+      });
+      i++;
+    }
+  }
+
+  stps.push({
+    kind:'lps', i:m, len, cmp:'done', lps:[...lps], setIdx:-1,
+    msg:`<span class="hi">Failure function complete.</span> lps = [<span class="tl">${lps.join(', ')}</span>]. Each value is the length of the longest proper prefix of that slice that is also a suffix. This table drives the search phase.`
+  });
+
+  return { stps, lps };
+}
+
+// ─────────────────────────────────────────────
+//  BUILD SEARCH STEPS
+// ─────────────────────────────────────────────
+function buildSearchSteps(t, p, lps) {
+  const n = t.length, m = p.length;
+  const stps = [];
+  const matches = [];
+
+  stps.push({
+    kind:'search', i:0, j:0, cmp:null, matches:[], lastMatch:-1,
+    msg:`<span class="hi">Begin search.</span> i = 0 (text), j = 0 (pattern). Compare T[i] with P[j]; the text pointer i will never move backwards.`
+  });
+
+  let i = 0, j = 0;
+  let guard = 0;
+  while (i < n && guard++ < 4000) {
+    if (t[i] === p[j]) {
+      const ni = i + 1, nj = j + 1;
+      if (nj === m) {
+        const start = ni - m;
+        matches.push(start);
+        const fb = lps[nj - 1];
+        stps.push({
+          kind:'search', i:ni, j:nj, cmp:'full', matches:[...matches], lastMatch:start, matchStart:start, fbTo:fb,
+          msg:`<span class="hi">T[${i}]='<span class="amb">${t[i]}</span>' == P[${j}]='<span class="acc">${p[j]}</span>', and j hit m=${m}.</span> <span class="pos">Full match at index ${start}!</span> Record it, then fall back j = lps[${m-1}] = <span class="tl">${fb}</span> to catch overlaps.`
+        });
+        i = ni; j = fb;
+      } else {
+        stps.push({
+          kind:'search', i:ni, j:nj, cmp:'match', matches:[...matches], lastMatch:matches.length?matches[matches.length-1]:-1,
+          msg:`<span class="hi">T[${i}]='<span class="amb">${t[i]}</span>' == P[${j}]='<span class="acc">${p[j]}</span>'.</span> <span class="pos">Match</span> — advance both: i → ${ni}, j → ${nj}.`
+        });
+        i = ni; j = nj;
+      }
+    } else if (j > 0) {
+      const oldJ = j;
+      const fb = lps[j - 1];
+      stps.push({
+        kind:'search', i, j:fb, cmp:'fallback', matches:[...matches], lastMatch:matches.length?matches[matches.length-1]:-1, fbFrom:oldJ,
+        msg:`<span class="hi">T[${i}]='<span class="amb">${t[i]}</span>' ≠ P[${oldJ}]='<span class="neg">${p[oldJ]}</span>'.</span> Reuse the matched prefix: j = lps[${oldJ-1}] = <span class="tl">${fb}</span>. i stays at ${i} — no rescan.`
+      });
+      j = fb;
+    } else {
+      stps.push({
+        kind:'search', i:i+1, j:0, cmp:'skip', matches:[...matches], lastMatch:matches.length?matches[matches.length-1]:-1,
+        msg:`<span class="hi">T[${i}]='<span class="amb">${t[i]}</span>' ≠ P[0]='<span class="neg">${p[0]}</span>' with j=0.</span> Nothing matched yet, just advance i → ${i+1}.`
+      });
+      i = i + 1;
+    }
+  }
+
+  stps.push({
+    kind:'search', i, j, cmp:'done', matches:[...matches], lastMatch:matches.length?matches[matches.length-1]:-1, finished:true,
+    msg: matches.length
+      ? `<span class="hi">Reached the end of the text.</span> <span class="pos">${matches.length} match(es)</span> at index/indices <span class="sol">${matches.join(', ')}</span>. The text pointer only ever moved forward.`
+      : `<span class="hi">Reached the end of the text.</span> <span class="neg">No occurrence of P in T.</span>`
+  });
+
+  return { stps, matches };
+}
+
+// ─────────────────────────────────────────────
+//  LEGENDS
+// ─────────────────────────────────────────────
+function renderLegend() {
+  const el = document.getElementById('legend');
+  if (mode === 'lps') {
+    el.innerHTML = `
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> i (extending)</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> len (prefix pointer)</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> lps value written</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> mismatch → fall back</span>`;
+  } else {
+    el.innerHTML = `
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> text pointer i</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> pattern pointer j</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:#1a6b3a"></span> matched so far</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> mismatch</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> full occurrence</span>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  TABLE HEADERS + ROWS
+// ─────────────────────────────────────────────
+function buildTableRows() {
+  const thead = document.getElementById('thead-row');
+  const tbody = document.getElementById('step-tbody');
+  if (mode === 'lps') {
+    thead.innerHTML = `<th>Step</th><th>i</th><th>len</th><th>P[i] vs P[len]</th><th>Action</th><th>lps snapshot</th>`;
+    tbody.innerHTML = steps.map((s,idx) => {
+      let action, cmpStr;
+      if (s.cmp === 'match')        { action='lps[i]=++len; i++';   cmpStr=`<span style="color:var(--green)">equal</span>`; }
+      else if (s.cmp === 'fallback'){ action='len = lps[len-1]';    cmpStr=`<span style="color:var(--red)">differ</span>`; }
+      else if (s.cmp === 'zero')    { action='lps[i]=0; i++';       cmpStr=`<span style="color:var(--red)">differ</span>`; }
+      else if (s.cmp === 'done')    { action='return lps';          cmpStr='—'; }
+      else                          { action='init';                cmpStr='—'; }
+      return `<tr id="tr-${idx}">
+        <td>${idx+1}</td>
+        <td style="color:var(--amber)">${s.i}</td>
+        <td style="color:var(--accent)">${s.len}</td>
+        <td>${cmpStr}</td>
+        <td style="color:var(--muted)">${action}</td>
+        <td style="color:var(--teal)">[${s.lps.join(',')}]</td>
+      </tr>`;
+    }).join('');
+  } else {
+    thead.innerHTML = `<th>Step</th><th>i</th><th>j</th><th>T[i] vs P[j]</th><th>Action</th><th>Matches</th>`;
+    tbody.innerHTML = steps.map((s,idx) => {
+      let action, cmpStr;
+      if (s.cmp === 'match')        { action='i++; j++';                 cmpStr=`<span style="color:var(--green)">equal</span>`; }
+      else if (s.cmp === 'full')    { action='report; j=lps[j-1]';       cmpStr=`<span style="color:var(--green)">equal (full)</span>`; }
+      else if (s.cmp === 'fallback'){ action='j = lps[j-1]';             cmpStr=`<span style="color:var(--red)">differ</span>`; }
+      else if (s.cmp === 'skip')    { action='i++';                      cmpStr=`<span style="color:var(--red)">differ</span>`; }
+      else if (s.cmp === 'done')    { action='return matches';           cmpStr='—'; }
+      else                          { action='init';                     cmpStr='—'; }
+      return `<tr id="tr-${idx}">
+        <td>${idx+1}</td>
+        <td style="color:var(--amber)">${s.i}</td>
+        <td style="color:var(--accent)">${s.j}</td>
+        <td>${cmpStr}</td>
+        <td style="color:var(--muted)">${action}</td>
+        <td style="color:var(--purple)">${s.matches.length?'['+s.matches.join(',')+']':'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RENDER CHARACTER GRID
+// ─────────────────────────────────────────────
+function renderGrid(st) {
+  const textRow = document.getElementById('text-row');
+  const patRow  = document.getElementById('pat-row');
+
+  if (mode === 'lps') {
+    // text row hidden in LPS mode → show pattern only, twice conceptually
+    textRow.innerHTML = '';
+    let html = '';
+    for (let k = 0; k < P.length; k++) {
+      let cls = 'gcell';
+      if (st.cmp === 'match' && (k === st.i || k === st.len - 1)) cls += (k === st.i ? ' cur-i' : ' cur-j');
+      else if (k === st.i && st.i < P.length) cls += ' cur-i';
+      else if (k === st.len && st.len < P.length) cls += ' cur-j';
+      else if (st.setIdx >= 0 && k <= st.setIdx) cls += ' matched';
+      else cls += ' dim';
+      let ptr = '';
+      if (k === st.i && st.i < P.length) ptr += '<span class="pi">i</span>';
+      if (k === st.len && st.len < P.length) ptr += '<span class="pj">len</span>';
+      html += `<div class="cell-wrap"><div class="ptr-slot">${ptr}</div><div class="${cls}">${P[k]}</div><div class="cell-idx">${k}</div></div>`;
+    }
+    patRow.innerHTML = html;
+    return;
+  }
+
+  // SEARCH mode: text on top, pattern aligned under the current window
+  const alignStart = st.i - st.j;  // where pattern[0] sits against the text
+  let thtml = '';
+  for (let k = 0; k < T.length; k++) {
+    let cls = 'gcell';
+    const inWindow = k >= alignStart && k < alignStart + st.j;
+    const isFull = st.cmp === 'full' && k >= st.matchStart && k < st.matchStart + P.length;
+    if (isFull) cls += ' found';
+    else if (k === st.i && st.cmp !== 'done') cls += (st.cmp === 'fallback' || st.cmp === 'skip') ? ' clash' : ' cur-i';
+    else if (inWindow) cls += ' matched';
+    else if (st.matches.some(mm => k >= mm && k < mm + P.length)) cls += ' found';
+    else cls += ' dim';
+    let ptr = (k === st.i && st.cmp !== 'done') ? '<span class="pi">i</span>' : '';
+    thtml += `<div class="cell-wrap"><div class="ptr-slot">${ptr}</div><div class="${cls}">${T[k]}</div><div class="cell-idx">${k}</div></div>`;
+  }
+  textRow.innerHTML = thtml;
+
+  // pattern row, offset so P[j] sits under T[i]
+  let phtml = '';
+  for (let off = 0; off < alignStart; off++) {
+    phtml += `<div class="cell-wrap"><div class="ptr-slot"></div><div class="gcell pat-offset">·</div><div class="cell-idx"></div></div>`;
+  }
+  for (let k = 0; k < P.length; k++) {
+    let cls = 'gcell';
+    if (k < st.j) cls += ' matched';
+    else if (k === st.j && st.cmp !== 'done') cls += (st.cmp === 'fallback' || st.cmp === 'skip') ? ' clash' : ' cur-j';
+    else cls += ' dim';
+    let ptr = (k === st.j && st.cmp !== 'done') ? '<span class="pj">j</span>' : '';
+    phtml += `<div class="cell-wrap"><div class="ptr-slot">${ptr}</div><div class="${cls}">${P[k]}</div><div class="cell-idx">${k}</div></div>`;
+  }
+  patRow.innerHTML = phtml;
+}
+
+// ─────────────────────────────────────────────
+//  RENDER LPS TABLE
+// ─────────────────────────────────────────────
+function renderLPS(st) {
+  const grid = document.getElementById('lps-grid');
+  const values = (mode === 'lps') ? st.lps : LPS;
+  let html = '';
+  for (let k = 0; k < P.length; k++) {
+    const charActive = (mode === 'lps') && (k === st.i);
+    const written = (mode === 'lps')
+      ? (st.setIdx >= 0 ? k <= st.setIdx : (st.cmp === 'done' ? true : k < st.i))
+      : true;
+    const cls = charActive ? 'lps-cell active' : (written ? 'lps-cell set' : 'lps-cell empty');
+    html += `<div class="lps-col">
+      <div class="lps-cap">idx ${k}</div>
+      <div class="lps-cell chr">${P[k]}</div>
+      <div class="${cls}">${written ? values[k] : '·'}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+//  RENDER COMPARISON CARDS
+// ─────────────────────────────────────────────
+function renderNeed(st) {
+  const row = document.getElementById('need-row');
+  if (mode === 'lps') {
+    if (st.cmp === 'done' || st.cmp === null) {
+      row.innerHTML = st.cmp === 'done'
+        ? `<div class="alloc-card ok"><div class="ac-head">failure function</div><div class="ac-books">[${st.lps.join(', ')}]</div><div class="ac-sum">built ✓</div></div>`
+        : `<span style="font-size:12px;color:var(--muted)">Comparing P[i] against P[len] to grow borders…</span>`;
+      return;
+    }
+    const a = P[st.i], b = st.cmp === 'match' ? P[st.len-1] : P[st.len];
+    const eq = st.cmp === 'match';
+    row.innerHTML = `
+      <div class="alloc-card active-card"><div class="ac-head">P[i] · idx ${st.i}</div><div class="ac-books">char '${a}'</div><div class="ac-sum">scanning</div></div>
+      <div class="alloc-card active-card"><div class="ac-head">P[len] · idx ${eq?st.len-1:st.len}</div><div class="ac-books">char '${b??'—'}'</div><div class="ac-sum">prefix end</div></div>
+      <div class="alloc-card ${eq?'ok':'over'}"><div class="ac-head">border</div><div class="ac-books">len = ${st.len}</div><div class="ac-sum">${eq?'extended ✓':'fall back ↩'}</div></div>`;
+  } else {
+    if (st.cmp === 'done' || st.cmp === null) {
+      row.innerHTML = st.cmp === 'done'
+        ? `<div class="alloc-card ${st.matches.length?'ok':'over'}"><div class="ac-head">result</div><div class="ac-books">${st.matches.length?'['+st.matches.join(', ')+']':'no match'}</div><div class="ac-sum">${st.matches.length?st.matches.length+' found ✓':'0 found ✗'}</div></div>`
+        : `<span style="font-size:12px;color:var(--muted)">Comparing T[i] against P[j], falling back via lps on mismatch…</span>`;
+      return;
+    }
+    const eq = st.cmp === 'match' || st.cmp === 'full';
+    const ti = eq ? T[st.i-1] : T[st.i];
+    const pj = eq ? P[st.j-1] : P[st.j];
+    row.innerHTML = `
+      <div class="alloc-card active-card"><div class="ac-head">T[i]</div><div class="ac-books">char '${ti??'—'}'</div><div class="ac-sum">text</div></div>
+      <div class="alloc-card active-card"><div class="ac-head">P[j]</div><div class="ac-books">char '${pj??'—'}'</div><div class="ac-sum">pattern</div></div>
+      <div class="alloc-card ${eq?'ok':'over'}"><div class="ac-head">${st.cmp==='full'?'occurrence':'compare'}</div><div class="ac-books">${eq?'characters equal':'characters differ'}</div><div class="ac-sum">${st.cmp==='full'?'MATCH ✓':eq?'advance ✓':'fall back ↩'}</div></div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  APPLY STATE
+// ─────────────────────────────────────────────
+function applyState(idx) {
+  steps.forEach((_,i) => {
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    const seed = mode === 'lps'
+      ? { i:1, len:0, cmp:null, lps:new Array(P.length).fill(0), setIdx:-1 }
+      : { i:0, j:0, cmp:null, matches:[], lastMatch:-1 };
+    renderGrid(seed); renderLPS(seed); renderNeed(seed);
+    setPills(seed); setStats(seed);
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('log').innerHTML = 'Press <strong style="color:var(--text)">Play</strong> to run this phase.';
+    return;
+  }
+
+  const s = steps[idx];
+  renderGrid(s); renderLPS(s); renderNeed(s);
+  setPills(s); setStats(s);
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.cmp === 'done') {
+    const pill = document.getElementById('done-pill');
+    pill.textContent = mode === 'lps'
+      ? `✓ LPS = [${s.lps.join(',')}]`
+      : (s.matches.length ? `✓ Matches: ${s.matches.join(', ')}` : '✓ No match');
+    pill.style.display = 'inline-block';
+  }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function setPills(s) {
+  if (mode === 'lps') {
+    document.getElementById('pill-lo').textContent  = `i = ${s.i}`;
+    document.getElementById('pill-hi').textContent  = `len = ${s.len}`;
+    document.getElementById('pill-mid').textContent = `lps[${Math.max(0,s.i-1)}] = ${s.lps[Math.max(0,s.i-1)] ?? '—'}`;
+    document.getElementById('pill-ans').textContent = `built = ${s.cmp==='done'?'yes':'…'}`;
+  } else {
+    document.getElementById('pill-lo').textContent  = `i = ${s.i}`;
+    document.getElementById('pill-hi').textContent  = `j = ${s.j}`;
+    document.getElementById('pill-mid').textContent = `prefix = ${s.j}`;
+    document.getElementById('pill-ans').textContent = `matches = ${s.matches ? s.matches.length : 0}`;
+  }
+}
+
+function setStats(s) {
+  if (mode === 'lps') {
+    document.getElementById('s-lo-lbl').textContent = 'pattern index i';
+    document.getElementById('s-hi-lbl').textContent = 'prefix len';
+    document.getElementById('s-ans-lbl').textContent = 'lps built';
+    document.getElementById('s-lo').textContent = s.i;
+    document.getElementById('s-lo-sub').textContent = 'extending scan';
+    document.getElementById('s-hi').textContent = s.len;
+    document.getElementById('s-hi-sub').textContent = 'current border';
+    document.getElementById('s-mid').textContent = s.len;
+    document.getElementById('s-mid-sub').textContent = 'longest border';
+    document.getElementById('s-ans').textContent = s.cmp==='done' ? '✓' : '…';
+    document.getElementById('s-ans-sub').textContent = s.cmp==='done' ? 'table ready' : 'in progress';
+  } else {
+    document.getElementById('s-lo-lbl').textContent = 'text index i';
+    document.getElementById('s-hi-lbl').textContent = 'pattern index j';
+    document.getElementById('s-ans-lbl').textContent = 'matches found';
+    document.getElementById('s-lo').textContent = s.i;
+    document.getElementById('s-lo-sub').textContent = 'never rewinds';
+    document.getElementById('s-hi').textContent = s.j;
+    document.getElementById('s-hi-sub').textContent = 'matched prefix';
+    document.getElementById('s-mid').textContent = s.j;
+    document.getElementById('s-mid-sub').textContent = 'chars aligned';
+    document.getElementById('s-ans').textContent = s.matches ? s.matches.length : 0;
+    document.getElementById('s-ans-sub').textContent = (s.matches && s.matches.length) ? 'at ['+s.matches.join(',')+']' : 'occurrences';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  MODE + EXAMPLE LOADING
+// ─────────────────────────────────────────────
+function rebuildSteps() {
+  if (mode === 'lps') {
+    const r = buildLPSSteps(P);
+    steps = r.stps; LPS = r.lps;
+  } else {
+    if (!LPS.length) LPS = buildLPSSteps(P).lps;
+    steps = buildSearchSteps(T, P, LPS).stps;
+  }
+  buildTableRows();
+  renderLegend();
+  cursor = -1;
+  applyState(-1);
+}
+
+function setMode(nextMode) {
+  if (mode === nextMode) return;
+  stopPlay();
+  mode = nextMode;
+  document.getElementById('mode-lps').classList.toggle('active', mode==='lps');
+  document.getElementById('mode-search').classList.toggle('active', mode==='search');
+  document.getElementById('grid-label').textContent = mode==='lps' ? 'Pattern — comparing P[i] with P[len]' : 'Text (top) & pattern aligned under the window';
+  rebuildSteps();
+}
+
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[i];
+  T = ex.t; P = ex.p; LPS = [];
+  document.getElementById('example-desc').innerHTML = ex.desc;
+  LPS = buildLPSSteps(P).lps;   // precompute so search mode is ready either way
+  rebuildSteps();
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+
+<!-- ===== ACTIVE-TIME AUTO-SAVE ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  window.addEventListener('beforeunload', () => saveTime());
+
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

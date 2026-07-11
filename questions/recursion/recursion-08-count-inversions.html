@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Count Inversions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--teal:#2dd4bf;--purple:#c084fc;--amber:#fbbf24;--green:#4ade80;--red:#f87171;--accent:#6c8fff;--text:#e6e8ef;--muted:#8b90a5;--dim:#5c6076;--mono:'Fira Code',ui-monospace,monospace;--sans:'Inter',system-ui,sans-serif;--border:rgba(255,255,255,.07);}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;padding:0 20px 80px;background-image:radial-gradient(circle at 20% -10%,rgba(108,143,255,.08),transparent 40%),radial-gradient(circle at 90% 0%,rgba(192,132,252,.06),transparent 35%);}
+.wrap{max-width:1080px;margin:0 auto}::selection{background:var(--accent);color:#fff}
+.practice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding:14px 20px;background:linear-gradient(90deg,rgba(45,212,191,.12),rgba(108,143,255,.10));border:1px solid var(--border);border-radius:14px;font-size:14px}
+.practice .tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:rgba(45,212,191,.12);padding:4px 10px;border-radius:6px}
+.practice a{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px solid var(--dim);transition:border-color .2s}
+.practice a:hover{border-color:var(--accent)}.practice .sep{color:var(--dim)}
+header{margin-top:34px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.badge.b-teal{color:var(--teal);background:rgba(45,212,191,.10)}.badge.b-purple{color:var(--purple);background:rgba(192,132,252,.10)}.badge.b-amber{color:var(--amber);background:rgba(251,191,36,.10)}.badge.b-accent{color:var(--accent);background:rgba(108,143,255,.10)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1}h1 .accent{color:var(--teal)}
+.subtitle{color:var(--muted);font-size:18px;margin-top:10px;max-width:70ch}
+section{margin-top:44px}
+.section-label{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.concept-card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.concept-card h3 .dot{width:9px;height:9px;border-radius:50%}
+.concept-card p{color:var(--muted);font-size:15px}.concept-card p b{color:var(--text);font-weight:600}
+.concept-card code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:5px;color:var(--teal)}
+.concept-card ul{list-style:none;margin-top:10px}.concept-card li{color:var(--muted);font-size:14.5px;padding:5px 0 5px 20px;position:relative}
+.concept-card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:4px}
+.io-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.io-row label{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.io-row input[type=text]{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);width:210px}
+.io-row input[type=text]:focus{outline:none;border-color:var(--accent)}
+.mini-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 14px;cursor:pointer;transition:.18s}
+.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stage{padding:14px 0 8px}
+.subs{display:flex;gap:26px;justify-content:center;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.subgroup{text-align:center}
+.subgroup .cap{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:6px}
+.row{display:flex;gap:5px;justify-content:center}
+.cellb{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700;background:var(--surface2);color:var(--muted);transition:.25s;position:relative}
+.cellb.left{background:rgba(45,212,191,.14);color:var(--teal);box-shadow:inset 0 0 0 1px rgba(45,212,191,.3)}
+.cellb.right{background:rgba(192,132,252,.14);color:var(--purple);box-shadow:inset 0 0 0 1px rgba(192,132,252,.3)}
+.cellb.pL{box-shadow:0 0 0 2px var(--teal)}
+.cellb.pR{box-shadow:0 0 0 2px var(--purple)}
+.cellb.taken{opacity:.3}
+.cellb.inv{box-shadow:0 0 0 2px var(--red);background:rgba(248,113,113,.18);color:var(--red)}
+.merged-row{display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:48px;margin-top:6px}
+.merged-row .lab{font-family:var(--mono);font-size:11px;color:var(--dim);margin-right:6px}
+.mc{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700;background:rgba(74,222,128,.14);color:var(--green);border:1px solid rgba(74,222,128,.3);animation:pop .25s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(1.1)}
+.kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:var(--muted)}
+.speed-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:5px;background:var(--surface2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,143,255,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.progress-track{height:7px;background:var(--surface2);border-radius:7px;margin-top:22px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:7px;transition:width .3s ease}
+.progress-caption{text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:16px}
+.stat .label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.stat .val{font-size:24px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.stat.s-teal .val{color:var(--teal)}.stat.s-green .val{color:var(--green)}.stat.s-red .val{color:var(--red)}.stat.s-amber .val{color:var(--amber)}.stat.s-purple .val{color:var(--purple)}
+.log-box{margin-top:22px;background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:16px 18px;font-family:var(--mono);font-size:13px;height:150px;overflow-y:auto}
+.log-box div{padding:2px 0;color:var(--muted)}
+.log-box .l-teal{color:var(--teal)}.log-box .l-amber{color:var(--amber)}.log-box .l-red{color:var(--red)}.log-box .l-green{color:var(--green)}.log-box .l-purple{color:var(--purple)}
+.log-box::-webkit-scrollbar{width:8px}.log-box::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px}
+.code-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-block pre{margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.tok-key{color:var(--purple)}.tok-type{color:var(--teal)}.tok-fn{color:var(--accent)}.tok-num{color:var(--amber)}.tok-str{color:var(--green)}.tok-com{color:var(--dim);font-style:italic}
+.copy-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.18s}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}.copy-btn.done{color:var(--green);border-color:var(--green)}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.cx-card .label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cx-card .big{font-family:var(--mono);font-size:22px;font-weight:700;margin:8px 0;color:var(--amber)}.cx-card .big.good{color:var(--green)}
+.cx-card p{font-size:13px;color:var(--muted)}
+.notes{background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(108,143,255,.05));border:1px solid var(--border);border-radius:16px;padding:26px}
+.notes ul{list-style:none}.notes li{padding:8px 0 8px 26px;position:relative;color:var(--muted);font-size:15px}
+.notes li::before{content:'✦';position:absolute;left:0;color:var(--purple)}.notes li b{color:var(--text);font-weight:600}
+footer{margin-top:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){h1{font-size:30px}.concept-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cx-grid{grid-template-columns:1fr}.cellb{width:34px;height:34px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="practice">
+    <span class="tag">Practice</span>
+    <a href="https://www.geeksforgeeks.org/counting-inversions/" target="_blank">GFG · Count Inversions</a>
+    <span class="sep">·</span>
+    <a href="https://leetcode.com/problems/count-of-smaller-numbers-after-self/" target="_blank">LeetCode 315 · Count of Smaller After Self (related)</a>
+  </div>
+  <header>
+    <div class="badges"><span class="badge b-teal">Recursion</span><span class="badge b-accent">Divide &amp; Conquer</span><span class="badge b-purple">Merge Sort</span><span class="badge b-amber">Inversions</span></div>
+    <h1>Count Inversions</h1>
+    <p class="subtitle">An inversion is a pair <code>i &lt; j</code> with <code>a[i] &gt; a[j]</code>: an out-of-order pair. Piggyback on merge sort: while merging two sorted halves, every time you pull from the right half, it jumps ahead of all remaining left elements.</p>
+  </header>
+  <section>
+    <div class="section-label">Concept</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--teal)"></span>Count during the merge</h3>
+        <p>Split, recurse, then merge two sorted halves. When the <b>right</b> element is smaller than the current <b>left</b> element, it's smaller than <b>every</b> remaining left element too, so add <code>(mid - i + 1)</code> inversions at once.</p>
+      </div>
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--purple)"></span>Three sources sum up</h3>
+        <ul>
+          <li>Inversions fully inside the left half</li>
+          <li>Inversions fully inside the right half</li>
+          <li>Cross inversions counted at merge time</li>
+          <li>Total = left + right + cross</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Interactive</div>
+    <h2>Merge and tally</h2>
+    <div class="panel">
+      <div class="legend">
+        <span><i class="sw" style="background:var(--teal)"></i>Left half</span>
+        <span><i class="sw" style="background:var(--purple)"></i>Right half</span>
+        <span><i class="sw" style="background:var(--red)"></i>Inversion counted</span>
+        <span><i class="sw" style="background:var(--green)"></i>Merged output</span>
+      </div>
+      <div class="io-row">
+        <label>Array</label>
+        <input type="text" id="arrInput" value="8,4,2,1">
+        <button class="mini-btn" id="loadBtn">Run</button>
+      </div>
+      <div class="stage">
+        <div class="subs" id="subs"></div>
+        <div class="merged-row" id="mergedRow"><span class="lab">merged:</span></div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="prevBtn">◀ Prev <span class="kbd">←</span></button>
+        <button class="btn primary" id="playBtn">▶ Play <span class="kbd">space</span></button>
+        <button class="btn" id="nextBtn">Next ▶ <span class="kbd">→</span></button>
+        <button class="btn" id="resetBtn">↺ Reset <span class="kbd">R</span></button>
+      </div>
+      <div class="speed-row"><span>slow</span><input type="range" id="speed" min="120" max="1200" value="560" step="40"><span>fast</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-caption" id="progCaption">Step 0</div>
+      <div class="stats">
+        <div class="stat s-red"><div class="label">Total inversions</div><div class="val" id="statInv">0</div></div>
+        <div class="stat s-amber"><div class="label">This merge</div><div class="val" id="statThis">0</div></div>
+        <div class="stat s-teal"><div class="label">Merges done</div><div class="val" id="statMerges">0</div></div>
+        <div class="stat s-purple"><div class="label">Range</div><div class="val" id="statRange">–</div></div>
+      </div>
+      <div class="log-box" id="log"></div>
+    </div>
+  </section>
+  <section>
+    <div class="code-head">
+      <div><div class="section-label" style="margin-bottom:4px">Implementation</div><h2 style="margin:0">C++</h2></div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block">
+<pre><code id="codeText"><span class="tok-key">long long</span> <span class="tok-fn">mergeCount</span>(vector&lt;<span class="tok-type">int</span>&gt;&amp; a, <span class="tok-type">int</span> lo, <span class="tok-type">int</span> mid, <span class="tok-type">int</span> hi) {
+    vector&lt;<span class="tok-type">int</span>&gt; tmp; tmp.reserve(hi - lo + <span class="tok-num">1</span>);
+    <span class="tok-type">int</span> i = lo, j = mid + <span class="tok-num">1</span>;
+    <span class="tok-key">long long</span> inv = <span class="tok-num">0</span>;
+    <span class="tok-key">while</span> (i &lt;= mid &amp;&amp; j &lt;= hi) {
+        <span class="tok-key">if</span> (a[i] &lt;= a[j]) tmp.push_back(a[i++]);
+        <span class="tok-key">else</span> {
+            tmp.push_back(a[j++]);
+            inv += (mid - i + <span class="tok-num">1</span>);   <span class="tok-com">// a[i..mid] all &gt; a[j]</span>
+        }
+    }
+    <span class="tok-key">while</span> (i &lt;= mid) tmp.push_back(a[i++]);
+    <span class="tok-key">while</span> (j &lt;= hi)  tmp.push_back(a[j++]);
+    <span class="tok-key">for</span> (<span class="tok-type">int</span> k = <span class="tok-num">0</span>; k &lt; tmp.size(); k++) a[lo + k] = tmp[k];
+    <span class="tok-key">return</span> inv;
+}
+
+<span class="tok-key">long long</span> <span class="tok-fn">countInv</span>(vector&lt;<span class="tok-type">int</span>&gt;&amp; a, <span class="tok-type">int</span> lo, <span class="tok-type">int</span> hi) {
+    <span class="tok-key">if</span> (lo &gt;= hi) <span class="tok-key">return</span> <span class="tok-num">0</span>;
+    <span class="tok-type">int</span> mid = (lo + hi) / <span class="tok-num">2</span>;
+    <span class="tok-key">return</span> <span class="tok-fn">countInv</span>(a, lo, mid)          <span class="tok-com">// left</span>
+         + <span class="tok-fn">countInv</span>(a, mid + <span class="tok-num">1</span>, hi)      <span class="tok-com">// right</span>
+         + <span class="tok-fn">mergeCount</span>(a, lo, mid, hi);   <span class="tok-com">// cross</span>
+}</code></pre>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Complexity</div>
+    <div class="cx-grid">
+      <div class="cx-card"><div class="label">Time</div><div class="big good">O(n log n)</div><p>Merge sort's recursion tree: log n levels, O(n) work per level.</p></div>
+      <div class="cx-card"><div class="label">Space</div><div class="big">O(n)</div><p>The temporary buffer used during each merge.</p></div>
+      <div class="cx-card"><div class="label">Brute force</div><div class="big" style="color:var(--red)">O(n²)</div><p>Checking all pairs. The merge trick is the big win.</p></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Notes</div>
+    <div class="notes">
+      <ul>
+        <li><b>The key line:</b> <code style="font-family:var(--mono);color:var(--teal)">inv += mid - i + 1</code>. Because both halves are sorted, one right-element beating <code>a[i]</code> beats everything from <code>i</code> to <code>mid</code> in one shot.</li>
+        <li>Use <code style="font-family:var(--mono);color:var(--teal)">a[i] &lt;= a[j]</code> (not <code>&lt;</code>) so equal elements aren't miscounted as inversions.</li>
+        <li>Watch overflow: the max inversion count is <code style="font-family:var(--mono);color:var(--teal)">n(n-1)/2</code>, use 64-bit.</li>
+        <li>This is the canonical <b>"merge sort pattern"</b>, count-of-smaller-after-self and reverse-pairs (LC 493) are variations of the same merge.</li>
+        <li>A BIT / Fenwick tree solves it too, but the merge approach needs no extra structure.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Count Inversions — arrow keys to step · space to play/pause · R to reset</footer>
+</div>
+<script>
+(function(){
+  const subsEl=document.getElementById('subs'),mergedEl=document.getElementById('mergedRow'),logEl=document.getElementById('log');
+  let steps=[],idx=0,playing=false,timer=null;
+  function buildSteps(arr){
+    const a=arr.slice();const snaps=[];let total=0,merges=0;
+    function snap(extra,logObj){snaps.push(Object.assign({total,merges},extra,{log:logObj}));}
+    snap({left:[],right:[],merged:[],lo:0,hi:a.length-1,thisInv:0},{cls:'l-teal',txt:`Count inversions in [${a.join(', ')}] via merge sort.`});
+    function merge(lo,mid,hi){
+      const L=a.slice(lo,mid+1),Rr=a.slice(mid+1,hi+1);
+      let i=0,j=0,merged=[],thisInv=0;
+      snap({left:L.slice(),right:Rr.slice(),leftBase:lo,rightBase:mid+1,pL:-1,pR:-1,takenL:0,takenR:0,merged:[],lo,hi,thisInv},{cls:'l-purple',txt:`Merge sorted halves [${L.join(',')}] and [${Rr.join(',')}].`});
+      while(i<L.length&&j<Rr.length){
+        if(L[i]<=Rr[j]){merged.push(L[i]);
+          snap({left:L.slice(),right:Rr.slice(),leftBase:lo,rightBase:mid+1,pL:i,pR:j,takenL:i,takenR:j,merged:merged.slice(),lo,hi,thisInv},{cls:'l-teal',txt:`${L[i]} ≤ ${Rr[j]} → take left ${L[i]}, no inversion.`});
+          i++;
+        } else {
+          const add=L.length-i;thisInv+=add;total+=add;merged.push(Rr[j]);
+          snap({left:L.slice(),right:Rr.slice(),leftBase:lo,rightBase:mid+1,pL:i,pR:j,takenL:i,takenR:j,merged:merged.slice(),lo,hi,thisInv,invHit:true,invAdd:add},{cls:'l-red',txt:`${Rr[j]} < ${L[i]} → take right ${Rr[j]}, +${add} inversions (beats ${L.slice(i).join(',')}).`});
+          j++;
+        }
+      }
+      while(i<L.length){merged.push(L[i]);i++;}
+      while(j<Rr.length){merged.push(Rr[j]);j++;}
+      for(let k=0;k<merged.length;k++)a[lo+k]=merged[k];
+      merges++;
+      snap({left:[],right:[],merged:merged.slice(),lo,hi,thisInv},{cls:'l-green',txt:`Merged → [${merged.join(', ')}]. This merge added ${thisInv} (total ${total}).`});
+      return thisInv;
+    }
+    function rec(lo,hi){if(lo>=hi)return;const mid=(lo+hi)>>1;rec(lo,mid);rec(mid+1,hi);merge(lo,mid,hi);}
+    rec(0,a.length-1);
+    snap({left:[],right:[],merged:a.slice(),lo:0,hi:a.length-1,thisInv:0,done:true},{cls:'l-green',txt:`✓ Sorted [${a.join(', ')}]. Total inversions = ${total}.`});
+    return snaps;
+  }
+  function makeCell(v,cls){const c=document.createElement('div');c.className='cellb '+cls;c.textContent=v;return c;}
+  function render(s){
+    subsEl.innerHTML='';
+    if(s.left.length||s.right.length){
+      const lg=document.createElement('div');lg.className='subgroup';const lc=document.createElement('div');lc.className='cap';lc.textContent='left half';lg.appendChild(lc);
+      const lr=document.createElement('div');lr.className='row';
+      s.left.forEach((v,k)=>{let cls='left';if(k<s.takenL)cls+=' taken';if(k===s.pL)cls+=' pL';if(s.invHit&&k>=s.pL)cls+=' inv';lr.appendChild(makeCell(v,cls));});
+      lg.appendChild(lr);subsEl.appendChild(lg);
+      const rg=document.createElement('div');rg.className='subgroup';const rc=document.createElement('div');rc.className='cap';rc.textContent='right half';rg.appendChild(rc);
+      const rr=document.createElement('div');rr.className='row';
+      s.right.forEach((v,k)=>{let cls='right';if(k<s.takenR)cls+=' taken';if(k===s.pR){cls+=' pR';if(s.invHit)cls+=' inv';}rr.appendChild(makeCell(v,cls));});
+      rg.appendChild(rr);subsEl.appendChild(rg);
+    } else {
+      const g=document.createElement('div');g.className='subgroup';const cap=document.createElement('div');cap.className='cap';cap.textContent=s.done?'sorted array':'current array';g.appendChild(cap);
+      const row=document.createElement('div');row.className='row';(s.merged.length?s.merged:[]).forEach(v=>row.appendChild(makeCell(v,'left')));g.appendChild(row);subsEl.appendChild(g);
+    }
+    mergedEl.innerHTML='<span class="lab">merged:</span>';(s.merged||[]).forEach(v=>{const c=document.createElement('div');c.className='mc';c.textContent=v;mergedEl.appendChild(c);});
+  }
+  function renderLog(upto){logEl.innerHTML='';for(let i=0;i<=upto;i++){const d=document.createElement('div');d.className=steps[i].log.cls;d.textContent=steps[i].log.txt;logEl.appendChild(d);}logEl.scrollTop=logEl.scrollHeight;}
+  function update(){
+    const s=steps[idx];render(s);renderLog(idx);
+    document.getElementById('statInv').textContent=s.total;
+    document.getElementById('statThis').textContent=s.thisInv||0;
+    document.getElementById('statMerges').textContent=s.merges;
+    document.getElementById('statRange').textContent=(s.lo!==undefined)?`[${s.lo}..${s.hi}]`:'–';
+    const pct=steps.length>1?(idx/(steps.length-1))*100:0;document.getElementById('progress').style.width=pct+'%';
+    document.getElementById('progCaption').textContent=`Step ${idx} / ${steps.length-1}`;
+    document.getElementById('prevBtn').disabled=idx===0;document.getElementById('nextBtn').disabled=idx===steps.length-1;
+  }
+  function next(){if(idx<steps.length-1){idx++;update();}else pause();}
+  function prev(){if(idx>0){idx--;update();}}
+  function reset(){pause();idx=0;update();}
+  function play(){if(idx>=steps.length-1)idx=0;playing=true;document.getElementById('playBtn').innerHTML='❚❚ Pause <span class="kbd">space</span>';const spd=+document.getElementById('speed').value;timer=setInterval(()=>{if(idx<steps.length-1)next();else pause();},spd);}
+  function pause(){playing=false;document.getElementById('playBtn').innerHTML='▶ Play <span class="kbd">space</span>';clearInterval(timer);}
+  function togglePlay(){playing?pause():play();}
+  function load(){try{const arr=document.getElementById('arrInput').value.split(',').map(x=>parseInt(x.trim(),10)).filter(x=>!isNaN(x)).slice(0,8);if(arr.length<2)throw 0;steps=buildSteps(arr);idx=0;pause();update();}catch(e){logEl.innerHTML='<div class="l-red">Give at least 2 numbers (up to 8), comma-separated.</div>';}}
+  document.getElementById('nextBtn').onclick=next;document.getElementById('prevBtn').onclick=prev;document.getElementById('resetBtn').onclick=reset;document.getElementById('playBtn').onclick=togglePlay;document.getElementById('loadBtn').onclick=load;
+  document.getElementById('speed').oninput=()=>{if(playing){pause();play();}};
+  document.getElementById('copyBtn').onclick=function(){const txt=document.getElementById('codeText').innerText;navigator.clipboard.writeText(txt).then(()=>{this.textContent='Copied ✓';this.classList.add('done');setTimeout(()=>{this.textContent='Copy';this.classList.remove('done');},1600);});};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){e.preventDefault();pause();next();}else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}else if(e.key===' '){e.preventDefault();togglePlay();}else if(e.key==='r'||e.key==='R'){e.preventDefault();reset();}});
+  load();
+})();
+</script>
+</body>
+</html>

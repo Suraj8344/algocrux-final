@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Circular Queue (LC 622) — Ring Buffer</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3a4a7a;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace; --sans: 'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.med { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.cq { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; } .formula .keyword { color: var(--purple); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge { background: var(--purple-bg); color: var(--purple); } .tag-classic { background: var(--accent-bg); color: var(--accent); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); } .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  /* op buttons */
+  .op-row { display: flex; gap: 6px; margin-bottom: 1.1rem; flex-wrap: wrap; }
+  .op-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
+  .op-btn:hover { border-color: var(--muted); background: var(--border); }
+  .op-btn.enq { border-color: var(--accent); color: var(--accent); } .op-btn.enq:hover { background: var(--accent-bg); }
+  .op-btn.deq { border-color: var(--amber); color: var(--amber); } .op-btn.deq:hover { background: var(--amber-bg); }
+  /* RING */
+  .ring-wrap { margin-bottom: 1.1rem; }
+  .ring-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .ring-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display:flex; justify-content:center; }
+  .ring-slot { fill: var(--surface); stroke: var(--border2); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
+  .ring-slot.filled { fill: var(--teal-bg); stroke: var(--teal); }
+  .ring-slot.head { fill: var(--amber-bg); stroke: var(--amber); stroke-width: 2.5; }
+  .ring-slot.tail { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 2.5; }
+  .ring-slot.justenq { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 3; }
+  .ring-slot.justdeq { fill: var(--red-bg); stroke: var(--red); stroke-width: 3; }
+  .ring-val { font-family: var(--mono); font-weight: 700; font-size: 15px; fill: var(--text); text-anchor: middle; dominant-baseline: central; }
+  .ring-idx { font-family: var(--mono); font-size: 10px; fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
+  .ring-ptr { font-family: var(--mono); font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+  /* LINEAR view too */
+  .lin-section { margin-bottom: 1.1rem; }
+  .lin-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .lin-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; overflow-x:auto; }
+  .lin-row { display: flex; gap: 6px; min-width: max-content; }
+  .lin-cell-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .lin-ptr { height: 15px; display: flex; gap: 4px; font-size: 10px; font-weight: 700; font-family: var(--mono); }
+  .lin-ptr .ph { color: var(--amber); } .lin-ptr .pt { color: var(--accent); }
+  .lin-cell { width: 46px; height: 46px; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--surface); display:flex; align-items:center; justify-content:center; font-family: var(--mono); font-weight:700; font-size:15px; color: var(--muted2); transition: all .2s; }
+  .lin-cell.filled { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .lin-cell.head { box-shadow: inset 0 0 0 2px var(--amber); }
+  .lin-cell.tail { box-shadow: inset 0 0 0 2px var(--accent); }
+  .lin-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  .eq-strip { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1.1rem; font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.9; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .eq-chip { padding: 2px 10px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border2); background: var(--surface); }
+  .eq-chip.h { color: var(--amber); border-color: var(--amber); } .eq-chip.t { color: var(--accent); border-color: var(--accent); }
+  .eq-chip.res { color: var(--green); border-color: var(--green); } .eq-chip.fail { color: var(--red); border-color: var(--red); }
+  .eq-op { color: var(--muted2); }
+  .alloc-section { margin-bottom: 1.1rem; } .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono); display: flex; flex-direction: column; gap: 3px; min-width: 116px; }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; } .alloc-card .ac-books { color: var(--text); } .alloc-card .ac-sum { font-weight: 700; }
+  .alloc-card.amberc { border-color: var(--amber); background: var(--amber-bg); } .alloc-card.amberc .ac-sum { color: var(--amber); }
+  .alloc-card.accentc { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.accentc .ac-sum { color: var(--accent); }
+  .alloc-card.ok { border-color: var(--green); background: var(--green-bg); } .alloc-card.ok .ac-sum { color: var(--green); }
+  .alloc-card.over { border-color: var(--red); background: var(--red-bg); } .alloc-card.over .ac-sum { color: var(--red); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.info .ac-sum { color: var(--accent); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; } .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-lo { color: var(--amber); } .tp-hi { color: var(--accent); } .tp-mid { color: var(--teal); } .tp-ans { color: var(--green); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; } .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; } .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber .val { color: var(--amber); } .stat-box.accent .val { color: var(--accent); } .stat-box.teal .val { color: var(--teal); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; } .log-box .pos { color: var(--green); font-weight: 600; } .log-box .neg { color: var(--red); font-weight: 600; } .log-box .acc { color: var(--accent); font-weight: 600; } .log-box .amb { color: var(--amber); font-weight: 600; } .log-box .sol { color: var(--purple); font-weight: 600; } .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); } .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); } .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); } .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s} .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px} .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s} .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)} .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none} .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)} .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px} .notes-footer .save-status.saved{color:var(--green)} .notes-footer .save-status.saving{color:var(--amber)} .notes-footer .save-status.error{color:var(--red)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;} .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);} .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode 622 / Classic</span>
+      <span class="badge cq">Circular Queue · Ring Buffer</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>Design Circular Queue</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this on <b>LeetCode</b>. Ring buffers power streaming, producer-consumer buffers, and sliding windows.</div>
+      <a href="https://leetcode.com/problems/design-circular-queue/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>A fixed array reused in a circle: head and tail pointers wrap with modulo, so enqueue/dequeue are O(1) with no shifting</p>
+  </div>
+</header>
+
+<main>
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Implement a queue on a <strong style="color:var(--teal)">fixed-size array</strong> without shifting elements. When the tail reaches the end it <strong style="color:var(--teal)">wraps around</strong> to reuse freed slots at the front, forming a ring.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> keep a <code style="color:var(--accent)">head</code> index (front), a <code style="color:var(--accent)">count</code> of items, and capacity <code style="color:var(--accent)">k</code>. Enqueue writes at <code style="color:var(--accent)">(head + count) % k</code>; dequeue advances <code style="color:var(--accent)">head = (head + 1) % k</code>. The modulo is what makes it circular. <strong style="color:var(--teal)">Empty</strong> when count = 0, <strong style="color:var(--red)">full</strong> when count = k. All ops are <strong style="color:var(--teal)">O(1)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="keyword">enqueue</span>(x): <span class="keyword">if</span> full → false<br>
+        &nbsp;&nbsp;buf[(head+count)%k] = x; count++<br>
+        <span class="keyword">dequeue</span>(): <span class="keyword">if</span> empty → false<br>
+        &nbsp;&nbsp;head = (head+1)%k; count--<br>
+        <span class="comment">// full: count==k · empty: count==0</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">All operations</div><div class="big">O(1)</div><p>enqueue, dequeue, front, rear, isEmpty, isFull are all constant time. No element ever moves.</p></div>
+    <div class="complex-card"><div class="lbl">Space complexity</div><div class="big">O(k)</div><p>One fixed array of capacity k, reused indefinitely as items cycle through.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Scenarios</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Fill, drain, wrap (k=5) <span class="tag tag-classic">wrap-around</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Overflow attempt (k=3) <span class="tag tag-edge">full</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Underflow attempt (k=4) <span class="tag tag-edge">empty</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Interleaved (k=4) <span class="tag tag-classic">mixed</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — head &amp; tail wrap with modulo</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> filled slot</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> head (front)</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> tail (next write)</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> dequeued / rejected</span>
+    </div>
+    <div class="ring-wrap">
+      <div class="ring-label">Ring buffer (arranged in a circle to show the wrap)</div>
+      <div class="ring-outer"><svg id="ring-svg" width="360" height="360"></svg></div>
+    </div>
+    <div class="lin-section">
+      <div class="lin-label">Same array, laid out linearly (index 0 → k−1)</div>
+      <div class="lin-outer"><div class="lin-row" id="lin-row"></div></div>
+    </div>
+    <div class="eq-strip" id="eq-strip">Press Play to run the scenario…</div>
+    <div class="alloc-section"><div class="alloc-label">Current op detail</div><div class="alloc-row" id="need-row"></div></div>
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-lo">head = —</span>
+      <span class="tracker-pill tp-hi" id="pill-hi">tail = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">count = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">state = —</span>
+    </div>
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl">head index</div><div class="val" id="s-lo">—</div><div class="sub">front slot</div></div>
+      <div class="stat-box accent"><div class="lbl">tail index</div><div class="val" id="s-hi">—</div><div class="sub">(head+count)%k</div></div>
+      <div class="stat-box teal"><div class="lbl">count</div><div class="val" id="s-mid">—</div><div class="sub" id="s-mid-sub">of k</div></div>
+      <div class="stat-box green"><div class="lbl">last op</div><div class="val" id="s-ans">—</div><div class="sub" id="s-ans-sub">result</div></div>
+    </div>
+    <div class="log-box" id="log">Select a scenario and press <strong style="color:var(--text)">Play</strong> to start.</div>
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speed" min="1" max="5" value="3" step="1"><span id="spd-lbl" style="min-width:50px">Medium</span></div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table"><thead><tr><th>Step</th><th>op</th><th>arg</th><th>head</th><th>tail</th><th>count</th><th>result</th></tr></thead><tbody id="step-tbody"></tbody></table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>circular_queue.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">class</span> MyCircularQueue {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; buf;
+    <span class="kw">int</span> head = <span class="nm">0</span>, cnt = <span class="nm">0</span>, k;
+<span class="kw">public</span>:
+    <span class="fn">MyCircularQueue</span>(<span class="kw">int</span> k) : buf(k), k(k) {}
+
+    <span class="kw">bool</span> <span class="fn">enQueue</span>(<span class="kw">int</span> x) {
+        <span class="kw">if</span> (cnt == k) <span class="kw">return</span> <span class="kw">false</span>;      <span class="cm">// full</span>
+        buf[(head + cnt) % k] = x;         <span class="cm">// wrap with modulo</span>
+        cnt++;
+        <span class="kw">return</span> <span class="kw">true</span>;
+    }
+    <span class="kw">bool</span> <span class="fn">deQueue</span>() {
+        <span class="kw">if</span> (cnt == <span class="nm">0</span>) <span class="kw">return</span> <span class="kw">false</span>;      <span class="cm">// empty</span>
+        head = (head + <span class="nm">1</span>) % k;             <span class="cm">// advance front</span>
+        cnt--;
+        <span class="kw">return</span> <span class="kw">true</span>;
+    }
+    <span class="kw">int</span>  <span class="fn">Front</span>() { <span class="kw">return</span> cnt == <span class="nm">0</span> ? -<span class="nm">1</span> : buf[head]; }
+    <span class="kw">int</span>  <span class="fn">Rear</span>()  { <span class="kw">return</span> cnt == <span class="nm">0</span> ? -<span class="nm">1</span> : buf[(head + cnt - <span class="nm">1</span>) % k]; }
+    <span class="kw">bool</span> <span class="fn">isEmpty</span>() { <span class="kw">return</span> cnt == <span class="nm">0</span>; }
+    <span class="kw">bool</span> <span class="fn">isFull</span>()  { <span class="kw">return</span> cnt == k; }
+};
+</pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader"><h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3><span class="toggle-icon" id="toggleIcon">&#x25BC;</span></div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm..."></textarea>
+      <div class="notes-footer"><span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span><span id="charCount">0 chars</span></div>
+    </div>
+  </div>
+
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="circular-queue"></div>
+</main>
+
+<script>
+// each example: capacity k + list of ops ['enq',val] or ['deq']
+const EXAMPLES = [
+  { k:5, ops:[['enq',10],['enq',20],['enq',30],['deq'],['deq'],['enq',40],['enq',50],['enq',60],['enq',70]], desc:`<strong style="color:var(--text)">Fill, drain, then wrap (k=5).</strong> Enqueue 3, dequeue 2 (freeing front slots), then enqueue enough to make the tail wrap around index 0. Watch the modulo reuse freed cells.` },
+  { k:3, ops:[['enq',1],['enq',2],['enq',3],['enq',4]], desc:`<strong style="color:var(--text)">Overflow (k=3).</strong> Fill all 3 slots, then a 4th enqueue is <span style="color:var(--red)">rejected</span> because count == k. Nothing is overwritten.` },
+  { k:4, ops:[['enq',7],['deq'],['deq']], desc:`<strong style="color:var(--text)">Underflow (k=4).</strong> One enqueue, one dequeue empties it, then a second dequeue is <span style="color:var(--red)">rejected</span> because count == 0.` },
+  { k:4, ops:[['enq',1],['enq',2],['deq'],['enq',3],['deq'],['enq',4],['enq',5],['deq']], desc:`<strong style="color:var(--text)">Interleaved (k=4).</strong> Mixed enqueue/dequeue keeps head and tail chasing each other around the ring, reusing slots continuously.` }
+];
+const SPEEDS=[1600,1000,600,300,120]; const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input',function(){document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];});
+let K=5, OPS=[], steps=[], cursor=-1, playing=false, timer=null;
+
+function buildSteps(k,ops){
+  K=k;OPS=ops;const stps=[];
+  const buf=new Array(k).fill(null);let head=0,cnt=0;
+  stps.push({phase:'init',buf:[...buf],head,cnt,op:null,arg:null,result:null,touch:null,msg:`<span class="hi">New circular queue, capacity ${k}.</span> head=0, count=0, all slots empty. tail (next write) = (head+count) % k = 0.`});
+  for(const [op,arg] of ops){
+    if(op==='enq'){
+      if(cnt===k){
+        stps.push({phase:'enq-fail',buf:[...buf],head,cnt,op:'enQueue',arg,result:false,touch:null,msg:`<span class="hi">enQueue(${arg}):</span> count (${cnt}) == k (${k}) → <span class="neg">FULL, rejected</span>. No slot written.`});
+      }else{
+        const tail=(head+cnt)%k;buf[tail]=arg;cnt++;
+        stps.push({phase:'enq',buf:[...buf],head,cnt,op:'enQueue',arg,result:true,touch:tail,msg:`<span class="hi">enQueue(${arg}):</span> write at (head+count)%k = (${head}+${cnt-1})%${k} = <span class="acc">${tail}</span>. count → <span class="tl">${cnt}</span>.`});
+      }
+    }else{
+      if(cnt===0){
+        stps.push({phase:'deq-fail',buf:[...buf],head,cnt,op:'deQueue',arg:null,result:false,touch:null,msg:`<span class="hi">deQueue():</span> count == 0 → <span class="neg">EMPTY, rejected</span>.`});
+      }else{
+        const oldHead=head;const val=buf[head];buf[head]=null;head=(head+1)%k;cnt--;
+        stps.push({phase:'deq',buf:[...buf],head,cnt,op:'deQueue',arg:null,result:val,touch:oldHead,msg:`<span class="hi">deQueue():</span> remove front value ${val} at index ${oldHead}. head → (head+1)%k = (${oldHead}+1)%${k} = <span class="amb">${head}</span>. count → <span class="tl">${cnt}</span>.`});
+      }
+    }
+  }
+  stps.push({phase:'done',buf:[...buf],head,cnt,op:null,arg:null,result:null,touch:null,msg:`<span class="hi">Scenario complete.</span> Final state: head=${head}, count=${cnt}. The array was reused in a circle the whole time, every op O(1).`});
+  return stps;
+}
+function buildTableRows(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    let op= s.op||(s.phase==='init'?'init':'done');
+    const tail=(s.head+s.cnt)%K;
+    let res= s.result===true?'<span style="color:var(--green)">true</span>':s.result===false?'<span style="color:var(--red)">false</span>':(s.result!==null?`<span style="color:var(--green)">${s.result}</span>`:'—');
+    return `<tr id="tr-${i}"><td>${i+1}</td><td style="color:var(--text)">${op}</td><td style="color:var(--accent)">${s.arg!==null&&s.arg!==undefined?s.arg:'—'}</td><td style="color:var(--amber)">${s.head}</td><td style="color:var(--accent)">${s.cnt>0?tail:'—'}</td><td style="color:var(--teal)">${s.cnt}</td><td>${res}</td></tr>`;
+  }).join('');
+}
+function renderRing(st){
+  const svg=document.getElementById('ring-svg');const cx=180,cy=180,R=120,slotR=26;
+  const tail=(st.head+st.cnt)%K;
+  let html='';
+  // circle guide
+  html+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3 5"/>`;
+  for(let i=0;i<K;i++){
+    const ang=(-90+i*360/K)*Math.PI/180;
+    const x=cx+R*Math.cos(ang),y=cy+R*Math.sin(ang);
+    const filled=st.buf[i]!==null;
+    const isHead=st.cnt>0&&i===st.head;
+    const isTail=st.cnt>0&&i===((st.head+st.cnt-1)%K); // rear (last filled)
+    let cls='ring-slot';
+    if(st.touch===i&&(st.phase==='enq'))cls+=' justenq';
+    else if(st.touch===i&&(st.phase==='deq'))cls+=' justdeq';
+    else if(isHead)cls+=' head';
+    else if(filled)cls+=' filled';
+    html+=`<circle class="${cls}" cx="${x}" cy="${y}" r="${slotR}"/>`;
+    html+=`<text class="ring-val" x="${x}" y="${y-4}">${filled?st.buf[i]:''}</text>`;
+    html+=`<text class="ring-idx" x="${x}" y="${y+12}">${i}</text>`;
+    // pointer labels outside
+    const lx=cx+(R+42)*Math.cos(ang),ly=cy+(R+42)*Math.sin(ang);
+    let ptr='';
+    if(isHead)ptr='<tspan fill="var(--amber)">head</tspan>';
+    const nextWrite=(st.head+st.cnt)%K;
+    if(st.cnt<K&&i===nextWrite)ptr=(ptr?ptr+' ':'')+'<tspan fill="var(--accent)">tail→</tspan>';
+    if(ptr)html+=`<text class="ring-ptr" x="${lx}" y="${ly}">${ptr}</text>`;
+  }
+  svg.innerHTML=html;
+}
+function renderLinear(st){
+  const row=document.getElementById('lin-row');
+  const nextWrite=(st.head+st.cnt)%K;
+  let html='';
+  for(let i=0;i<K;i++){
+    const filled=st.buf[i]!==null;
+    let cls='lin-cell'+(filled?' filled':'');
+    if(st.cnt>0&&i===st.head)cls+=' head';
+    if(st.cnt<K&&i===nextWrite)cls+=' tail';
+    let ptr='';
+    if(st.cnt>0&&i===st.head)ptr+='<span class="ph">H</span>';
+    if(st.cnt<K&&i===nextWrite)ptr+='<span class="pt">T</span>';
+    html+=`<div class="lin-cell-wrap"><div class="lin-ptr">${ptr}</div><div class="${cls}">${filled?st.buf[i]:'·'}</div><div class="lin-idx">${i}</div></div>`;
+  }
+  row.innerHTML=html;
+}
+function renderEq(st){
+  const strip=document.getElementById('eq-strip');
+  const tail=(st.head+st.cnt)%K;
+  if(st.phase==='init'){strip.innerHTML=`<span class="eq-op">capacity</span> <span class="eq-chip">k = ${K}</span> <span class="eq-op">·</span> <span class="eq-chip h">head 0</span> <span class="eq-chip">count 0</span>`;return;}
+  if(st.phase==='done'){strip.innerHTML=`<span class="eq-op">final</span> <span class="eq-chip h">head ${st.head}</span> <span class="eq-chip">count ${st.cnt}</span>`;return;}
+  if(st.phase==='enq'){strip.innerHTML=`<span class="eq-op">write at</span> (${st.head}+${st.cnt-1}) % ${K} = <span class="eq-chip t">${st.touch}</span> <span class="eq-op">→</span> <span class="eq-chip res">enqueued ${st.arg}</span>`;return;}
+  if(st.phase==='enq-fail'){strip.innerHTML=`<span class="eq-op">count</span> <span class="eq-chip">${st.cnt}</span> == k <span class="eq-chip">${K}</span> <span class="eq-op">→</span> <span class="eq-chip fail">FULL, rejected</span>`;return;}
+  if(st.phase==='deq'){strip.innerHTML=`<span class="eq-op">head</span> (${st.touch}+1) % ${K} = <span class="eq-chip h">${st.head}</span> <span class="eq-op">→</span> <span class="eq-chip res">dequeued ${st.result}</span>`;return;}
+  if(st.phase==='deq-fail'){strip.innerHTML=`<span class="eq-op">count</span> <span class="eq-chip">0</span> <span class="eq-op">→</span> <span class="eq-chip fail">EMPTY, rejected</span>`;return;}
+}
+function renderNeed(st){
+  const row=document.getElementById('need-row');
+  if(st.phase==='init'){row.innerHTML=`<div class="alloc-card info"><div class="ac-head">setup</div><div class="ac-books">k = ${K}</div><div class="ac-sum">head=0, count=0</div></div>`;return;}
+  if(st.phase==='done'){row.innerHTML=`<div class="alloc-card ok"><div class="ac-head">final</div><div class="ac-books">count ${st.cnt}/${K}</div><div class="ac-sum">all O(1) ✓</div></div>`;return;}
+  if(st.phase==='enq'){row.innerHTML=`<div class="alloc-card accentc"><div class="ac-head">enqueue ${st.arg}</div><div class="ac-books">slot (h+c)%k = ${st.touch}</div><div class="ac-sum">count ${st.cnt}</div></div>
+    <div class="alloc-card ok"><div class="ac-head">result</div><div class="ac-books">true</div><div class="ac-sum">written ✓</div></div>`;return;}
+  if(st.phase==='enq-fail'){row.innerHTML=`<div class="alloc-card over"><div class="ac-head">enqueue ${st.arg}</div><div class="ac-books">count == k</div><div class="ac-sum">FULL ✗</div></div>`;return;}
+  if(st.phase==='deq'){row.innerHTML=`<div class="alloc-card amberc"><div class="ac-head">dequeue</div><div class="ac-books">value ${st.result} @ ${st.touch}</div><div class="ac-sum">head → ${st.head}</div></div>
+    <div class="alloc-card ok"><div class="ac-head">result</div><div class="ac-books">${st.result}</div><div class="ac-sum">removed ✓</div></div>`;return;}
+  row.innerHTML=`<div class="alloc-card over"><div class="ac-head">dequeue</div><div class="ac-books">count == 0</div><div class="ac-sum">EMPTY ✗</div></div>`;
+}
+function applyState(idx){
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('done-pill').style.display='none';
+  if(idx<0){
+    const seed={phase:'init',buf:new Array(K).fill(null),head:0,cnt:0,touch:null};
+    renderRing(seed);renderLinear(seed);renderNeed({phase:'init'});
+    document.getElementById('eq-strip').innerHTML='Press Play to run the scenario…';
+    document.getElementById('pill-lo').textContent='head = 0';document.getElementById('pill-hi').textContent='tail = 0';document.getElementById('pill-mid').textContent=`count = 0`;document.getElementById('pill-ans').textContent='state = empty';
+    document.getElementById('s-lo').textContent='0';document.getElementById('s-hi').textContent='0';document.getElementById('s-mid').textContent='0';document.getElementById('s-mid-sub').textContent=`of ${K}`;document.getElementById('s-ans').textContent='—';document.getElementById('s-ans-sub').textContent='result';
+    document.getElementById('step-label').textContent='Step — of —';document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select a scenario and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+  const s=steps[idx];renderRing(s);renderLinear(s);renderEq(s);renderNeed(s);
+  const tail=(s.head+s.cnt)%K;
+  document.getElementById('pill-lo').textContent=`head = ${s.head}`;
+  document.getElementById('pill-hi').textContent=`tail = ${tail}`;
+  document.getElementById('pill-mid').textContent=`count = ${s.cnt}`;
+  const state= s.cnt===0?'empty':s.cnt===K?'full':'active';
+  document.getElementById('pill-ans').textContent=`state = ${state}`;
+  document.getElementById('s-lo').textContent=s.head;
+  document.getElementById('s-hi').textContent=tail;
+  document.getElementById('s-mid').textContent=s.cnt;document.getElementById('s-mid-sub').textContent=`of ${K}`;
+  const lastRes= s.result===true?'true':s.result===false?'false':(s.result!==null?s.result:'—');
+  document.getElementById('s-ans').textContent=lastRes;
+  document.getElementById('s-ans-sub').textContent= s.phase==='enq'?'enqueued':s.phase==='deq'?'dequeued':s.phase.includes('fail')?'rejected':'result';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML=s.msg;
+  if(s.phase==='done'){const p=document.getElementById('done-pill');p.textContent=`✓ count ${s.cnt}/${K}`;p.style.display='inline-block';}
+  const tr=document.getElementById('tr-'+idx);if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+function loadExample(i,btn){
+  stopPlay();document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');
+  steps=buildSteps(EXAMPLES[i].k,EXAMPLES[i].ops);
+  document.getElementById('example-desc').innerHTML=EXAMPLES[i].desc;
+  buildTableRows(steps);cursor=-1;applyState(-1);
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){if(playing){stopPlay();return;}if(cursor>=steps.length-1){cursor=-1;applyState(-1);}playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();}
+function tick(){if(!playing)return;if(cursor>=steps.length-1){stopPlay();return;}cursor++;applyState(cursor);timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);}
+function togglePin(){const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');const p=panel.classList.toggle('pinned');btn.classList.toggle('active',p);btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const algoName=document.title.replace(' - AlgoCrux','');
+  let currentUser=null,isCompleted=false;
+  const trackerUI=document.createElement('div');
+  trackerUI.innerHTML=`<div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div><div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div></div><button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button><div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div></div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn=document.getElementById('markCompleteBtn'),trackerStatus=document.getElementById('trackerStatus'),trackerIcon=document.getElementById('trackerIcon'),trackerLogin=document.getElementById('trackerLogin');
+  function setCompletedState(){isCompleted=true;markBtn.innerHTML='<span>&#x2705; Completed</span>';markBtn.style.background='#0d2318';markBtn.style.borderColor='#1a6b3a';markBtn.style.color='#4ade80';markBtn.style.cursor='default';trackerStatus.textContent='Completed!';trackerStatus.style.color='#4ade80';trackerIcon.innerHTML='&#x2705;';trackerIcon.style.background='#0d2318';trackerIcon.style.border='1px solid #1a6b3a';trackerIcon.style.color='#4ade80';}
+  function setLoggedOutState(){markBtn.style.display='none';trackerLogin.style.display='block';trackerStatus.textContent='Sign in to track';}
+  onAuthStateChanged(auth,async(user)=>{if(!user){setLoggedOutState();return;}currentUser=user;markBtn.style.display='flex';trackerLogin.style.display='none';const userDoc=await getDoc(doc(db,'users',user.uid));if(userDoc.exists()&&(userDoc.data().completedAnimations||[]).includes(algoId))setCompletedState();});
+  markBtn.addEventListener('click',async()=>{if(!currentUser||isCompleted)return;markBtn.disabled=true;markBtn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';try{const userRef=doc(db,'users',currentUser.uid);const userDoc=await getDoc(userRef);const today=(function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();if(userDoc.exists())await updateDoc(userRef,{completedAnimations:arrayUnion(algoId),lastActive:new Date().toISOString(),['activityMap.'+today]:increment(1)});else await setDoc(userRef,{name:currentUser.displayName||currentUser.email.split('@')[0],email:currentUser.email,createdAt:new Date().toISOString(),completedAnimations:[algoId],totalTimeSpent:0,lastActive:new Date().toISOString(),activityMap:{[today]:1}});setCompletedState();}catch(err){markBtn.disabled=false;markBtn.innerHTML='<span>Mark as Complete</span>';}});
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth=getAuth();const db=getFirestore();const btn=document.getElementById('algoBookmark');
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');let isBookmarked=false;
+  auth.onAuthStateChanged(async(user)=>{if(!user)return;const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()){const bm=snap.data().bookmarks||[];isBookmarked=bm.includes(algoId);btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);}});
+  btn.addEventListener('click',async()=>{const user=auth.currentUser;if(!user)return;const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const data=snap.exists()?snap.data():{};const bm=new Set(data.bookmarks||[]);if(bm.has(algoId))bm.delete(algoId);else bm.add(algoId);await setDoc(ref,{bookmarks:Array.from(bm)},{merge:true});isBookmarked=!isBookmarked;btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);});
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const LOCAL_KEY='algocrux_notes_'+algoId;
+  const notesHeader=document.getElementById('notesHeader'),notesBody=document.getElementById('notesBody'),toggleIcon=document.getElementById('toggleIcon'),textarea=document.getElementById('notesTextarea'),saveStatus=document.getElementById('saveStatus'),saveText=document.getElementById('saveText'),saveDot=document.getElementById('saveDot'),charCount=document.getElementById('charCount'),noteIndicator=document.getElementById('noteIndicator');
+  let currentUser=null,saveTimer=null,isSaving=false;
+  notesHeader.addEventListener('click',()=>{const isOpen=notesBody.classList.toggle('open');notesHeader.classList.toggle('open',isOpen);toggleIcon.innerHTML=isOpen?'&#x25B2;':'&#x25BC;';if(isOpen)textarea.focus();});
+  textarea.addEventListener('input',()=>{const len=textarea.value.length;charCount.textContent=len+' char'+(len!==1?'s':'');setSaveStatus('unsaved');clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNotes(),1500);});
+  function setSaveStatus(s){saveStatus.className='save-status '+s;if(s==='saved'){saveText.textContent='Saved';saveDot.innerHTML='&#x2705;';noteIndicator.classList.add('visible');}else if(s==='saving'){saveText.textContent='Saving...';saveDot.innerHTML='&#x23F3;';}else if(s==='error'){saveText.textContent='Error saving';saveDot.innerHTML='&#x274C;';}else{saveText.textContent='Unsaved changes';saveDot.innerHTML='&#x25CF;';}}
+  async function saveNotes(){if(isSaving)return;isSaving=true;setSaveStatus('saving');try{if(currentUser){const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);await setDoc(notesRef,{text:textarea.value,updatedAt:new Date().toISOString()},{merge:true});}localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('saved');}catch(err){localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('error');}finally{isSaving=false;}}
+  async function loadNotes(){let text='';if(currentUser){try{const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);const snap=await getDoc(notesRef);if(snap.exists())text=snap.data().text||'';}catch(err){}}if(!text)text=localStorage.getItem(LOCAL_KEY)||'';textarea.value=text;const len=text.length;charCount.textContent=len+' char'+(len!==1?'s':'');if(text.trim()){noteIndicator.classList.add('visible');setSaveStatus('saved');}else setSaveStatus('unsaved');}
+  onAuthStateChanged(auth,async(user)=>{currentUser=user;await loadNotes();});
+  window.addEventListener('beforeunload',()=>{if(textarea.value.trim()){localStorage.setItem(LOCAL_KEY,textarea.value);if(currentUser&&!isSaving)saveNotes();}});
+</script>
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

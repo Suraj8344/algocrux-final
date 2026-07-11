@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Window Maximum — Monotonic Deque</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+  }
+  .badge {
+    background: var(--purple-bg);
+    color: var(--purple);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #3a2155;
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── LAYOUT ── */
+  main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .75rem;
+  }
+
+  /* ── CONCEPT CARD ── */
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--purple);
+    line-height: 2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .formula .num { color: var(--amber); }
+
+  /* ── EXAMPLE TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .tab .tag {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag-edge { background: var(--amber-bg); color: var(--amber); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  /* ── ANIMATION PANEL ── */
+  .anim-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky;
+    top: 12px;
+    z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+  @media(max-width:700px){
+    .anim-panel.pinned{ top: 8px; max-height: calc(100vh - 16px); }
+  }
+  .anim-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .anim-panel-head .title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pin-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+
+  /* array cells */
+  .array-wrap { overflow-x: auto; padding-bottom: .5rem; }
+  .array-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    min-width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cell {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1.5px solid var(--border2);
+    background: var(--surface2);
+    transition: background .25s, border-color .25s, transform .2s, box-shadow .25s, opacity .25s;
+    cursor: default;
+    position: relative;
+  }
+  .cell .val {
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--text);
+    line-height: 1;
+  }
+  .cell .idx {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-family: var(--mono);
+  }
+  .cell.state-current {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    transform: translateY(-6px) scale(1.07);
+    box-shadow: 0 8px 24px rgba(108,143,255,.25);
+  }
+  .cell.state-front {
+    border-color: var(--green);
+    background: var(--green-bg);
+  }
+  .cell.state-current.state-front { box-shadow: 0 8px 24px rgba(74,222,128,.25); }
+  .cell.state-instack { border-color: #4a5380; background: var(--surface2); }
+  .cell.state-popped {
+    border-color: var(--red);
+    background: var(--red-bg);
+    opacity: .55;
+    animation: shake .3s ease;
+  }
+  .cell.state-expired {
+    border-color: var(--border2);
+    border-style: dashed;
+    opacity: .45;
+  }
+  .cell.state-outwindow { opacity: .35; }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-4px)}
+    75%{transform:translateX(4px)}
+  }
+
+  .cell-wrapper { display: flex; flex-direction: column; align-items: center; }
+  .cell-underline {
+    height: 16px;
+    min-width: 58px;
+    margin-top: 4px;
+    border-radius: 2px;
+    background: transparent;
+    transition: background .25s, color .25s;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+  }
+  .cell-underline.in-window { background: rgba(108,143,255,.14); }
+  .cell-underline.max-tag { background: var(--green); color: #06210f; }
+
+  /* progress */
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 4px;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    border-radius: 2px;
+    transition: width .3s ease;
+    width: 0%;
+  }
+
+  /* deque visualization */
+  .deque-section { margin-bottom: 1.25rem; }
+  .deque-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .deque-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    min-height: 46px;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+  .deque-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+  .chip {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border2);
+    background: var(--surface2);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    position: relative;
+    transition: all .2s;
+  }
+  .chip.front { border-color: var(--green); background: var(--green-bg); }
+  .chip .chip-idx { color: var(--muted); font-size: 10px; }
+  .chip .chip-tag {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: 1px 5px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .chip.front .chip-tag { background: var(--green); color: #06210f; }
+  .chip.back .chip-tag { background: var(--accent); color: #0c1230; }
+  .arrow-sep { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+
+  /* stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem .9rem;
+  }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    transition: color .2s;
+  }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.green .val { color: var(--green); }
+
+  /* log */
+  .log-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .85rem 1rem;
+    font-size: 13.5px;
+    color: var(--muted);
+    min-height: 52px;
+    margin-bottom: 1.25rem;
+    line-height: 1.65;
+    transition: all .2s;
+  }
+  .log-box .hi { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+
+  /* controls */
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .btn.primary:hover { background: #341f4d; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--purple); }
+  .done-pill {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid #1a4a2e;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    display: none;
+  }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── WALKTHROUGH ── */
+  .walkthrough {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; }
+  .step-table th {
+    text-align: left;
+    padding: 6px 10px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .step-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .step-table .cell-idx { color: var(--accent); }
+  .step-table .cell-val { color: var(--text); font-weight: 600; }
+  .step-table .removed { color: var(--red); }
+  .step-table .expired { color: var(--muted); }
+  .step-table .win-max { color: var(--green); }
+  .step-table .no-window { color: var(--muted); font-style: italic; }
+
+  /* ── CODE ── */
+  .code-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  /* ── COMPLEXITY ── */
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--purple); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Stacks & Queues</span>
+      <h1>Sliding Window Maximum</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Monotonic Deque Approach — O(n) time · O(k) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given an array and a window size <code style="color:var(--accent)">k</code>, find the <strong style="color:var(--text)">maximum element</strong> in every contiguous window of size k as it slides from left to right.</p>
+      <p style="margin-top:.75rem">A brute-force scan of every window costs O(n·k). A <strong style="color:var(--text)">monotonic deque</strong> — storing only indices that could still become the max — does it in O(n) total.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// keep the deque strictly decreasing in value:</span><br>
+        <span class="keyword">while</span> dq <span class="keyword">not empty</span> and arr[dq.back] &lt;= arr[i]:<br>
+        &nbsp;&nbsp;dq.pop_back() <span class="comment">// useless now</span><br>
+        dq.push_back(i)<br>
+        <span class="keyword">if</span> dq.front &lt;= i - k: dq.pop_front() <span class="comment">// expired</span><br>
+        <span class="comment">// front of dq = max of current window</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(n)</div>
+      <p>Each index is pushed and popped from the deque at most once — amortized O(1) per element.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(k)</div>
+      <p>The deque never holds more than k indices at a time.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Classic mix <span class="tag tag-classic">standard</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Duplicate values <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Strictly decreasing <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Strictly increasing <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(4,this)">k = array length <span class="tag tag-edge">edge</span></button>
+  </div>
+
+  <!-- EXAMPLE DESCRIPTION -->
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> Current index</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:#4a5380"></span> In deque (candidate)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> Front of deque (window max)</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> Popped (smaller, discarded)</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span> Expired (slid out of window)</span>
+    </div>
+
+    <div class="array-wrap">
+      <div class="array-row" id="array-row"></div>
+    </div>
+
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="deque-section">
+      <div class="deque-label">Deque (front → back) — candidates that could still be the max</div>
+      <div class="deque-row" id="deque-row"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box accent">
+        <div class="lbl">Current window</div>
+        <div class="val" id="s-window" style="font-size:16px">—</div>
+        <div class="sub" id="s-window-sub">—</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Window max</div>
+        <div class="val" id="s-max">—</div>
+        <div class="sub" id="s-max-sub">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Deque size</div>
+        <div class="val" id="s-size">—</div>
+        <div class="sub" id="s-size-sub">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Step</div>
+        <div class="val" id="s-step">—</div>
+        <div class="sub" id="s-step-of">—</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Complete</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Index</th>
+          <th>Value</th>
+          <th>Popped (back)</th>
+          <th>Expired (front)</th>
+          <th>Deque after</th>
+          <th>Window max</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>sliding_window_max.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">maxSlidingWindow</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums, <span class="kw">int</span> k) {
+    <span class="fn">deque</span>&lt;<span class="kw">int</span>&gt; dq; <span class="cm">// stores indices, values strictly decreasing front-&gt;back</span>
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; result;
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; (<span class="kw">int</span>)nums.size(); i++) {
+        <span class="cm">// Remove indices from the back whose value can never win</span>
+        <span class="kw">while</span> (!dq.empty() &amp;&amp; nums[dq.back()] &lt;= nums[i])
+            dq.pop_back();
+
+        dq.push_back(i);
+
+        <span class="cm">// Remove the front index if it has slid out of the window</span>
+        <span class="kw">if</span> (dq.front() &lt;= i - k)
+            dq.pop_front();
+
+        <span class="cm">// Record the max once the window is full</span>
+        <span class="kw">if</span> (i &gt;= k - <span class="nm">1</span>)
+            result.push_back(nums[dq.front()]);
+    }
+    <span class="kw">return</span> result;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; nums = {<span class="nm">1</span>, <span class="nm">3</span>, <span class="nm">-1</span>, <span class="nm">-3</span>, <span class="nm">5</span>, <span class="nm">3</span>, <span class="nm">6</span>, <span class="nm">7</span>};
+    <span class="kw">int</span> k = <span class="nm">3</span>;
+
+    <span class="kw">auto</span> ans = <span class="fn">maxSlidingWindow</span>(nums, k);
+
+    cout &lt;&lt; <span class="st">"Window maximums: "</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> x : ans) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>;
+    cout &lt;&lt; <span class="st">"\n"</span>;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    label: "Classic mix",
+    arr: [1,3,-1,-3,5,3,6,7],
+    k: 3,
+    desc: `<strong style="color:var(--text)">Classic example</strong> — k = <span style="color:var(--accent)">3</span>. The deque keeps shrinking and growing as bigger values arrive and smaller ones are discarded. Window maximums: <code style="color:var(--green)">[3, 3, 5, 5, 6, 7]</code>.`
+  },
+  {
+    label: "Duplicate values",
+    arr: [4,4,4,4,4],
+    k: 2,
+    desc: `<strong style="color:var(--text)">Edge case: all values equal.</strong> k = <span style="color:var(--accent)">2</span>. The condition uses <code style="color:var(--amber)">&lt;=</code> (not <code style="color:var(--amber)">&lt;</code>), so each new equal value pops the previous one from the back — the deque always keeps just the most recent occurrence. Every window max is <strong style="color:var(--green)">4</strong>.`
+  },
+  {
+    label: "Strictly decreasing",
+    arr: [9,8,7,6,5],
+    k: 3,
+    desc: `<strong style="color:var(--text)">Edge case: strictly decreasing values.</strong> k = <span style="color:var(--accent)">3</span>. No element is ever ≤ the next one, so nothing gets popped from the back — the deque just keeps growing until indices expire from the front. The front (oldest index) is always the max: <code style="color:var(--green)">[9, 8, 7]</code>.`
+  },
+  {
+    label: "Strictly increasing",
+    arr: [1,2,3,4,5],
+    k: 2,
+    desc: `<strong style="color:var(--text)">Edge case: strictly increasing values.</strong> k = <span style="color:var(--accent)">2</span>. Every new value is bigger than the one before it, so the back-pop loop fires almost every step — the deque size never exceeds 1. Window maximums: <code style="color:var(--green)">[2, 3, 4, 5]</code>.`
+  },
+  {
+    label: "k = array length",
+    arr: [2,9,4,1,6],
+    k: 5,
+    desc: `<strong style="color:var(--text)">Edge case: window covers the whole array.</strong> k = <span style="color:var(--accent)">5</span>. The window only becomes "full" once, on the very last index — there's exactly one result, the global maximum: <strong style="color:var(--green)">9</strong>.`
+  }
+];
+
+const SPEEDS = [1800,1200,700,380,180];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+
+let currentExample = 0;
+let arr = [];
+let K = 3;
+let steps = [];
+let cursor = -1;
+let playing = false;
+let timer = null;
+
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+function buildSteps(a, k) {
+  const s = [];
+  let dq = [];
+  for(let i=0;i<a.length;i++){
+    const removedBack = [];
+    while(dq.length && a[dq[dq.length-1]] <= a[i]){
+      removedBack.push(dq.pop());
+    }
+    dq.push(i);
+    let removedFront = null;
+    if(dq[0] <= i-k){
+      removedFront = dq.shift();
+    }
+    const windowStart = Math.max(0, i-k+1);
+    const windowReady = i >= k-1;
+    const windowMax = windowReady ? a[dq[0]] : null;
+    s.push({
+      i, removedBack, removedFront,
+      dequeAfter: [...dq],
+      windowStart, windowEnd: i,
+      windowReady, windowMax, k
+    });
+  }
+  return s;
+}
+
+function buildTableRows(a, stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx)=>{
+    const popped = s.removedBack.length ? s.removedBack.map(j=>`idx ${j} (${a[j]})`).join(', ') : '—';
+    const expired = s.removedFront!==null ? `idx ${s.removedFront} (${a[s.removedFront]})` : '—';
+    const dequeStr = s.dequeAfter.map(j=>`${j}:${a[j]}`).join(' → ') || '—';
+    const maxStr = s.windowReady ? `${s.windowMax}` : '—';
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td class="cell-idx">${s.i}</td>
+      <td class="cell-val">${a[s.i]}</td>
+      <td class="removed">${popped}</td>
+      <td class="expired">${expired}</td>
+      <td>${dequeStr}</td>
+      <td class="${s.windowReady?'win-max':'no-window'}">${maxStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCells(a) {
+  const row = document.getElementById('array-row');
+  row.innerHTML = a.map((v,i)=>`
+    <div class="cell-wrapper">
+      <div class="cell" id="c${i}">
+        <span class="val">${v}</span>
+        <span class="idx">${i}</span>
+      </div>
+      <div class="cell-underline" id="u${i}"></div>
+    </div>`).join('');
+}
+
+function renderDeque(s, a) {
+  const row = document.getElementById('deque-row');
+  if(!s.dequeAfter.length){
+    row.innerHTML = `<span class="deque-empty">empty</span>`;
+    return;
+  }
+  row.innerHTML = s.dequeAfter.map((j,pos)=>{
+    const isFront = pos===0;
+    const isBack = pos===s.dequeAfter.length-1 && s.dequeAfter.length>1;
+    const tag = isFront ? `<span class="chip-tag">FRONT · MAX</span>` : (isBack ? `<span class="chip-tag">BACK</span>` : '');
+    return `<div class="chip ${isFront?'front':''} ${isBack?'back':''}">${tag}<span class="chip-idx">i=${j}</span>${a[j]}</div>`;
+  }).join('<span class="arrow-sep">→</span>');
+}
+
+function applyState(idx) {
+  const a = arr;
+  a.forEach((_,i)=>{
+    const c = document.getElementById('c'+i);
+    const u = document.getElementById('u'+i);
+    if(c){ c.className='cell'; }
+    if(u){ u.className='cell-underline'; u.textContent=''; }
+  });
+
+  steps.forEach((_,i)=>{
+    const tr = document.getElementById('tr-'+i);
+    if(tr) tr.classList.remove('highlighted');
+  });
+
+  if(idx < 0){
+    document.getElementById('s-window').textContent='—';
+    document.getElementById('s-window-sub').textContent='—';
+    document.getElementById('s-max').textContent='—';
+    document.getElementById('s-max-sub').textContent='—';
+    document.getElementById('s-size').textContent='—';
+    document.getElementById('s-size-sub').textContent='—';
+    document.getElementById('s-step').textContent='—';
+    document.getElementById('s-step-of').textContent='—';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('deque-row').innerHTML = `<span class="deque-empty">empty</span>`;
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to start the animation.';
+    document.getElementById('done-pill').style.display='none';
+    return;
+  }
+
+  const s = steps[idx];
+
+  // cells before window start: faded out-of-window
+  for(let i=0;i<s.windowStart;i++){
+    const c = document.getElementById('c'+i);
+    if(c) c.classList.add('state-outwindow');
+  }
+  // window range tint
+  for(let i=s.windowStart;i<=s.i;i++){
+    const u = document.getElementById('u'+i);
+    if(u) u.classList.add('in-window');
+  }
+  // indices currently in deque -> candidate styling
+  s.dequeAfter.forEach(j=>{
+    const c = document.getElementById('c'+j);
+    if(c) c.classList.add('state-instack');
+  });
+  // front of deque = window max
+  if(s.windowReady && s.dequeAfter.length){
+    const frontIdx = s.dequeAfter[0];
+    const c = document.getElementById('c'+frontIdx);
+    const u = document.getElementById('u'+frontIdx);
+    if(c){ c.classList.remove('state-instack'); c.classList.add('state-front'); }
+    if(u){ u.classList.add('max-tag'); u.textContent='MAX'; }
+  }
+  // popped this step (back)
+  s.removedBack.forEach(j=>{
+    const c = document.getElementById('c'+j);
+    if(c){ c.classList.remove('state-instack'); c.classList.add('state-popped'); }
+  });
+  // expired this step (front)
+  if(s.removedFront!==null){
+    const c = document.getElementById('c'+s.removedFront);
+    if(c){ c.classList.remove('state-instack','state-front'); c.classList.add('state-expired'); }
+  }
+  // current index always on top
+  const cur = document.getElementById('c'+s.i);
+  if(cur){
+    cur.classList.add('state-current');
+  }
+
+  renderDeque(s, a);
+
+  // stats
+  document.getElementById('s-window').textContent = `[${s.windowStart}..${s.i}]`;
+  document.getElementById('s-window-sub').textContent = s.windowReady ? `size ${s.k} (full)` : `size ${s.i-s.windowStart+1} of ${s.k} (filling)`;
+  document.getElementById('s-max').textContent = s.windowReady ? s.windowMax : '—';
+  document.getElementById('s-max-sub').textContent = s.windowReady ? `front index ${s.dequeAfter[0]}` : 'window not full yet';
+  document.getElementById('s-size').textContent = s.dequeAfter.length;
+  document.getElementById('s-size-sub').textContent = `of max ${s.k}`;
+  document.getElementById('s-step').textContent = idx+1;
+  document.getElementById('s-step-of').textContent = `of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  // log
+  let msg = `<span class="hi">Step ${idx+1} — index ${s.i}, value ${a[s.i]}.</span> `;
+  if(s.removedBack.length){
+    msg += `Popped from back: <span class="neg">${s.removedBack.map(j=>`idx ${j} (${a[j]})`).join(', ')}</span> — they can never beat ${a[s.i]} while it's in the window. `;
+  } else {
+    msg += `Nothing popped from the back — ${a[s.i]} doesn't beat the current back of the deque. `;
+  }
+  msg += `Pushed <span class="acc">index ${s.i}</span> to the back. `;
+  if(s.removedFront!==null){
+    msg += `Index <span class="amb">${s.removedFront}</span> expired — it slid out of the window. `;
+  }
+  if(s.windowReady){
+    msg += `<span class="pos">Window [${s.windowStart}..${s.i}] is full → max = ${s.windowMax}.</span>`;
+  } else {
+    msg += `Window still filling (needs ${s.k} elements).`;
+  }
+  if(idx===steps.length-1){
+    document.getElementById('done-pill').style.display='inline-block';
+  } else {
+    document.getElementById('done-pill').style.display='none';
+  }
+  document.getElementById('log').innerHTML = msg;
+
+  const tr = document.getElementById('tr-'+idx);
+  if(tr){
+    tr.classList.add('highlighted');
+    tr.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+}
+
+function loadExample(n, btn) {
+  stopPlay();
+  currentExample = n;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  arr = [...EXAMPLES[n].arr];
+  K = EXAMPLES[n].k;
+  document.getElementById('example-desc').innerHTML = EXAMPLES[n].desc;
+  steps = buildSteps(arr, K);
+  renderCells(arr);
+  buildTableRows(arr, steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward(){
+  if(cursor < steps.length-1){ cursor++; applyState(cursor); }
+}
+function stepBack(){
+  if(cursor > 0){ cursor--; applyState(cursor); }
+  else if(cursor===0){ cursor=-1; applyState(-1); }
+}
+function resetAnim(){
+  stopPlay(); cursor=-1; applyState(-1);
+}
+function stopPlay(){
+  playing=false; clearTimeout(timer);
+  document.getElementById('btn-play').textContent='▶ Play';
+}
+function playPause(){
+  if(playing){ stopPlay(); return; }
+  if(cursor>=steps.length-1){ cursor=-1; applyState(-1); }
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick(){
+  if(!playing) return;
+  if(cursor>=steps.length-1){ stopPlay(); return; }
+  cursor++;
+  applyState(cursor);
+  const spd = SPEEDS[document.getElementById('speed').value-1];
+  timer = setTimeout(tick, spd);
+}
+
+function togglePin(){
+  const panel = document.getElementById('anim-panel');
+  const btn = document.getElementById('pin-btn');
+  const isPinned = panel.classList.toggle('pinned');
+  btn.classList.toggle('active', isPinned);
+  btn.textContent = isPinned ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+
+function copyCode(){
+  const code = document.getElementById('code-block').innerText;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+// init
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1616 @@
+trees-part-1.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trees — Part 1 | AlgoCrux</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --orange:#fb923c;--orange-bg:#2a1500;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+  .badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+  .b-ds  {background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+  .b-cpp {background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .b-stl {background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+  .b-q   {background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:3px}
+
+  main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .nm{color:var(--amber)}
+  .formula .fn{color:var(--accent)}
+
+  .insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--teal)}
+  .insight.amber{background:var(--amber-bg);border-color:#4a3a00}
+  .insight.amber strong{color:var(--amber)}
+
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+  .info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+  @media(max-width:640px){.twocol{grid-template-columns:1fr}}
+  .pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}
+  .pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+  .pane.good h3{color:var(--green)}
+  .pane.bad h3{color:var(--red)}
+  .pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+  .pane.good li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+  .pane.bad li::before{content:'✕';position:absolute;left:0;color:var(--red);font-weight:700}
+
+  .term-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:900px){.term-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:700px){.term-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.term-grid{grid-template-columns:1fr}}
+  .term-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s;cursor:pointer}
+  .term-card:hover{border-color:var(--accent);background:var(--accent-bg);transform:translateY(-2px)}
+  .term-card .term-name{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px}
+  .term-card .term-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+  .term-card .term-ana{font-size:11px;color:var(--amber);line-height:1.5;font-style:italic}
+  .term-card .term-illustration{width:100%;height:60px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;position:relative;overflow:hidden}
+  .term-card .term-illustration svg{width:100%;height:100%}
+
+  .type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:900px){.type-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+  .type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}
+  .type-card:hover{border-color:var(--purple);background:var(--purple-bg)}
+  .type-card .type-name{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:4px}
+  .type-card .type-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+  .type-card .type-attrs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+  .type-attr{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+  .type-card .type-app{font-size:11px;color:var(--green);line-height:1.5}
+
+  .tree-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .tree-panel h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tree-canvas-wrap{margin-bottom:1.25rem;overflow-x:auto}
+  #tree-canvas{display:block;border-radius:10px;min-width:100%;background:var(--surface2);border:1px solid var(--border)}
+  .tree-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+  .tree-controls .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+  .tree-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .tree-btn:hover{background:var(--border);border-color:var(--muted)}
+  .tree-btn.green{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .tree-btn.red{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  .tree-btn.purple{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .tree-btn.teal{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+  .tree-btn.amber{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+  .tree-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:1rem}
+  @media(max-width:700px){.tree-stats{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:480px){.tree-stats{grid-template-columns:repeat(2,1fr)}}
+  .tree-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+  .tree-stat .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .tree-stat .val{font-size:18px;font-weight:700;font-family:var(--mono)}
+  .tree-stat .sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .tree-stat.teal  .val{color:var(--teal)}
+  .tree-stat.amber .val{color:var(--amber)}
+  .tree-stat.green .val{color:var(--green)}
+  .tree-stat.red   .val{color:var(--red)}
+  .tree-stat.acc   .val{color:var(--accent)}
+  .tree-stat.pur   .val{color:var(--purple)}
+
+  .trav-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .trav-panel h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .trav-tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .trav-tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .trav-tab:hover{color:var(--text);background:var(--surface)}
+  .trav-tab.active{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .trav-canvas-wrap{margin-bottom:1.25rem;overflow-x:auto}
+  #trav-canvas{display:block;border-radius:10px;min-width:100%;background:var(--surface2);border:1px solid var(--border)}
+  .trav-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+  .trav-order{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+  .order-node{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .3s;color:var(--muted)}
+  .order-node.visited{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.3)}
+  .order-node.current{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);box-shadow:0 0 14px rgba(251,191,36,.3);transform:scale(1.15)}
+  .order-arrow{color:var(--border2);font-size:16px}
+  .trav-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+  .trav-log .hi {color:var(--text);font-weight:600}
+  .trav-log .acc{color:var(--accent);font-weight:600}
+  .trav-log .amb{color:var(--amber);font-weight:600}
+  .trav-log .tea{color:var(--teal);font-weight:600}
+  .trav-log .pur{color:var(--purple);font-weight:600}
+  .stack-queue{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+  .sq-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-right:8px}
+  .sq-item{padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:12px;color:var(--muted);transition:all .3s}
+  .sq-item.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+
+  .cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+  .cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+  .cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+
+  .app-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:900px){.app-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:600px){.app-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.app-grid{grid-template-columns:1fr}}
+  .app-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s;cursor:pointer}
+  .app-card:hover{border-color:var(--green);background:var(--green-bg);transform:translateY(-2px)}
+  .app-card .app-icon{font-size:24px;margin-bottom:8px}
+  .app-card .app-name{font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px}
+  .app-card .app-desc{font-size:12px;color:var(--muted);line-height:1.55}
+
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic}
+  .nm{color:var(--amber)} .st{color:var(--green)} .ty{color:var(--teal)}
+
+  .ai-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .ai-section h3{font-size:.95rem;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+  .ai-q-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+  .ai-q-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+  .ai-q-btn:hover{color:var(--text);border-color:var(--teal)}
+  .ai-custom{flex:1;min-width:180px;padding:7px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;font-family:var(--sans);outline:none}
+  .ai-custom:focus{border-color:var(--teal)}
+  .ai-send{padding:7px 16px;border-radius:7px;border:1px solid var(--teal);background:var(--teal-bg);color:var(--teal);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s;font-weight:600}
+  .ai-send:hover{background:#0f3330}
+  .ai-send:disabled{opacity:.5;cursor:not-allowed}
+  .ai-answer{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;font-size:13px;color:var(--muted);line-height:1.75;min-height:60px;white-space:pre-wrap;font-family:var(--sans)}
+  .ai-answer .ai-loading{color:var(--teal);font-style:italic}
+
+  .interview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:700px){.interview-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.interview-grid{grid-template-columns:1fr}}
+  .int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}
+  .int-card:hover{border-color:var(--orange);background:var(--orange-bg)}
+  .int-card .int-q{font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px}
+  .int-card .int-a{font-size:12px;color:var(--muted);line-height:1.55}
+
+  .quiz-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .quiz-section h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .quiz-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:1rem;padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+  .quiz-opt{padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px}
+  .quiz-opt:hover{border-color:var(--accent);background:var(--accent-bg)}
+  .quiz-opt.correct{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+  .quiz-opt.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+  .quiz-opt .opt-letter{width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .quiz-opt.correct .opt-letter{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .quiz-opt.wrong .opt-letter{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  .quiz-score{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:1rem}
+  .quiz-controls{display:flex;gap:8px;flex-wrap:wrap}
+
+  .cheat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:640px){.cheat-grid{grid-template-columns:1fr}}
+  .cheat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+  .cheat-card .cheat-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+  .cheat-card .cheat-item{font-size:12px;color:var(--muted);line-height:1.6;padding:4px 0;border-bottom:1px solid var(--border)}
+  .cheat-card .cheat-item:last-child{border-bottom:none}
+  .cheat-card .cheat-key{color:var(--accent);font-weight:600}
+  .cheat-card .cheat-val{color:var(--muted)}
+
+  .takeaways{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .takeaways h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .takeaways ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .takeaways li{font-size:13px;color:var(--muted);line-height:1.7;padding-left:1.5rem;position:relative}
+  .takeaways li::before{content:'→';position:absolute;left:0;color:var(--accent);font-weight:700}
+
+  .next-path{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;text-align:center;transition:all .15s;cursor:pointer}
+  .next-path:hover{border-color:var(--accent);background:var(--accent-bg)}
+  .next-path .next-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .next-path .next-title{font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:6px}
+  .next-path .next-desc{font-size:13px;color:var(--muted)}
+  .next-path .next-arrow{font-size:24px;color:var(--accent);margin-top:12px}
+
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text)}
+  .pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+  .btn.primary:hover{background:#0f3330}
+  .btn.green{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .btn.red{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  .btn.purple{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--teal)}
+  .result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+  .log-box .hi {color:var(--text);font-weight:600}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .neg{color:var(--red);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .ora{color:var(--orange);font-weight:600}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badges">
+      <span class="badge b-ds">Data Structure</span>
+      <span class="badge b-cpp">C++</span>
+      <span class="badge b-stl">Trees</span>
+      <span class="badge b-q">Part 1</span>
+      <span class="badge b-ds" style="background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e">Interactive</span>
+      <span class="badge b-ds" style="background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52">DSA</span>
+    </div>
+    <h1>Trees — Part 1</h1>
+    <p>Master the fundamentals of Trees with interactive visualizations, animations and C++ examples.</p>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══ SECTION 2: INTRODUCTION TO TREES ═══ -->
+<p class="section-label">Introduction to Trees</p>
+
+<div class="concept">
+  <div>
+    <h2>What is a Tree?</h2>
+    <p>A <strong style="color:var(--text)">Tree</strong> is a hierarchical data structure consisting of nodes connected by edges. Unlike linear structures (arrays, linked lists), trees organize data in a parent-child relationship, enabling efficient searching, insertion, and deletion.</p>
+    <p>A tree with <em>n</em> nodes has exactly <strong style="color:var(--teal)">n-1 edges</strong>. There is exactly one path between any two nodes, and no cycles exist.</p>
+  </div>
+  <div>
+    <h2>Why Trees are used</h2>
+    <div class="formula">
+      <span class="cm">// Trees provide O(log n) operations</span><br>
+      <span class="kw">struct</span> <span class="ty">Node</span> {<br>
+      &nbsp;&nbsp;<span class="kw">int</span> data;<br>
+      &nbsp;&nbsp;<span class="ty">Node</span>* left;<br>
+      &nbsp;&nbsp;<span class="ty">Node</span>* right;<br>
+      };<br><br>
+      <span class="cm">// vs O(n) for linear search</span>
+    </div>
+  </div>
+</div>
+
+<div class="insight">
+  💡 <strong>Why Trees?</strong> Because they represent hierarchical relationships naturally. A file system, an organization chart, or an HTML DOM — all are trees. Trees enable binary search (O(log n)), efficient sorting, and expressive power in AI decision-making.
+</div>
+
+<p class="section-label">Characteristics & Real-world Applications</p>
+<div class="card-grid">
+  <div class="info-card"><div class="ic-title">🌳 Hierarchical Structure</div><div class="ic-desc">Data is organized in levels with a root at the top and leaves at the bottom, mirroring real-world hierarchies.</div></div>
+  <div class="info-card"><div class="ic-title">🔗 No Cycles</div><div class="ic-desc">A valid tree has no cycles. There is exactly one unique path from the root to any node.</div></div>
+  <div class="info-card"><div class="ic-title">📐 n-1 Edges</div><div class="ic-desc">A tree with n nodes always has exactly n-1 edges. This is a fundamental invariant.</div></div>
+  <div class="info-card"><div class="ic-title">💾 File Systems</div><div class="ic-desc">Directories and files form a tree: root (/) → folders → subfolders → files.</div></div>
+  <div class="info-card"><div class="ic-title">🏢 Organization Charts</div><div class="ic-desc">CEO → VPs → Directors → Managers → Employees — a perfect tree structure.</div></div>
+  <div class="info-card"><div class="ic-title">🌐 HTML DOM</div><div class="ic-desc">The Document Object Model is a tree: html → head/body → div → p → span.</div></div>
+  <div class="info-card"><div class="ic-title">📁 Folders</div><div class="ic-desc">Nested folders in any OS are inherently tree-structured for navigation.</div></div>
+  <div class="info-card"><div class="ic-title">👨‍👩‍👧‍👦 Genealogy Trees</div><div class="ic-desc">Family trees trace ancestry from a common ancestor through generations.</div></div>
+  <div class="info-card"><div class="ic-title">🤖 Decision Trees</div><div class="ic-desc">AI/ML uses trees to model decisions: each node is a test, each branch an outcome.</div></div>
+</div>
+
+<div class="twocol">
+  <div class="pane good">
+    <h3>✓ Advantages</h3>
+    <ul>
+      <li>Efficient searching with O(log n) in balanced trees.</li>
+      <li>Natural representation of hierarchical data.</li>
+      <li>Flexible structure — easy to grow and shrink.</li>
+      <li>Enables powerful algorithms: BST, AVL, Red-Black, Trie.</li>
+      <li>Optimal for range queries and ordered data.</li>
+    </ul>
+  </div>
+  <div class="pane bad">
+    <h3>✕ Disadvantages</h3>
+    <ul>
+      <li>Unbalanced trees degrade to O(n) performance.</li>
+      <li>No random access — must traverse from root.</li>
+      <li>More complex to implement than arrays or lists.</li>
+      <li>Extra memory overhead for pointers in each node.</li>
+      <li>Rebalancing operations add overhead.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══ SECTION 3: TREE TERMINOLOGY ═══ -->
+<p class="section-label">Tree Terminology</p>
+<div class="term-grid" id="term-grid"></div>
+
+<!-- ═══ SECTION 4: TYPES OF TREES ═══ -->
+<p class="section-label">Types of Trees</p>
+<div class="type-grid" id="type-grid"></div>
+
+<!-- ═══ SECTION 5: BINARY TREE BASICS ═══ -->
+<p class="section-label">Binary Tree Basics</p>
+
+<div class="concept">
+  <div>
+    <h2>Node Structure</h2>
+    <p>Each node in a binary tree contains <strong style="color:var(--text)">data</strong>, a <strong style="color:var(--text)">left pointer</strong>, and a <strong style="color:var(--text)">right pointer</strong>. The left pointer references the left child; the right pointer references the right child. Null pointers indicate no child.</p>
+    <div class="formula" style="margin-top:1rem">
+      <span class="kw">struct</span> <span class="ty">TreeNode</span> {<br>
+      &nbsp;&nbsp;<span class="kw">int</span> val;<br>
+      &nbsp;&nbsp;<span class="ty">TreeNode</span>* left;<br>
+      &nbsp;&nbsp;<span class="ty">TreeNode</span>* right;<br>
+      &nbsp;&nbsp;<span class="fn">TreeNode</span>(<span class="kw">int</span> x) : <span class="fn">val</span>(x), <span class="fn">left</span>(<span class="nm">nullptr</span>), <span class="fn">right</span>(<span class="nm">nullptr</span>) {}<br>
+      };
+    </div>
+  </div>
+  <div>
+    <h2>Recursive Thinking</h2>
+    <p>Trees are <strong style="color:var(--text)">inherently recursive</strong>. Every subtree is itself a tree. This means most tree algorithms follow a simple pattern: <em>do something at the current node, then recurse on left, then recurse on right</em>.</p>
+    <p>Base case: if node is null, return. Recursive case: process node, then left subtree, then right subtree.</p>
+  </div>
+</div>
+
+<div class="insight">
+  💡 <strong>Recursive Power:</strong> Because every subtree is a tree, recursive solutions are often the most elegant and readable. A function that works on a single node + its children automatically works on the entire tree.
+</div>
+
+<div class="concept">
+  <div>
+    <h2>Pointer Representation</h2>
+    <p>Each node stores pointers to its children. This is the most common and flexible representation, allowing dynamic growth and arbitrary tree shapes.</p>
+    <p>Memory: <strong style="color:var(--teal)">O(n)</strong> for n nodes. Each node uses space for data + 2 pointers (typically 8-16 bytes overhead per node on 64-bit systems).</p>
+  </div>
+  <div>
+    <h2>Array Representation</h2>
+    <p>For <strong style="color:var(--text)">complete binary trees</strong>, we can store nodes in an array using index arithmetic:</p>
+    <div class="formula" style="margin-top:1rem">
+      <span class="cm">// For node at index i (0-based):</span><br>
+      left_child = <span class="nm">2*i + 1</span><br>
+      right_child = <span class="nm">2*i + 2</span><br>
+      parent = <span class="nm">(i-1) / 2</span><br><br>
+      <span class="cm">// Used in heaps and segment trees</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 6: TREE VISUALIZATION ═══ -->
+<p class="section-label">Interactive Tree Visualization</p>
+<div class="tree-panel">
+  <h3>Build & Explore a Binary Tree</h3>
+  <div class="tree-canvas-wrap">
+    <canvas id="tree-canvas" width="900" height="400"></canvas>
+  </div>
+  <div class="tree-controls">
+    <div class="m-label">Tree Controls</div>
+    <input class="num-input" id="tree-val" type="number" placeholder="value" min="0" max="999" style="width:80px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none">
+    <button class="tree-btn green" onclick="addNode()">Add Node</button>
+    <button class="tree-btn red" onclick="deleteNode()">Delete Node</button>
+    <button class="tree-btn" onclick="resetTree()">Reset Tree</button>
+    <button class="tree-btn purple" onclick="highlightParents()">Parents</button>
+    <button class="tree-btn teal" onclick="highlightChildren()">Children</button>
+    <button class="tree-btn amber" onclick="highlightLeaves()">Leaves</button>
+  </div>
+  <div class="tree-stats">
+    <div class="tree-stat teal"><div class="lbl">Height</div><div class="val" id="t-height">0</div><div class="sub">max depth</div></div>
+    <div class="tree-stat amber"><div class="lbl">Depth</div><div class="val" id="t-depth">0</div><div class="sub">selected node</div></div>
+    <div class="tree-stat green"><div class="lbl">Levels</div><div class="val" id="t-levels">0</div><div class="sub">total levels</div></div>
+    <div class="tree-stat acc"><div class="lbl">Total Nodes</div><div class="val" id="t-nodes">0</div><div class="sub">count</div></div>
+    <div class="tree-stat pur"><div class="lbl">Leaf Nodes</div><div class="val" id="t-leaves">0</div><div class="sub">no children</div></div>
+    <div class="tree-stat red"><div class="lbl">Internal</div><div class="val" id="t-internal">0</div><div class="sub">has children</div></div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 7: TREE TRAVERSALS ═══ -->
+<p class="section-label">Tree Traversals</p>
+
+<div class="concept">
+  <div>
+    <h2>Depth First Search (DFS)</h2>
+    <p>DFS explores as far as possible along each branch before backtracking. It uses a <strong style="color:var(--text)">stack</strong> (implicit via recursion or explicit).</p>
+    <p><strong style="color:var(--accent)">Preorder:</strong> Root → Left → Right<br>
+    <strong style="color:var(--accent)">Inorder:</strong> Left → Root → Right<br>
+    <strong style="color:var(--accent)">Postorder:</strong> Left → Right → Root</p>
+  </div>
+  <div>
+    <h2>Breadth First Search (BFS)</h2>
+    <p>BFS explores all nodes at the present depth before moving to the next level. It uses a <strong style="color:var(--text)">queue</strong>.</p>
+    <p><strong style="color:var(--teal)">Level Order:</strong> Visit nodes level by level, left to right. Essential for finding shortest paths in unweighted graphs and for tree serialization.</p>
+  </div>
+</div>
+
+<div class="insight">
+  💡 <strong>Traversal Insight:</strong> Inorder traversal of a BST yields values in sorted ascending order. This is why BSTs are so powerful — they embed sorting into their structure.
+</div>
+
+<div class="concept">
+  <div>
+    <h2>Iterative Traversals</h2>
+    <p>Using explicit stacks to avoid recursion overhead:</p>
+    <div class="formula" style="margin-top:1rem">
+      <span class="cm">// Stack-based Preorder</span><br>
+      stack.push(root);<br>
+      <span class="kw">while</span> (!stack.empty()) {<br>
+      &nbsp;&nbsp;node = stack.top(); stack.pop();<br>
+      &nbsp;&nbsp;visit(node);<br>
+      &nbsp;&nbsp;<span class="kw">if</span> (node.right) stack.push(node.right);<br>
+      &nbsp;&nbsp;<span class="kw">if</span> (node.left)  stack.push(node.left);<br>
+      }
+    </div>
+  </div>
+  <div>
+    <h2>Morris Traversal</h2>
+    <p>Morris traversal achieves <strong style="color:var(--text)">O(n) time and O(1) space</strong> by temporarily modifying tree pointers (threading) to create links back to ancestors, then restoring them.</p>
+    <div class="formula" style="margin-top:1rem">
+      <span class="cm">// Morris Inorder — no stack, no recursion</span><br>
+      <span class="kw">while</span> (current) {<br>
+      &nbsp;&nbsp;<span class="kw">if</span> (!current.left) { visit(current); current = current.right; }<br>
+      &nbsp;&nbsp;<span class="kw">else</span> { <span class="cm">/* find predecessor, thread, traverse */</span> }<br>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 8: INTERACTIVE TRAVERSAL VISUALIZATION ═══ -->
+<p class="section-label">Interactive Traversal Visualization</p>
+<div class="trav-panel" id="trav-panel">
+  <h3>Animated Traversal Explorer</h3>
+  <div class="trav-tabs">
+    <button class="trav-tab active" onclick="selectTraversal('preorder', this)">Preorder</button>
+    <button class="trav-tab" onclick="selectTraversal('inorder', this)">Inorder</button>
+    <button class="trav-tab" onclick="selectTraversal('postorder', this)">Postorder</button>
+    <button class="trav-tab" onclick="selectTraversal('levelorder', this)">Level Order</button>
+    <button class="trav-tab" onclick="selectTraversal('morris', this)">Morris Inorder</button>
+  </div>
+  <div class="trav-canvas-wrap">
+    <canvas id="trav-canvas" width="900" height="350"></canvas>
+  </div>
+  <div class="trav-order" id="trav-order"></div>
+  <div class="stack-queue" id="trav-sq">
+    <span class="sq-label" id="sq-label">Stack:</span>
+    <span id="sq-content"></span>
+  </div>
+  <div class="trav-log" id="trav-log">Select a traversal type and press Play to see the animation.</div>
+  <div class="controls">
+    <button class="btn primary" id="trav-play" onclick="playTrav()">▶ Play</button>
+    <button class="btn" onclick="pauseTrav()">⏸ Pause</button>
+    <button class="btn" onclick="resetTrav()">↺ Reset</button>
+    <button class="btn" onclick="stepTrav()">Step →</button>
+    <div class="speed-wrap">
+      <span>Speed</span>
+      <input type="range" id="trav-speed" min="1" max="5" value="3">
+      <span id="trav-spd-lbl" style="min-width:50px">Medium</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 9: TREE COMPLEXITY ═══ -->
+<p class="section-label">Tree Complexity</p>
+<div class="cx-grid">
+  <div class="cx-card"><div class="lbl">Traversal (DFS/BFS)</div><div class="big">O(n)</div><p>Must visit every node exactly once. n = number of nodes.</p></div>
+  <div class="cx-card"><div class="lbl">Search (BST)</div><div class="big">O(log n)</div><p>Balanced BST: height is log n. Unbalanced: degrades to O(n).</p></div>
+  <div class="cx-card"><div class="lbl">Insertion (BST)</div><div class="big">O(log n)</div><p>Find correct position and insert. Same as search complexity.</p></div>
+  <div class="cx-card"><div class="lbl">Deletion (BST)</div><div class="big">O(log n)</div><p>Find node, handle 0/1/2 children cases. Same as search.</p></div>
+  <div class="cx-card"><div class="lbl">Recursive Space</div><div class="big">O(h)</div><p>Call stack depth equals tree height h. Worst case O(n) for skewed.</p></div>
+  <div class="cx-card"><div class="lbl">Iterative Space</div><div class="big">O(h)</div><p>Explicit stack/queue size. Morris achieves O(1) space.</p></div>
+</div>
+
+<div class="insight amber">
+  ⚠️ <strong>Practical Note:</strong> These complexities assume a balanced tree. In the worst case (degenerate/skewed tree), all operations degrade to O(n) because height h = n. Self-balancing trees (AVL, Red-Black) guarantee O(log n) by maintaining balance.
+</div>
+
+<!-- ═══ SECTION 10: APPLICATIONS OF TREES ═══ -->
+<p class="section-label">Applications of Trees</p>
+<div class="app-grid">
+  <div class="app-card"><div class="app-icon">📁</div><div class="app-name">File Systems</div><div class="app-desc">Hierarchical directory structures with nested folders and files.</div></div>
+  <div class="app-card"><div class="app-icon">📄</div><div class="app-name">XML / JSON</div><div class="app-desc">Document parsing and validation using tree-based parsers (DOM).</div></div>
+  <div class="app-card"><div class="app-icon">🌐</div><div class="app-name">HTML DOM</div><div class="app-desc">Browser renders web pages by traversing the DOM tree.</div></div>
+  <div class="app-card"><div class="app-icon">➗</div><div class="app-name">Expression Trees</div><div class="app-desc">Compilers use trees to represent and evaluate mathematical expressions.</div></div>
+  <div class="app-card"><div class="app-icon">🤖</div><div class="app-name">Decision Trees</div><div class="app-desc">Machine learning algorithms classify data by traversing decision nodes.</div></div>
+  <div class="app-card"><div class="app-icon">🧠</div><div class="app-name">AI / Games</div><div class="app-desc">Minimax trees for game AI, alpha-beta pruning for optimization.</div></div>
+  <div class="app-card"><div class="app-icon">💾</div><div class="app-name">Databases</div><div class="app-desc">B-Trees and B+ Trees power database indexing for fast lookups.</div></div>
+  <div class="app-card"><div class="app-icon">⚙️</div><div class="app-name">Compiler Design</div><div class="app-desc">Abstract Syntax Trees (AST) represent program structure for compilation.</div></div>
+  <div class="app-card"><div class="app-icon">🖥️</div><div class="app-name">Operating Systems</div><div class="app-desc">Process scheduling, memory management, and file allocation use trees.</div></div>
+  <div class="app-card"><div class="app-icon">🔍</div><div class="app-name">Search Engines</div><div class="app-desc">Trie structures enable fast prefix-based autocomplete and spell checking.</div></div>
+</div>
+
+<!-- ═══ SECTION 11: C++ IMPLEMENTATION ═══ -->
+<p class="section-label">C++ Implementation</p>
+<div class="code-section">
+  <div class="code-header"><span>tree_implementation.cpp · C++ Binary Tree</span><button class="copy-btn" onclick="copyTreeCode()">Copy</button></div>
+  <pre id="tree-code-block"><span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="st">&lt;queue&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// ── Tree Node Structure ──</span>
+<span class="kw">struct</span> <span class="ty">TreeNode</span> {
+    <span class="kw">int</span> val;
+    <span class="ty">TreeNode</span>* left;
+    <span class="ty">TreeNode</span>* right;
+    <span class="fn">TreeNode</span>(<span class="kw">int</span> x) : <span class="fn">val</span>(x), <span class="fn">left</span>(<span class="nm">nullptr</span>), <span class="fn">right</span>(<span class="nm">nullptr</span>) {}
+};
+
+<span class="cm">// ── Recursive Traversals ──</span>
+<span class="kw">void</span> <span class="fn">preorder</span>(<span class="ty">TreeNode</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    cout &lt;&lt; root-&gt;val &lt;&lt; <span class="st">" "</span>;     <span class="cm">// visit root</span>
+    <span class="fn">preorder</span>(root-&gt;left);        <span class="cm">// traverse left</span>
+    <span class="fn">preorder</span>(root-&gt;right);       <span class="cm">// traverse right</span>
+}
+
+<span class="kw">void</span> <span class="fn">inorder</span>(<span class="ty">TreeNode</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    <span class="fn">inorder</span>(root-&gt;left);         <span class="cm">// traverse left</span>
+    cout &lt;&lt; root-&gt;val &lt;&lt; <span class="st">" "</span>;      <span class="cm">// visit root</span>
+    <span class="fn">inorder</span>(root-&gt;right);        <span class="cm">// traverse right</span>
+}
+
+<span class="kw">void</span> <span class="fn">postorder</span>(<span class="ty">TreeNode</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    <span class="fn">postorder</span>(root-&gt;left);       <span class="cm">// traverse left</span>
+    <span class="fn">postorder</span>(root-&gt;right);      <span class="cm">// traverse right</span>
+    cout &lt;&lt; root-&gt;val &lt;&lt; <span class="st">" "</span>;     <span class="cm">// visit root</span>
+}
+
+<span class="cm">// ── Level Order (BFS) ──</span>
+<span class="kw">void</span> <span class="fn">levelOrder</span>(<span class="ty">TreeNode</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    queue&lt;<span class="ty">TreeNode</span>*&gt; q;
+    q.push(root);
+    <span class="kw">while</span> (!q.empty()) {
+        <span class="ty">TreeNode</span>* curr = q.front(); q.pop();
+        cout &lt;&lt; curr-&gt;val &lt;&lt; <span class="st">" "</span>;
+        <span class="kw">if</span> (curr-&gt;left)  q.push(curr-&gt;left);
+        <span class="kw">if</span> (curr-&gt;right) q.push(curr-&gt;right);
+    }
+}
+
+<span class="cm">// ── Iterative Preorder using Stack ──</span>
+<span class="kw">void</span> <span class="fn">iterativePreorder</span>(<span class="ty">TreeNode</span>* root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    stack&lt;<span class="ty">TreeNode</span>*&gt; s;
+    s.push(root);
+    <span class="kw">while</span> (!s.empty()) {
+        <span class="ty">TreeNode</span>* curr = s.top(); s.pop();
+        cout &lt;&lt; curr-&gt;val &lt;&lt; <span class="st">" "</span>;
+        <span class="kw">if</span> (curr-&gt;right) s.push(curr-&gt;right);
+        <span class="kw">if</span> (curr-&gt;left)  s.push(curr-&gt;left);
+    }
+}
+
+<span class="cm">// ── Helper: Create a sample tree ──</span>
+<span class="ty">TreeNode</span>* <span class="fn">createSampleTree</span>() {
+    <span class="ty">TreeNode</span>* root = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">1</span>);
+    root-&gt;left  = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">2</span>);
+    root-&gt;right = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">3</span>);
+    root-&gt;left-&gt;left  = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">4</span>);
+    root-&gt;left-&gt;right = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">5</span>);
+    root-&gt;right-&gt;left = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">6</span>);
+    root-&gt;right-&gt;right = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="nm">7</span>);
+    <span class="kw">return</span> root;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="ty">TreeNode</span>* root = <span class="fn">createSampleTree</span>();
+
+    cout &lt;&lt; <span class="st">"Preorder:  "</span>; <span class="fn">preorder</span>(root); cout &lt;&lt; endl;
+    cout &lt;&lt; <span class="st">"Inorder:   "</span>; <span class="fn">inorder</span>(root); cout &lt;&lt; endl;
+    cout &lt;&lt; <span class="st">"Postorder: "</span>; <span class="fn">postorder</span>(root); cout &lt;&lt; endl;
+    cout &lt;&lt; <span class="st">"Level:     "</span>; <span class="fn">levelOrder</span>(root); cout &lt;&lt; endl;
+
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+</div>
+
+<!-- ═══ SECTION 12: AI EXPLAIN ═══ -->
+<div class="ai-section">
+  <h3>🤖 Ask AI — Explain any Tree concept</h3>
+  <div class="ai-q-row">
+    <button class="ai-q-btn" onclick="askTreeAI('What is a Tree in data structures?')">What is a Tree?</button>
+    <button class="ai-q-btn" onclick="askTreeAI('What is the difference between Height and Depth in a tree?')">Height vs Depth?</button>
+    <button class="ai-q-btn" onclick="askTreeAI('Why use Trees instead of arrays or linked lists?')">Why use Trees?</button>
+    <button class="ai-q-btn" onclick="askTreeAI('Why is Inorder Traversal important for Binary Search Trees?')">Why Inorder?</button>
+    <button class="ai-q-btn" onclick="askTreeAI('What is the difference between DFS and BFS in trees?')">DFS vs BFS?</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <input class="ai-custom" id="tree-ai-input" type="text" placeholder="Ask your own question about trees…" onkeydown="if(event.key==='Enter')askTreeAI()"/>
+    <button class="ai-send" id="tree-ai-send" onclick="askTreeAI()">Ask →</button>
+  </div>
+  <div class="ai-answer" id="tree-ai-answer">Ask a question above to get an AI explanation of any Tree concept.</div>
+</div>
+
+<!-- ═══ SECTION 13: INTERVIEW PREPARATION ═══ -->
+<p class="section-label">Interview Preparation</p>
+<div class="interview-grid">
+  <div class="int-card"><div class="int-q">What is the maximum number of nodes in a binary tree of height h?</div><div class="int-a">2^(h+1) - 1 for a perfect binary tree. At level k, there are at most 2^k nodes.</div></div>
+  <div class="int-card"><div class="int-q">How do you check if two trees are identical?</div><div class="int-a">Recursive: if both null → true. If one null → false. If values differ → false. Recurse on left and right subtrees.</div></div>
+  <div class="int-card"><div class="int-q">What is the time complexity of tree traversal?</div><div class="int-a">O(n) for all traversals (DFS and BFS) because each node is visited exactly once.</div></div>
+  <div class="int-card"><div class="int-q">How to find the height of a binary tree?</div><div class="int-a">max(height(left), height(right)) + 1. Base case: null node has height -1 or 0 depending on convention.</div></div>
+  <div class="int-card"><div class="int-q">What is a degenerate tree?</div><div class="int-a">A tree where each node has only one child, effectively becoming a linked list. Height = n-1.</div></div>
+  <div class="int-card"><div class="int-q">Explain recursive thinking in trees.</div><div class="int-a">Every subtree is a tree. Solve for root, assume function works for children, combine results. Trust the recursion.</div></div>
+</div>
+
+<!-- ═══ SECTION 14: INTERACTIVE QUIZ ═══ -->
+<p class="section-label">Interactive Quiz</p>
+<div class="quiz-section">
+  <h3>Test Your Tree Knowledge</h3>
+  <div id="quiz-container">
+    <div class="quiz-score" id="quiz-score">Score: 0 / 10</div>
+    <div class="quiz-q" id="quiz-q">Loading question...</div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-controls">
+      <button class="btn primary" id="quiz-next" onclick="nextQuestion()" style="display:none">Next Question →</button>
+      <button class="btn" id="quiz-restart" onclick="restartQuiz()" style="display:none">↺ Restart Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 15: CHEAT SHEET ═══ -->
+<p class="section-label">Cheat Sheet</p>
+<div class="cheat-grid">
+  <div class="cheat-card">
+    <div class="cheat-title">📚 Terminology</div>
+    <div class="cheat-item"><span class="cheat-key">Root:</span> <span class="cheat-val">Topmost node, no parent</span></div>
+    <div class="cheat-item"><span class="cheat-key">Leaf:</span> <span class="cheat-val">Node with no children</span></div>
+    <div class="cheat-item"><span class="cheat-key">Height:</span> <span class="cheat-val">Max edges from node to leaf</span></div>
+    <div class="cheat-item"><span class="cheat-key">Depth:</span> <span class="cheat-val">Edges from root to node</span></div>
+    <div class="cheat-item"><span class="cheat-key">Degree:</span> <span class="cheat-val">Number of children</span></div>
+    <div class="cheat-item"><span class="cheat-key">Subtree:</span> <span class="cheat-val">Any node + its descendants</span></div>
+  </div>
+  <div class="cheat-card">
+    <div class="cheat-title">🌲 Tree Types</div>
+    <div class="cheat-item"><span class="cheat-key">Binary:</span> <span class="cheat-val">Max 2 children per node</span></div>
+    <div class="cheat-item"><span class="cheat-key">Full:</span> <span class="cheat-val">Every node has 0 or 2 children</span></div>
+    <div class="cheat-item"><span class="cheat-key">Complete:</span> <span class="cheat-val">All levels filled except last, left-packed</span></div>
+    <div class="cheat-item"><span class="cheat-key">Perfect:</span> <span class="cheat-val">All internal nodes have 2 children, all leaves at same level</span></div>
+    <div class="cheat-item"><span class="cheat-key">Balanced:</span> <span class="cheat-val">Height difference ≤ 1 for all subtrees</span></div>
+    <div class="cheat-item"><span class="cheat-key">Skewed:</span> <span class="cheat-val">Each node has only one child</span></div>
+  </div>
+  <div class="cheat-card">
+    <div class="cheat-title">🔄 Traversals</div>
+    <div class="cheat-item"><span class="cheat-key">Preorder:</span> <span class="cheat-val">Root → Left → Right</span></div>
+    <div class="cheat-item"><span class="cheat-key">Inorder:</span> <span class="cheat-val">Left → Root → Right</span></div>
+    <div class="cheat-item"><span class="cheat-key">Postorder:</span> <span class="cheat-val">Left → Right → Root</span></div>
+    <div class="cheat-item"><span class="cheat-key">Level Order:</span> <span class="cheat-val">BFS using queue</span></div>
+    <div class="cheat-item"><span class="cheat-key">Morris:</span> <span class="cheat-val">O(1) space, threaded traversal</span></div>
+  </div>
+  <div class="cheat-card">
+    <div class="cheat-title">⏱️ Complexities</div>
+    <div class="cheat-item"><span class="cheat-key">Traversal:</span> <span class="cheat-val">O(n) time, O(h) space</span></div>
+    <div class="cheat-item"><span class="cheat-key">Search BST:</span> <span class="cheat-val">O(log n) balanced, O(n) skewed</span></div>
+    <div class="cheat-item"><span class="cheat-key">Insert/Delete:</span> <span class="cheat-val">O(log n) balanced, O(n) skewed</span></div>
+    <div class="cheat-item"><span class="cheat-key">Morris:</span> <span class="cheat-val">O(n) time, O(1) space</span></div>
+    <div class="cheat-item"><span class="cheat-key">Space:</span> <span class="cheat-val">O(n) for n nodes</span></div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 16: KEY TAKEAWAYS ═══ -->
+<p class="section-label">Key Takeaways</p>
+<div class="takeaways">
+  <h3>What You Learned</h3>
+  <ul>
+    <li>A Tree is a hierarchical data structure with n nodes and n-1 edges, containing no cycles.</li>
+    <li>Binary Trees restrict each node to at most 2 children, enabling efficient O(log n) operations when balanced.</li>
+    <li>Tree Traversals (Preorder, Inorder, Postorder, Level Order) visit nodes in different orders for different use cases.</li>
+    <li>Inorder traversal of a BST produces sorted output — a powerful property for ordered data.</li>
+    <li>Recursive thinking is natural for trees: every subtree is itself a tree.</li>
+    <li>Morris Traversal achieves O(n) time with O(1) space using threaded pointers.</li>
+    <li>Trees power file systems, databases, compilers, AI, and countless real-world applications.</li>
+    <li>Always consider tree balance — unbalanced trees degrade to linked-list performance (O(n)).</li>
+  </ul>
+</div>
+
+<!-- ═══ SECTION 17: NEXT LEARNING PATH ═══ -->
+<div class="next-path" onclick="window.location.href='trees-part-2.html'">
+  <div class="next-label">Next Learning Path</div>
+  <div class="next-title">Trees — Part 2</div>
+  <div class="next-desc">Binary Tree Mastery · BST · AVL · Red-Black Trees · Advanced Traversals</div>
+  <div class="next-arrow">→</div>
+</div>
+
+</main>
+
+<script>
+
+/* ═══════════════════════════════════════════════════════════════
+   TREES PART 1 — INTERACTIVE JAVASCRIPT
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── TERMINOLOGY DATA ─── */
+const TERMINOLOGY = [
+  { name: "Root", def: "The topmost node with no parent. Every tree has exactly one root.", ana: "Like the trunk of a real tree — everything grows from it." },
+  { name: "Parent", def: "A node that has one or more child nodes connected below it.", ana: "A folder that contains subfolders — the parent of those subfolders." },
+  { name: "Child", def: "A node directly connected to another node when moving away from the root.", ana: "A subfolder inside a parent folder." },
+  { name: "Sibling", def: "Nodes that share the same parent node.", ana: "Brothers and sisters — same parent, different paths." },
+  { name: "Leaf Node", def: "A node with no children — the end of a branch.", ana: "A file in a folder — it contains no further subfolders." },
+  { name: "Internal Node", def: "A node with at least one child — not a leaf.", ana: "A folder that contains at least one subfolder or file." },
+  { name: "Ancestor", def: "Any node on the path from the root to a given node.", ana: "Your grandparents, great-grandparents — all ancestors in a family tree." },
+  { name: "Descendant", def: "Any node reachable by following child pointers from a given node.", ana: "All your children, grandchildren — everyone below you in a family tree." },
+  { name: "Degree", def: "The number of children a node has. Leaf nodes have degree 0.", ana: "How many branches split from a single point on a tree." },
+  { name: "Edge", def: "The connection (link) between two nodes. A tree with n nodes has n-1 edges.", ana: "The branch connecting two points on a real tree." },
+  { name: "Path", def: "A sequence of nodes and edges connecting two nodes.", ana: "The route from your home to a friend's house — unique in a tree." },
+  { name: "Level", def: "The distance (number of edges) from the root. Root is at level 0.", ana: "Floors in a building — ground floor = level 0, first floor = level 1." },
+  { name: "Depth", def: "The number of edges from the root to a node. Root has depth 0.", ana: "How deep underwater you are — surface = 0, deeper = higher number." },
+  { name: "Height", def: "The number of edges on the longest path from a node to a leaf.", ana: "How tall a building is — from ground to the highest floor." },
+  { name: "Subtree", def: "Any node plus all its descendants forms a subtree.", ana: "A branch with all its leaves and sub-branches cut from the main tree." },
+  { name: "Forest", def: "A collection of disjoint trees. Removing the root creates a forest.", ana: "A group of separate trees in a park — each is independent." }
+];
+
+/* ─── TREE TYPES DATA ─── */
+const TREE_TYPES = [
+  { name: "General Tree", desc: "Each node can have any number of children. No restriction on the degree.", attrs: ["Unlimited children", "No ordering"], app: "File systems, organization charts" },
+  { name: "Binary Tree", desc: "Each node has at most 2 children: left and right. The most common tree type.", attrs: ["Max 2 children", "Left/Right distinction"], app: "Expression trees, Huffman coding, BST" },
+  { name: "Full Binary Tree", desc: "Every node has either 0 or 2 children. No node has exactly 1 child.", attrs: ["0 or 2 children", "2n+1 nodes for n leaves"], app: "Game trees, decision trees" },
+  { name: "Complete Binary Tree", desc: "All levels are fully filled except possibly the last, which is filled from left to right.", attrs: ["Left-packed", "Used in heaps"], app: "Binary heaps, priority queues" },
+  { name: "Perfect Binary Tree", desc: "All internal nodes have 2 children and all leaves are at the same level.", attrs: ["2^h - 1 nodes", "Height h"], app: "Optimal search trees, tournament trees" },
+  { name: "Balanced Binary Tree", desc: "The height of left and right subtrees of every node differs by at most 1.", attrs: ["Height diff ≤ 1", "O(log n) ops"], app: "AVL trees, Red-Black trees" },
+  { name: "Degenerate Tree", desc: "A tree where each node has only one child, effectively a linked list.", attrs: ["Single child each", "Height = n-1"], app: "Worst-case BST, skewed data" },
+  { name: "Skewed Tree", desc: "A degenerate tree leaning entirely left or entirely right.", attrs: ["All left or all right", "O(n) search"], app: "Edge case testing, pathological input" }
+];
+
+/* ─── RENDER TERMINOLOGY CARDS ─── */
+function renderTerminology() {
+  const grid = document.getElementById('term-grid');
+  grid.innerHTML = TERMINOLOGY.map(t => `
+    <div class="term-card">
+      <div class="term-illustration">
+        <svg viewBox="0 0 100 60">
+          <circle cx="50" cy="10" r="4" fill="#6c8fff"/>
+          <line x1="50" y1="14" x2="30" y2="35" stroke="#3d4266" stroke-width="1"/>
+          <line x1="50" y1="14" x2="70" y2="35" stroke="#3d4266" stroke-width="1"/>
+          <circle cx="30" cy="35" r="3" fill="#8b90b8"/>
+          <circle cx="70" cy="35" r="3" fill="#8b90b8"/>
+          <line x1="30" y1="38" x2="20" y2="55" stroke="#3d4266" stroke-width="1"/>
+          <line x1="30" y1="38" x2="40" y2="55" stroke="#3d4266" stroke-width="1"/>
+          <circle cx="20" cy="55" r="2" fill="#4ade80"/>
+          <circle cx="40" cy="55" r="2" fill="#4ade80"/>
+        </svg>
+      </div>
+      <div class="term-name">${t.name}</div>
+      <div class="term-def">${t.def}</div>
+      <div class="term-ana">💡 ${t.ana}</div>
+    </div>
+  `).join('');
+}
+
+/* ─── RENDER TREE TYPE CARDS ─── */
+function renderTreeTypes() {
+  const grid = document.getElementById('type-grid');
+  grid.innerHTML = TREE_TYPES.map(t => `
+    <div class="type-card">
+      <div class="type-name">${t.name}</div>
+      <div class="type-desc">${t.desc}</div>
+      <div class="type-attrs">
+        ${t.attrs.map(a => `<span class="type-attr">${a}</span>`).join('')}
+      </div>
+      <div class="type-app">✓ ${t.app}</div>
+    </div>
+  `).join('');
+}
+
+/* ─── TREE NODE CLASS ─── */
+class TreeNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+    this.x = 0;
+    this.y = 0;
+    this.highlight = null; // 'parent', 'child', 'leaf', 'selected'
+  }
+}
+
+let treeRoot = null;
+let selectedNode = null;
+
+/* ─── BUILD SAMPLE TREE ─── */
+function buildSampleTree() {
+  treeRoot = new TreeNode(50);
+  treeRoot.left = new TreeNode(25);
+  treeRoot.right = new TreeNode(75);
+  treeRoot.left.left = new TreeNode(12);
+  treeRoot.left.right = new TreeNode(37);
+  treeRoot.right.left = new TreeNode(62);
+  treeRoot.right.right = new TreeNode(87);
+  treeRoot.left.left.left = new TreeNode(6);
+  treeRoot.left.left.right = new TreeNode(18);
+  treeRoot.left.right.left = new TreeNode(30);
+  treeRoot.left.right.right = new TreeNode(43);
+  updateTreeStats();
+  drawTree();
+}
+
+/* ─── TREE CANVAS DRAWING ─── */
+function drawTree() {
+  const canvas = document.getElementById('tree-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.parentElement.clientWidth || 900;
+  const H = canvas.height = 400;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!treeRoot) {
+    ctx.font = '14px sans-serif';
+    ctx.fillStyle = '#5c6189';
+    ctx.textAlign = 'center';
+    ctx.fillText('Click "Add Node" to build a tree', W/2, H/2);
+    return;
+  }
+
+  // Calculate positions
+  const positions = new Map();
+  const levelHeight = 60;
+  const nodeRadius = 22;
+
+  function assignPositions(node, level, left, right) {
+    if (!node) return;
+    const x = (left + right) / 2;
+    const y = 40 + level * levelHeight;
+    node.x = x;
+    node.y = y;
+    positions.set(node, {x, y});
+
+    if (node.left || node.right) {
+      const mid = (left + right) / 2;
+      assignPositions(node.left, level + 1, left, mid);
+      assignPositions(node.right, level + 1, mid, right);
+    }
+  }
+
+  assignPositions(treeRoot, 0, 50, W - 50);
+
+  // Draw edges first
+  function drawEdges(node) {
+    if (!node) return;
+    if (node.left) {
+      ctx.beginPath();
+      ctx.moveTo(node.x, node.y + nodeRadius);
+      ctx.lineTo(node.left.x, node.left.y - nodeRadius);
+      ctx.strokeStyle = '#3d4266';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      drawEdges(node.left);
+    }
+    if (node.right) {
+      ctx.beginPath();
+      ctx.moveTo(node.x, node.y + nodeRadius);
+      ctx.lineTo(node.right.x, node.right.y - nodeRadius);
+      ctx.strokeStyle = '#3d4266';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      drawEdges(node.right);
+    }
+  }
+  drawEdges(treeRoot);
+
+  // Draw nodes
+  function drawNodes(node) {
+    if (!node) return;
+
+    let fill = '#1a1d27';
+    let stroke = '#2e3248';
+    let textColor = '#e8eaf6';
+
+    if (node.highlight === 'selected') {
+      fill = '#1a2140';
+      stroke = '#6c8fff';
+    } else if (node.highlight === 'parent') {
+      fill = '#1e0f33';
+      stroke = '#c084fc';
+    } else if (node.highlight === 'child') {
+      fill = '#0c2624';
+      stroke = '#2dd4bf';
+    } else if (node.highlight === 'leaf') {
+      fill = '#0d2318';
+      stroke = '#4ade80';
+    }
+
+    if (node === selectedNode) {
+      fill = '#2a1e06';
+      stroke = '#fbbf24';
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Value text
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = textColor;
+    ctx.fillText(node.val, node.x, node.y);
+
+    drawNodes(node.left);
+    drawNodes(node.right);
+  }
+  drawNodes(treeRoot);
+}
+
+/* ─── TREE OPERATIONS ─── */
+function addNode() {
+  const val = parseInt(document.getElementById('tree-val').value);
+  if (isNaN(val)) {
+    alert('Please enter a valid number');
+    return;
+  }
+
+  const newNode = new TreeNode(val);
+  if (!treeRoot) {
+    treeRoot = newNode;
+  } else {
+    // BFS to find first available spot
+    const queue = [treeRoot];
+    while (queue.length) {
+      const curr = queue.shift();
+      if (!curr.left) { curr.left = newNode; break; }
+      if (!curr.right) { curr.right = newNode; break; }
+      queue.push(curr.left);
+      queue.push(curr.right);
+    }
+  }
+  updateTreeStats();
+  drawTree();
+  document.getElementById('tree-val').value = '';
+}
+
+function deleteNode() {
+  if (!treeRoot) return;
+  const val = parseInt(document.getElementById('tree-val').value);
+  if (isNaN(val)) {
+    alert('Please enter a value to delete');
+    return;
+  }
+
+  treeRoot = deleteNodeRec(treeRoot, val);
+  updateTreeStats();
+  drawTree();
+  document.getElementById('tree-val').value = '';
+}
+
+function deleteNodeRec(node, val) {
+  if (!node) return null;
+  if (node.val === val) {
+    if (!node.left && !node.right) return null;
+    if (!node.left) return node.right;
+    if (!node.right) return node.left;
+    // Find min in right subtree
+    let minNode = node.right;
+    while (minNode.left) minNode = minNode.left;
+    node.val = minNode.val;
+    node.right = deleteNodeRec(node.right, minNode.val);
+    return node;
+  }
+  node.left = deleteNodeRec(node.left, val);
+  node.right = deleteNodeRec(node.right, val);
+  return node;
+}
+
+function resetTree() {
+  treeRoot = null;
+  selectedNode = null;
+  updateTreeStats();
+  drawTree();
+}
+
+function highlightParents() {
+  if (!selectedNode || !treeRoot) return;
+  clearHighlights(treeRoot);
+  const parent = findParent(treeRoot, selectedNode);
+  if (parent) parent.highlight = 'parent';
+  drawTree();
+}
+
+function highlightChildren() {
+  if (!selectedNode) return;
+  clearHighlights(treeRoot);
+  if (selectedNode.left) selectedNode.left.highlight = 'child';
+  if (selectedNode.right) selectedNode.right.highlight = 'child';
+  drawTree();
+}
+
+function highlightLeaves() {
+  if (!treeRoot) return;
+  clearHighlights(treeRoot);
+  markLeaves(treeRoot);
+  drawTree();
+}
+
+function clearHighlights(node) {
+  if (!node) return;
+  node.highlight = null;
+  clearHighlights(node.left);
+  clearHighlights(node.right);
+}
+
+function markLeaves(node) {
+  if (!node) return;
+  if (!node.left && !node.right) node.highlight = 'leaf';
+  markLeaves(node.left);
+  markLeaves(node.right);
+}
+
+function findParent(root, target) {
+  if (!root || root === target) return null;
+  if (root.left === target || root.right === target) return root;
+  const left = findParent(root.left, target);
+  if (left) return left;
+  return findParent(root.right, target);
+}
+
+function updateTreeStats() {
+  document.getElementById('t-height').textContent = treeRoot ? getHeight(treeRoot) : 0;
+  document.getElementById('t-depth').textContent = selectedNode ? getDepth(treeRoot, selectedNode, 0) : 0;
+  document.getElementById('t-levels').textContent = treeRoot ? getHeight(treeRoot) + 1 : 0;
+  document.getElementById('t-nodes').textContent = countNodes(treeRoot);
+  document.getElementById('t-leaves').textContent = countLeaves(treeRoot);
+  document.getElementById('t-internal').textContent = countNodes(treeRoot) - countLeaves(treeRoot);
+}
+
+function getHeight(node) {
+  if (!node) return -1;
+  return 1 + Math.max(getHeight(node.left), getHeight(node.right));
+}
+
+function getDepth(root, target, depth) {
+  if (!root) return -1;
+  if (root === target) return depth;
+  const left = getDepth(root.left, target, depth + 1);
+  if (left !== -1) return left;
+  return getDepth(root.right, target, depth + 1);
+}
+
+function countNodes(node) {
+  if (!node) return 0;
+  return 1 + countNodes(node.left) + countNodes(node.right);
+}
+
+function countLeaves(node) {
+  if (!node) return 0;
+  if (!node.left && !node.right) return 1;
+  return countLeaves(node.left) + countLeaves(node.right);
+}
+
+/* ─── TRAVERSAL VISUALIZATION ─── */
+let travTree = null;
+let travSteps = [];
+let travIndex = -1;
+let travPlaying = false;
+let travTimer = null;
+let currentTravType = 'preorder';
+const TRAV_SPEEDS = [1800, 1200, 700, 320, 120];
+
+function buildTravTree() {
+  travTree = new TreeNode(1);
+  travTree.left = new TreeNode(2);
+  travTree.right = new TreeNode(3);
+  travTree.left.left = new TreeNode(4);
+  travTree.left.right = new TreeNode(5);
+  travTree.right.left = new TreeNode(6);
+  travTree.right.right = new TreeNode(7);
+}
+
+function getTraversalSteps(type) {
+  const steps = [];
+
+  if (type === 'preorder') {
+    function pre(node) {
+      if (!node) return;
+      steps.push({ node, action: 'visit', msg: `Visit ${node.val} (Root)` });
+      steps.push({ node, action: 'go-left', msg: `Go left from ${node.val}` });
+      pre(node.left);
+      steps.push({ node, action: 'go-right', msg: `Go right from ${node.val}` });
+      pre(node.right);
+    }
+    pre(travTree);
+  } else if (type === 'inorder') {
+    function ino(node) {
+      if (!node) return;
+      steps.push({ node, action: 'go-left', msg: `Go left from ${node.val}` });
+      ino(node.left);
+      steps.push({ node, action: 'visit', msg: `Visit ${node.val} (Root)` });
+      steps.push({ node, action: 'go-right', msg: `Go right from ${node.val}` });
+      ino(node.right);
+    }
+    ino(travTree);
+  } else if (type === 'postorder') {
+    function post(node) {
+      if (!node) return;
+      steps.push({ node, action: 'go-left', msg: `Go left from ${node.val}` });
+      post(node.left);
+      steps.push({ node, action: 'go-right', msg: `Go right from ${node.val}` });
+      post(node.right);
+      steps.push({ node, action: 'visit', msg: `Visit ${node.val} (Root)` });
+    }
+    post(travTree);
+  } else if (type === 'levelorder') {
+    const queue = [travTree];
+    while (queue.length) {
+      const node = queue.shift();
+      steps.push({ node, action: 'visit', msg: `Visit ${node.val} (Level Order)` });
+      if (node.left) {
+        steps.push({ node, action: 'enqueue', msg: `Enqueue ${node.left.val}` });
+        queue.push(node.left);
+      }
+      if (node.right) {
+        steps.push({ node, action: 'enqueue', msg: `Enqueue ${node.right.val}` });
+        queue.push(node.right);
+      }
+    }
+  } else if (type === 'morris') {
+    let current = travTree;
+    while (current) {
+      if (!current.left) {
+        steps.push({ node: current, action: 'visit', msg: `Visit ${current.val} (Morris)` });
+        current = current.right;
+      } else {
+        let predecessor = current.left;
+        while (predecessor.right && predecessor.right !== current) {
+          predecessor = predecessor.right;
+        }
+        if (!predecessor.right) {
+          steps.push({ node: current, action: 'thread', msg: `Thread ${current.val} to predecessor` });
+          predecessor.right = current;
+          current = current.left;
+        } else {
+          steps.push({ node: current, action: 'visit', msg: `Visit ${current.val} (Morris)` });
+          predecessor.right = null;
+          current = current.right;
+        }
+      }
+    }
+  }
+
+  return steps;
+}
+
+function drawTravTree() {
+  const canvas = document.getElementById('trav-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.parentElement.clientWidth || 900;
+  const H = canvas.height = 350;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!travTree) return;
+
+  const positions = new Map();
+  const levelHeight = 55;
+  const nodeRadius = 20;
+
+  function assignPos(node, level, left, right) {
+    if (!node) return;
+    const x = (left + right) / 2;
+    const y = 35 + level * levelHeight;
+    node.x = x;
+    node.y = y;
+    positions.set(node, {x, y});
+    const mid = (left + right) / 2;
+    assignPos(node.left, level + 1, left, mid);
+    assignPos(node.right, level + 1, mid, right);
+  }
+  assignPos(travTree, 0, 50, W - 50);
+
+  // Draw edges
+  function drawEdges(node) {
+    if (!node) return;
+    if (node.left) {
+      ctx.beginPath();
+      ctx.moveTo(node.x, node.y + nodeRadius);
+      ctx.lineTo(node.left.x, node.left.y - nodeRadius);
+      ctx.strokeStyle = '#3d4266';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      drawEdges(node.left);
+    }
+    if (node.right) {
+      ctx.beginPath();
+      ctx.moveTo(node.x, node.y + nodeRadius);
+      ctx.lineTo(node.right.x, node.right.y - nodeRadius);
+      ctx.strokeStyle = '#3d4266';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      drawEdges(node.right);
+    }
+  }
+  drawEdges(travTree);
+
+  // Draw nodes
+  const visited = new Set();
+  const current = travIndex >= 0 && travIndex < travSteps.length ? travSteps[travIndex] : null;
+
+  for (let i = 0; i <= travIndex && i < travSteps.length; i++) {
+    if (travSteps[i].action === 'visit') visited.add(travSteps[i].node);
+  }
+
+  function drawNodes(node) {
+    if (!node) return;
+    let fill = '#1a1d27';
+    let stroke = '#2e3248';
+    let textColor = '#e8eaf6';
+
+    if (current && current.node === node && current.action === 'visit') {
+      fill = '#2a1e06';
+      stroke = '#fbbf24';
+    } else if (visited.has(node)) {
+      fill = '#1a2140';
+      stroke = '#6c8fff';
+    }
+
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = textColor;
+    ctx.fillText(node.val, node.x, node.y);
+
+    drawNodes(node.left);
+    drawNodes(node.right);
+  }
+  drawNodes(travTree);
+}
+
+function selectTraversal(type, btn) {
+  currentTravType = type;
+  document.querySelectorAll('.trav-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  resetTrav();
+
+  const labelMap = {
+    'preorder': 'Stack:',
+    'inorder': 'Stack:',
+    'postorder': 'Stack:',
+    'levelorder': 'Queue:',
+    'morris': 'Current:'
+  };
+  document.getElementById('sq-label').textContent = labelMap[type] || 'Stack:';
+}
+
+function playTrav() {
+  if (travPlaying) return;
+  if (travIndex >= travSteps.length - 1) {
+    travIndex = -1;
+    travSteps = getTraversalSteps(currentTravType);
+  }
+  if (travSteps.length === 0) travSteps = getTraversalSteps(currentTravType);
+
+  travPlaying = true;
+  document.getElementById('trav-play').textContent = '⏸ Pause';
+  tickTrav();
+}
+
+function tickTrav() {
+  if (!travPlaying) return;
+  if (travIndex >= travSteps.length - 1) {
+    pauseTrav();
+    document.getElementById('trav-log').innerHTML = '<span class="pos">✓ Traversal complete!</span> All nodes visited.';
+    return;
+  }
+  travIndex++;
+  applyTravStep();
+  const speed = TRAV_SPEEDS[document.getElementById('trav-speed').value - 1];
+  travTimer = setTimeout(tickTrav, speed);
+}
+
+function pauseTrav() {
+  travPlaying = false;
+  clearTimeout(travTimer);
+  document.getElementById('trav-play').textContent = '▶ Play';
+}
+
+function resetTrav() {
+  pauseTrav();
+  travIndex = -1;
+  travSteps = getTraversalSteps(currentTravType);
+  document.getElementById('trav-order').innerHTML = '';
+  document.getElementById('sq-content').innerHTML = '';
+  document.getElementById('trav-log').textContent = 'Select a traversal type and press Play to see the animation.';
+  drawTravTree();
+}
+
+function stepTrav() {
+  if (travIndex >= travSteps.length - 1) return;
+  if (travSteps.length === 0) travSteps = getTraversalSteps(currentTravType);
+  travIndex++;
+  applyTravStep();
+}
+
+function applyTravStep() {
+  const step = travSteps[travIndex];
+  drawTravTree();
+
+  // Update order display
+  const orderDiv = document.getElementById('trav-order');
+  if (step.action === 'visit') {
+    const nodes = orderDiv.querySelectorAll('.order-node');
+    nodes.forEach(n => n.classList.remove('current'));
+    const newNode = document.createElement('span');
+    newNode.className = 'order-node current';
+    newNode.textContent = step.node.val;
+    orderDiv.appendChild(newNode);
+    if (travIndex < travSteps.length - 1) {
+      const arrow = document.createElement('span');
+      arrow.className = 'order-arrow';
+      arrow.textContent = '→';
+      orderDiv.appendChild(arrow);
+    }
+
+    // Mark previous as visited
+    const allNodes = orderDiv.querySelectorAll('.order-node');
+    for (let i = 0; i < allNodes.length - 1; i++) {
+      allNodes[i].classList.add('visited');
+      allNodes[i].classList.remove('current');
+    }
+  }
+
+  // Update stack/queue display
+  updateSQDisplay();
+
+  // Update log
+  document.getElementById('trav-log').innerHTML = `<span class="hi">Step ${travIndex + 1}:</span> <span class="acc">${step.msg}</span>`;
+}
+
+function updateSQDisplay() {
+  const sqContent = document.getElementById('sq-content');
+  const stack = [];
+
+  for (let i = 0; i <= travIndex; i++) {
+    const step = travSteps[i];
+    if (currentTravType === 'levelorder') {
+      if (step.action === 'enqueue') stack.push(step.node.val);
+    } else if (currentTravType !== 'morris') {
+      if (step.action === 'go-left' || step.action === 'go-right') {
+        stack.push(step.node.val);
+      } else if (step.action === 'visit' && stack.length > 0) {
+        stack.pop();
+      }
+    }
+  }
+
+  sqContent.innerHTML = stack.map(v => `<span class="sq-item">${v}</span>`).join('');
+}
+
+/* ─── QUIZ DATA ─── */
+const QUIZ_QUESTIONS = [
+  {
+    q: "What is the maximum number of nodes in a binary tree of height h?",
+    options: ["2^h - 1", "2^(h+1) - 1", "2^h", "h^2"],
+    correct: 1
+  },
+  {
+    q: "In a complete binary tree with n nodes, what is the height?",
+    options: ["n", "log n", "n/2", "sqrt(n)"],
+    correct: 1
+  },
+  {
+    q: "Which traversal gives sorted output for a BST?",
+    options: ["Preorder", "Inorder", "Postorder", "Level Order"],
+    correct: 1
+  },
+  {
+    q: "What is the time complexity of searching in a balanced BST?",
+    options: ["O(n)", "O(log n)", "O(n log n)", "O(1)"],
+    correct: 1
+  },
+  {
+    q: "How many edges does a tree with n nodes have?",
+    options: ["n", "n-1", "n+1", "2n"],
+    correct: 1
+  },
+  {
+    q: "Which traversal uses a queue?",
+    options: ["Preorder", "Inorder", "Postorder", "Level Order"],
+    correct: 3
+  },
+  {
+    q: "What is the space complexity of Morris Traversal?",
+    options: ["O(n)", "O(log n)", "O(1)", "O(h)"],
+    correct: 2
+  },
+  {
+    q: "In a full binary tree, every node has:",
+    options: ["Exactly 2 children", "0 or 2 children", "At most 2 children", "Exactly 1 child"],
+    correct: 1
+  },
+  {
+    q: "What is the height of a degenerate tree with n nodes?",
+    options: ["log n", "n", "n-1", "sqrt(n)"],
+    correct: 2
+  },
+  {
+    q: "Which of these is NOT a self-balancing tree?",
+    options: ["AVL Tree", "Red-Black Tree", "B-Tree", "Binary Search Tree"],
+    correct: 3
+  }
+];
+
+let quizIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+function loadQuizQuestion() {
+  if (quizIndex >= QUIZ_QUESTIONS.length) {
+    document.getElementById('quiz-q').textContent = 'Quiz Complete!';
+    document.getElementById('quiz-options').innerHTML = '';
+    document.getElementById('quiz-next').style.display = 'none';
+    document.getElementById('quiz-restart').style.display = 'inline-block';
+    return;
+  }
+
+  const q = QUIZ_QUESTIONS[quizIndex];
+  document.getElementById('quiz-q').textContent = `${quizIndex + 1}. ${q.q}`;
+  document.getElementById('quiz-options').innerHTML = q.options.map((opt, i) => `
+    <div class="quiz-opt" onclick="selectQuizAnswer(${i})">
+      <span class="opt-letter">${String.fromCharCode(65 + i)}</span>
+      <span>${opt}</span>
+    </div>
+  `).join('');
+  document.getElementById('quiz-next').style.display = 'none';
+  quizAnswered = false;
+}
+
+function selectQuizAnswer(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  const q = QUIZ_QUESTIONS[quizIndex];
+  const opts = document.querySelectorAll('.quiz-opt');
+
+  opts.forEach((opt, i) => {
+    if (i === q.correct) {
+      opt.classList.add('correct');
+    } else if (i === idx && idx !== q.correct) {
+      opt.classList.add('wrong');
+    }
+  });
+
+  if (idx === q.correct) {
+    quizScore++;
+    document.getElementById('quiz-score').textContent = `Score: ${quizScore} / ${QUIZ_QUESTIONS.length}`;
+  }
+
+  document.getElementById('quiz-next').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  quizIndex++;
+  loadQuizQuestion();
+}
+
+function restartQuiz() {
+  quizIndex = 0;
+  quizScore = 0;
+  document.getElementById('quiz-score').textContent = `Score: 0 / ${QUIZ_QUESTIONS.length}`;
+  document.getElementById('quiz-restart').style.display = 'none';
+  loadQuizQuestion();
+}
+
+/* ─── AI EXPLAIN ─── */
+async function askTreeAI(preset) {
+  const input = document.getElementById('tree-ai-input');
+  const question = preset || input.value.trim();
+  if (!question) return;
+  if (!preset) input.value = '';
+
+  const ansEl = document.getElementById('tree-ai-answer');
+  const btn = document.getElementById('tree-ai-send');
+  ansEl.innerHTML = '<span class="ai-loading">🤖 Thinking...</span>';
+  btn.disabled = true;
+
+  // Simulate AI response since we can't make real API calls in this context
+  setTimeout(() => {
+    const responses = {
+      'What is a Tree in data structures?': 'A Tree is a hierarchical data structure consisting of nodes connected by edges. Unlike linear structures, trees organize data in parent-child relationships. A tree with n nodes has exactly n-1 edges and contains no cycles. The topmost node is called the root, and nodes with no children are called leaves.',
+      'What is the difference between Height and Depth in a tree?': 'Depth is the number of edges from the root to a specific node. The root has depth 0. Height is the number of edges on the longest path from a node down to a leaf. The height of a tree is the height of its root node. Depth measures distance from root; height measures distance to the deepest leaf.',
+      'Why use Trees instead of arrays or linked lists?': 'Trees provide O(log n) search, insertion, and deletion in balanced cases, compared to O(n) for arrays and linked lists. They naturally represent hierarchical data (file systems, DOM, organization charts). Binary Search Trees maintain sorted order implicitly. Trees enable efficient range queries and expressive algorithms like decision trees.',
+      'Why is Inorder Traversal important for Binary Search Trees?': 'Inorder traversal of a BST visits nodes in sorted ascending order: Left → Root → Right. This property is fundamental because it allows retrieving all elements in sorted order in O(n) time without any extra sorting. It is also used to validate BSTs, find kth smallest element, and convert BSTs to sorted arrays.',
+      'What is the difference between DFS and BFS in trees?': 'DFS (Depth First Search) explores as far as possible along each branch before backtracking, using a stack (implicitly via recursion or explicitly). It includes Preorder, Inorder, and Postorder traversals. BFS (Breadth First Search) explores all nodes at the present depth before moving to the next level, using a queue. BFS is Level Order traversal. DFS is better for deep exploration; BFS is better for finding shortest paths and level-by-level processing.'
+    };
+
+    ansEl.textContent = responses[question] || `Trees are fundamental hierarchical data structures. ${question} This is an important concept in DSA. Trees enable efficient O(log n) operations when balanced, and their recursive nature makes them elegant to implement. Understanding tree properties, traversals, and balance is essential for coding interviews and real-world applications.`;
+    btn.disabled = false;
+  }, 800);
+}
+
+/* ─── COPY CODE ─── */
+function copyTreeCode() {
+  navigator.clipboard.writeText(document.getElementById('tree-code-block').innerText).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+/* ─── SPEED SLIDER ─── */
+document.getElementById('trav-speed').addEventListener('input', function() {
+  const names = ['Slow', 'Slower', 'Medium', 'Fast', 'Fastest'];
+  document.getElementById('trav-spd-lbl').textContent = names[this.value - 1];
+});
+
+/* ─── WINDOW RESIZE ─── */
+window.addEventListener('resize', () => {
+  drawTree();
+  drawTravTree();
+});
+
+/* ─── INITIALIZATION ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  renderTerminology();
+  renderTreeTypes();
+  buildSampleTree();
+  buildTravTree();
+  loadQuizQuestion();
+
+  // Canvas click handler for tree selection
+  document.getElementById('tree-canvas').addEventListener('click', (e) => {
+    const canvas = document.getElementById('tree-canvas');
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    function findNode(node) {
+      if (!node) return null;
+      const dx = x - node.x;
+      const dy = y - node.y;
+      if (dx*dx + dy*dy <= 22*22) return node;
+      const left = findNode(node.left);
+      if (left) return left;
+      return findNode(node.right);
+    }
+
+    const clicked = findNode(treeRoot);
+    if (clicked) {
+      clearHighlights(treeRoot);
+      selectedNode = clicked;
+      clicked.highlight = 'selected';
+      updateTreeStats();
+      drawTree();
+    }
+  });
+});
+</script>
+</body>
+</html

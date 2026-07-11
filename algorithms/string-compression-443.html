@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 443 — String Compression</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --orange:#fb923c;--orange-bg:#2a1500;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+  .badge-med{background:#1e1a06;color:#fbbf24;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #4a3a00}
+  .badge-tag{background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #2a3875}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--accent);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .val{color:var(--amber)}
+
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .tag{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .tag-e{background:var(--purple-bg);color:var(--purple)}
+  .tag-s{background:var(--accent-bg);color:var(--accent)}
+
+  /* ── ANIMATION PANEL ── */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.55);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted)}
+  .pin-btn.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* ── TWO-ROW CELL DISPLAY ── */
+  .dual-array{margin-bottom:1.25rem}
+  .row-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .cells-outer{overflow-x:auto;padding-bottom:4px}
+  .cells-row{display:flex;gap:6px;min-width:max-content}
+
+  .cell-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .cell{
+    width:52px;height:52px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-radius:9px;border:2px solid var(--border2);background:var(--surface2);
+    transition:all .25s;font-family:var(--mono);
+  }
+  .cell .cv{font-size:17px;font-weight:700;line-height:1;color:var(--text)}
+  .cell .ci{font-size:10px;color:var(--muted);margin-top:2px}
+
+  /* READ pointer states */
+  .cell.r-active  {border-color:var(--accent);background:var(--accent-bg);transform:translateY(-5px) scale(1.08);box-shadow:0 7px 22px rgba(108,143,255,.3)}
+  .cell.r-group   {border-color:var(--purple);background:var(--purple-bg);transform:translateY(-3px)}
+  .cell.r-done    {border-color:var(--border2);background:var(--surface2);opacity:.45}
+
+  /* WRITE pointer states */
+  .cell.w-char    {border-color:var(--amber);background:var(--amber-bg);transform:translateY(-5px) scale(1.08);box-shadow:0 7px 22px rgba(251,191,36,.28)}
+  .cell.w-digit   {border-color:var(--orange);background:var(--orange-bg);transform:translateY(-5px) scale(1.08);box-shadow:0 7px 22px rgba(251,146,60,.28)}
+  .cell.w-written {border-color:var(--green);background:var(--green-bg)}
+  .cell.w-empty   {border-color:var(--border);background:var(--surface2);opacity:.3}
+
+  /* pointer labels below cells */
+  .ptr-label{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 5px;border-radius:4px;white-space:nowrap}
+  .ptr-r{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .ptr-w{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .ptr-rw{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66}
+  .ptr-none{visibility:hidden}
+
+  /* group bracket */
+  .group-bracket{height:14px;margin-bottom:2px;position:relative;min-width:52px}
+
+  /* CURRENT GROUP indicator */
+  .group-info{background:var(--purple-bg);border:1px solid #3a1a66;border-radius:8px;padding:.55rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .group-info .gi-item{display:flex;flex-direction:column;gap:2px}
+  .group-info .gi-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--border2)}
+  .group-info .gi-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--purple)}
+
+  /* OUTPUT preview */
+  .output-preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+  .output-preview .op-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);flex-shrink:0}
+  .output-chars{display:flex;gap:5px;flex-wrap:wrap}
+  .op-char{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;border:1.5px solid var(--green);background:var(--green-bg);color:var(--green);font-weight:700;font-family:var(--mono);font-size:14px}
+  .op-char.digit{border-color:var(--orange);background:var(--orange-bg);color:var(--orange)}
+  .op-len{font-size:12px;color:var(--muted);margin-left:6px}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--amber),var(--orange));border-radius:2px;transition:width .3s ease;width:0%}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.1rem}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}
+  .stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+  .stat-box.accent .val{color:var(--accent)}
+  .stat-box.amber  .val{color:var(--amber)}
+  .stat-box.green  .val{color:var(--green)}
+  .stat-box.purple .val{color:var(--purple)}
+
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.1rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:500}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .neg{color:var(--red);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .ora{color:var(--orange);font-weight:600}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+  .btn.primary:hover{background:#3a2a00}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--amber)}
+  .done-pill{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+
+  /* TABLE */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cr{color:var(--red)}
+  .cam{color:var(--amber)} .cp{color:var(--purple)} .ct{color:var(--teal)} .co{color:var(--orange)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic} .nm{color:var(--amber)} .st{color:var(--green)}
+
+  .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}
+  @media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--amber)}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="badge-med">Medium</span>
+      <span class="badge-tag">Two Pointers</span>
+      <span class="badge-tag">String</span>
+      <h1>443. String Compression</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/string-compression/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>In-place run-length encoding with read &amp; write pointers — O(n) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given a character array <code style="color:var(--accent)">chars</code>, compress it <strong style="color:var(--text)">in-place</strong> using run-length encoding. Each group of consecutive identical characters is replaced by the character followed by its count (omit count if 1). Return the new length.</p>
+      <p style="margin-top:.75rem">Example: <code style="color:var(--muted)">["a","a","b","b","c","c","c"]</code> → <code style="color:var(--amber)">["a","2","b","2","c","3"]</code>, return <strong style="color:var(--green)">6</strong>. Counts ≥ 10 are split digit by digit.</p>
+    </div>
+    <div>
+      <h2>Two-pointer approach</h2>
+      <div class="formula">
+        <span class="cm">// read = scans groups, write = places result</span><br>
+        read = 0, write = 0<br>
+        <span class="kw">while</span> read &lt; n:<br>
+        &nbsp;&nbsp;ch = chars[read]<br>
+        &nbsp;&nbsp;count = 0<br>
+        &nbsp;&nbsp;<span class="kw">while</span> chars[read] == ch: read++, count++<br>
+        &nbsp;&nbsp;chars[write++] = ch<br>
+        &nbsp;&nbsp;<span class="kw">if</span> count &gt; 1:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> digit <span class="kw">in</span> str(count): chars[write++] = digit
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Key insight:</strong> The write pointer <strong>never overtakes</strong> the read pointer — compression always produces ≤ as many characters as it reads. This guarantees in-place modification is safe. Think of it as <strong>two pointers on the same array</strong>: read scans ahead counting a group, write stamps the compressed result behind it.
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time</div><div class="big">O(n)</div><p>Each character is read exactly once by the read pointer.</p></div>
+    <div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>Only two integer pointers — no extra arrays. Compression is in-place.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">["a","a","b","b","c","c","c"] <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(1,this)">Single chars ["a","b","c"] <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(2,this)">Count ≥ 10 ["a"×12] <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(3,this)">Single element ["a"] <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(4,this)">Mixed groups <span class="tag tag-s">standard</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — Read &amp; Write Pointers</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Read ptr (active)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span>Read ptr (counting group)</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Write ptr (writing char)</span>
+      <span><span class="dot" style="background:var(--orange-bg);border-color:var(--orange)"></span>Write ptr (writing digit)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Written (compressed)</span>
+    </div>
+
+    <!-- ORIGINAL array (read side) -->
+    <div class="dual-array">
+      <div class="row-label">📖 Input array — read pointer scans →</div>
+      <div class="cells-outer">
+        <div class="cells-row" id="read-row"></div>
+      </div>
+    </div>
+
+    <!-- WRITE array (same physical array, shown as output) -->
+    <div class="dual-array" style="margin-bottom:.75rem">
+      <div class="row-label">✏️ Output (in-place) — write pointer places result →</div>
+      <div class="cells-outer">
+        <div class="cells-row" id="write-row"></div>
+      </div>
+    </div>
+
+    <!-- Current group info -->
+    <div class="group-info" id="group-info">
+      <div class="gi-item"><div class="gi-label">Current char</div><div class="gi-val" id="gi-char">—</div></div>
+      <div class="gi-item"><div class="gi-label">Group count</div><div class="gi-val" id="gi-count">—</div></div>
+      <div class="gi-item"><div class="gi-label">Group range</div><div class="gi-val" id="gi-range" style="font-size:14px">—</div></div>
+      <div class="gi-item"><div class="gi-label">Writes</div><div class="gi-val" id="gi-writes" style="font-size:14px;color:var(--amber)">—</div></div>
+    </div>
+
+    <!-- Output preview -->
+    <div class="output-preview">
+      <span class="op-label">Output so far</span>
+      <div class="output-chars" id="output-chars"><span style="color:var(--border2);font-size:12px">nothing written yet</span></div>
+      <span class="op-len" id="op-len"></span>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box accent"><div class="lbl">Read ptr</div><div class="val" id="s-read">—</div><div class="sub" id="s-read-sub">position</div></div>
+      <div class="stat-box amber"><div class="lbl">Write ptr</div><div class="val" id="s-write">—</div><div class="sub" id="s-write-sub">position</div></div>
+      <div class="stat-box green"><div class="lbl">Output length</div><div class="val" id="s-outlen">—</div><div class="sub">chars written</div></div>
+      <div class="stat-box purple"><div class="lbl">Groups done</div><div class="val" id="s-groups">0</div><div class="sub">compressed</div></div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Compressed!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr>
+            <th>Step</th><th>Action</th><th>Read ptr</th><th>Write ptr</th>
+            <th>Char / digit</th><th>Group</th><th>Output so far</th>
+          </tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>string_compression.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">compress</span>(<span class="fn">vector</span>&lt;<span class="kw">char</span>&gt;&amp; chars) {
+    <span class="kw">int</span> read = <span class="nm">0</span>, write = <span class="nm">0</span>;
+    <span class="kw">int</span> n = chars.size();
+
+    <span class="kw">while</span> (read &lt; n) {
+        <span class="kw">char</span> ch = chars[read];
+        <span class="kw">int</span> count = <span class="nm">0</span>;
+
+        <span class="cm">// Count the full group of identical chars</span>
+        <span class="kw">while</span> (read &lt; n &amp;&amp; chars[read] == ch) {
+            read++;
+            count++;
+        }
+
+        <span class="cm">// Write the character</span>
+        chars[write++] = ch;
+
+        <span class="cm">// Write count digits only if count > 1</span>
+        <span class="kw">if</span> (count &gt; <span class="nm">1</span>) {
+            <span class="fn">string</span> s = to_string(count);
+            <span class="kw">for</span> (<span class="kw">char</span> d : s)
+                chars[write++] = d;
+        }
+    }
+    <span class="kw">return</span> write;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">char</span>&gt; chars = {<span class="st">'a'</span>,<span class="st">'a'</span>,<span class="st">'b'</span>,<span class="st">'b'</span>,<span class="st">'c'</span>,<span class="st">'c'</span>,<span class="st">'c'</span>};
+    <span class="kw">int</span> len = <span class="fn">compress</span>(chars);
+    cout &lt;&lt; <span class="st">"New length: "</span> &lt;&lt; len &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 6</span>
+    <span class="cm">// chars = ['a','2','b','2','c','3',...]</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    chars:['a','a','b','b','c','c','c'],
+    desc:`<strong style="color:var(--text)">LeetCode Example 1.</strong> chars=["a","a","b","b","c","c","c"]. Three groups: "aa" → <code style="color:var(--amber)">a2</code>, "bb" → <code style="color:var(--amber)">b2</code>, "ccc" → <code style="color:var(--amber)">c3</code>. Watch the write pointer compress each group behind the read pointer. Output: <code style="color:var(--green)">["a","2","b","2","c","3"]</code>, return <strong style="color:var(--green)">6</strong>.`
+  },
+  {
+    chars:['a','b','c'],
+    desc:`<strong style="color:var(--text)">Edge case: all single characters.</strong> chars=["a","b","c"]. Each character appears only once — no count is written. The array is unchanged: <code style="color:var(--amber)">["a","b","c"]</code>. Tests that count=1 is <em>not</em> written. Return <strong style="color:var(--green)">3</strong>.`
+  },
+  {
+    chars:['a','b','b','b','b','b','b','b','b','b','b','b','b'],
+    desc:`<strong style="color:var(--text)">Edge case: count ≥ 10 (two digits).</strong> "a" once + "b" twelve times. 12 must be split into <code style="color:var(--amber)">'1'</code> and <code style="color:var(--amber)">'2'</code> as separate characters. Output: <code style="color:var(--green)">["a","b","1","2"]</code>, return <strong style="color:var(--green)">4</strong>. Shows multi-digit handling.`
+  },
+  {
+    chars:['a'],
+    desc:`<strong style="color:var(--text)">Edge case: single element.</strong> chars=["a"]. One group of size 1 — just write the character, skip the count. Array is unchanged. Return <strong style="color:var(--green)">1</strong>. Tests the base case and that count=1 rule works at minimum input.`
+  },
+  {
+    chars:['a','a','a','a','b','c','c'],
+    desc:`<strong style="color:var(--text)">Mixed groups.</strong> chars=["a","a","a","a","b","c","c"]. Groups: "aaaa" → <code style="color:var(--amber)">a4</code>, "b" → <code style="color:var(--amber)">b</code>, "cc" → <code style="color:var(--amber)">c2</code>. Middle group "b" has count 1 so no digit is written. Output: <code style="color:var(--green)">["a","4","b","c","2"]</code>, return <strong style="color:var(--green)">5</strong>.`
+  }
+];
+
+const SPEEDS=[1800,1200,700,380,160];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let origChars=[], steps=[], cursor=-1, playing=false, timer=null;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── BUILD STEPS ── */
+function buildSteps(chars){
+  const n=chars.length;
+  const arr=[...chars]; // working copy
+  const stps=[];
+  let read=0, write=0, groups=0;
+  const output=[]; // output chars array built up
+
+  stps.push({type:'init', read:0, write:0, groups:0, output:[],
+    ch:null, count:null, groupStart:null, groupEnd:null, writingChar:null, writingDigit:null,
+    note:'Initialize: read=0, write=0. Both pointers start at beginning.'});
+
+  while(read<n){
+    const ch=chars[read];
+    const groupStart=read;
+    let count=0;
+
+    // Step: start scanning a new group
+    stps.push({type:'group-start', read, write, groups, output:[...output],
+      ch, count:0, groupStart, groupEnd:null, writingChar:null, writingDigit:null,
+      note:`New group starting at [${read}]: char='${ch}'. Count consecutive '${ch}' chars.`});
+
+    while(read<n && chars[read]===ch){ read++; count++; }
+    const groupEnd=read-1;
+
+    // Step: finished counting group
+    stps.push({type:'group-counted', read, write, groups, output:[...output],
+      ch, count, groupStart, groupEnd, writingChar:null, writingDigit:null,
+      note:`Group '${ch}' spans [${groupStart}..${groupEnd}], count=${count}. Now write to output.`});
+
+    // Step: write the character
+    output.push({v:ch, isDigit:false});
+    stps.push({type:'write-char', read, write, groups, output:[...output],
+      ch, count, groupStart, groupEnd, writingChar:write, writingDigit:null,
+      note:`Write char '${ch}' at write pos ${write}.`});
+    write++;
+
+    // Step: write count digits (if count > 1)
+    if(count>1){
+      const digits=String(count).split('');
+      for(let di=0;di<digits.length;di++){
+        const d=digits[di];
+        output.push({v:d, isDigit:true});
+        stps.push({type:'write-digit', read, write, groups, output:[...output],
+          ch, count, groupStart, groupEnd, writingChar:null, writingDigit:write,
+          note:`Write digit '${d}' (from count ${count}) at write pos ${write}.`});
+        write++;
+      }
+    } else {
+      stps.push({type:'skip-count', read, write, groups, output:[...output],
+        ch, count, groupStart, groupEnd, writingChar:null, writingDigit:null,
+        note:`Count is 1 — no digit written. Move to next group.`});
+    }
+    groups++;
+  }
+
+  stps.push({type:'done', read, write, groups, output:[...output],
+    ch:null, count:null, groupStart:null, groupEnd:null, writingChar:null, writingDigit:null,
+    note:`Done! All groups compressed. New length = ${write}.`});
+  return stps;
+}
+
+/* ── RENDER CELLS ── */
+function buildCellRows(chars){
+  const n=chars.length;
+
+  // Read row
+  document.getElementById('read-row').innerHTML=chars.map((c,i)=>`
+    <div class="cell-col">
+      <div class="cell" id="rc${i}"><span class="cv">${c}</span><span class="ci">${i}</span></div>
+      <div class="ptr-label ptr-none" id="rp${i}">r</div>
+    </div>`).join('');
+
+  // Write row — same length + a few extra slots for expansion
+  const slots=Math.max(n, chars.length);
+  document.getElementById('write-row').innerHTML=Array.from({length:slots},(_,i)=>`
+    <div class="cell-col">
+      <div class="cell w-empty" id="wc${i}"><span class="cv" id="wv${i}">·</span><span class="ci">${i}</span></div>
+      <div class="ptr-label ptr-none" id="wp${i}">w</div>
+    </div>`).join('');
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  const n=origChars.length;
+  // reset all read cells
+  for(let i=0;i<n;i++){
+    const rc=document.getElementById('rc'+i);
+    const rp=document.getElementById('rp'+i);
+    if(rc) rc.className='cell';
+    if(rp){ rp.className='ptr-label ptr-none'; rp.textContent='r'; }
+  }
+  // reset all write cells
+  for(let i=0;i<n+4;i++){
+    const wc=document.getElementById('wc'+i);
+    const wv=document.getElementById('wv'+i);
+    const wp=document.getElementById('wp'+i);
+    if(wc){ wc.className='cell w-empty'; }
+    if(wv){ wv.textContent='·'; }
+    if(wp){ wp.className='ptr-label ptr-none'; wp.textContent='w'; }
+  }
+
+  steps.forEach((_,i)=>{ const tr=document.getElementById('tr-'+i); if(tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display='none';
+
+  if(idx<0){
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    ['s-read','s-write','s-outlen','s-groups'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('s-groups').textContent='0';
+    document.getElementById('gi-char').textContent='—';
+    document.getElementById('gi-count').textContent='—';
+    document.getElementById('gi-range').textContent='—';
+    document.getElementById('gi-writes').textContent='—';
+    document.getElementById('output-chars').innerHTML='<span style="color:var(--border2);font-size:12px">nothing written yet</span>';
+    document.getElementById('op-len').textContent='';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    return;
+  }
+
+  const s=steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+
+  // Color read cells
+  for(let i=0;i<n;i++){
+    const rc=document.getElementById('rc'+i);
+    if(!rc) continue;
+    if(i<(s.groupStart!==null?s.groupStart:s.read)) rc.className='cell r-done';
+    else if(s.groupStart!==null && s.groupEnd!==null && i>=s.groupStart && i<=s.groupEnd) rc.className='cell r-group';
+    else if(i===s.read && s.type!=='done') rc.className='cell r-active';
+  }
+
+  // Read pointer label
+  if(s.read<n && s.type!=='done'){
+    const rp=document.getElementById('rp'+s.read);
+    if(rp){ rp.className='ptr-label ptr-r'; rp.textContent='read'; }
+  }
+
+  // Fill written cells
+  s.output.forEach((o,i)=>{
+    const wc=document.getElementById('wc'+i);
+    const wv=document.getElementById('wv'+i);
+    if(!wc||!wv) return;
+    wv.textContent=o.v;
+    if(i===s.writingChar) wc.className='cell w-char';
+    else if(i===s.writingDigit) wc.className='cell w-digit';
+    else wc.className='cell '+(o.isDigit?'w-written':'w-written');
+  });
+
+  // Write pointer label
+  if(s.write!==null){
+    const wp=document.getElementById('wp'+s.write);
+    if(wp){ wp.className='ptr-label ptr-w'; wp.textContent='write'; }
+  }
+
+  // Group info
+  document.getElementById('gi-char').textContent = s.ch ?? '—';
+  document.getElementById('gi-count').textContent = s.count ?? '—';
+  document.getElementById('gi-range').textContent = (s.groupStart!==null && s.groupEnd!==null) ? `[${s.groupStart}..${s.groupEnd}]` : '—';
+  const wStr = s.count===null ? '—' : s.count===1 ? `'${s.ch}'` : `'${s.ch}', '${String(s.count).split('').join("','")}'`;
+  document.getElementById('gi-writes').textContent = wStr;
+
+  // Output preview
+  const outEl=document.getElementById('output-chars');
+  if(s.output.length===0){
+    outEl.innerHTML='<span style="color:var(--border2);font-size:12px">nothing written yet</span>';
+    document.getElementById('op-len').textContent='';
+  } else {
+    outEl.innerHTML=s.output.map((o,i)=>`<span class="op-char${o.isDigit?' digit':''}" title="index ${i}">${o.v}</span>`).join('');
+    document.getElementById('op-len').textContent=`length = ${s.output.length}`;
+  }
+
+  // Stats
+  document.getElementById('s-read').textContent=s.read;
+  document.getElementById('s-write').textContent=s.write;
+  document.getElementById('s-outlen').textContent=s.output.length;
+  document.getElementById('s-groups').textContent=s.groups;
+  document.getElementById('s-read-sub').textContent=s.read<n?`chars[${s.read}]='${origChars[s.read]}'`:'past end';
+  document.getElementById('s-write-sub').textContent=`next write pos`;
+
+  // Log
+  let msg='';
+  const step=`<span class="hi">Step ${idx+1}.</span> `;
+  if(s.type==='init') msg=`${step}Initialize. Both read and write pointers start at 0. Will scan groups of identical characters.`;
+  else if(s.type==='group-start') msg=`${step}📖 <span class="acc">New group</span> at index ${s.groupStart}. Current char = <span class="pur">'${s.ch}'</span>. Scanning forward to count consecutive '${s.ch}' characters.`;
+  else if(s.type==='group-counted') msg=`${step}✅ Group <span class="pur">'${s.ch}'</span> fully counted: <span class="amb">count = ${s.count}</span>, spans indices [${s.groupStart}..${s.groupEnd}]. Now writing compressed form.`;
+  else if(s.type==='write-char') msg=`${step}✏️ Write <span class="amb">'${s.ch}'</span> at write position ${s.writingChar}. ${s.count>1?`Count (${s.count}) > 1 — will write digits next.`:`Count = 1 — no digit needed.`}`;
+  else if(s.type==='write-digit') msg=`${step}<span class="ora">Write digit</span> <span class="ora">'${s.output[s.output.length-1].v}'</span> at write pos ${s.writingDigit} (from count=${s.count}).${String(s.count).length>1?' Multi-digit count!':''}`;
+  else if(s.type==='skip-count') msg=`${step}⏭️ Count = 1 for <span class="pur">'${s.ch}'</span> — <span class="neg">no digit written</span>. Rule: only write count if > 1. Moving to next group.`;
+  else if(s.type==='done') msg=`${step}<span class="pos">🎉 All groups compressed!</span> New length = <span class="pos">${s.write}</span>. Output: [${s.output.map(o=>`'${o.v}'`).join(', ')}].`;
+
+  if(s.type==='done') document.getElementById('done-pill').style.display='inline-block';
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    const outStr=s.output.length?s.output.map(o=>o.v).join(''):'—';
+    let action='', charCol='', group='';
+    if(s.type==='init')          action=`<span class="ca">Initialize</span>`;
+    else if(s.type==='group-start') action=`<span class="cp">Scan group</span>`;
+    else if(s.type==='group-counted') action=`<span class="cp">Group counted</span>`;
+    else if(s.type==='write-char')  action=`<span class="cam">Write char</span>`;
+    else if(s.type==='write-digit') action=`<span class="co">Write digit</span>`;
+    else if(s.type==='skip-count')  action=`<span class="ca">Skip count (=1)</span>`;
+    else                            action=`<span class="cg">✓ Done</span>`;
+    charCol = s.ch ? (s.type==='write-digit'?`<span class="co">'${s.output.length?s.output[s.output.length-1].v:''}'</span>`:`<span class="cam">'${s.ch}'</span>`) : '—';
+    group = s.count!==null?`<span class="cp">'${s.ch}'</span>×<span class="cam">${s.count}</span>`:'—';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td>${action}</td>
+      <td class="ca">${s.read}</td><td class="cam">${s.write}</td>
+      <td>${charCol}</td><td>${group}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--muted)">"${outStr}"</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadEx(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  origChars=[...EXAMPLES[n].chars];
+  document.getElementById('example-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(origChars);
+  buildCellRows(origChars);
+  buildTable(steps);
+  cursor=-1; applyState(-1);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+loadEx(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

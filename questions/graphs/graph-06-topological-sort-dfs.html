@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topological Sort · DFS-based</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--teal:#2dd4bf;--purple:#c084fc;--amber:#fbbf24;--green:#4ade80;--red:#f87171;--accent:#6c8fff;--text:#e6e8ef;--muted:#8b90a5;--dim:#5c6076;--mono:'Fira Code',ui-monospace,monospace;--sans:'Inter',system-ui,sans-serif;--border:rgba(255,255,255,.07);}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;padding:0 20px 80px;background-image:radial-gradient(circle at 20% -10%,rgba(108,143,255,.08),transparent 40%),radial-gradient(circle at 90% 0%,rgba(192,132,252,.06),transparent 35%);}
+.wrap{max-width:1080px;margin:0 auto}::selection{background:var(--accent);color:#fff}
+.practice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding:14px 20px;background:linear-gradient(90deg,rgba(45,212,191,.12),rgba(108,143,255,.10));border:1px solid var(--border);border-radius:14px;font-size:14px}
+.practice .tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:rgba(45,212,191,.12);padding:4px 10px;border-radius:6px}
+.practice a{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px solid var(--dim);transition:border-color .2s}
+.practice a:hover{border-color:var(--accent)}.practice .sep{color:var(--dim)}
+header{margin-top:34px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.badge.b-teal{color:var(--teal);background:rgba(45,212,191,.10)}.badge.b-purple{color:var(--purple);background:rgba(192,132,252,.10)}.badge.b-amber{color:var(--amber);background:rgba(251,191,36,.10)}.badge.b-accent{color:var(--accent);background:rgba(108,143,255,.10)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1}h1 .accent{color:var(--teal)}
+.subtitle{color:var(--muted);font-size:18px;margin-top:10px;max-width:70ch}
+section{margin-top:44px}
+.section-label{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.concept-card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.concept-card h3 .dot{width:9px;height:9px;border-radius:50%}
+.concept-card p{color:var(--muted);font-size:15px}.concept-card p b{color:var(--text);font-weight:600}
+.concept-card code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:5px;color:var(--teal)}
+.concept-card ul{list-style:none;margin-top:10px}.concept-card li{color:var(--muted);font-size:14.5px;padding:5px 0 5px 20px;position:relative}
+.concept-card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:4px}
+.stage{display:flex;justify-content:center;padding:6px 0 14px}svg{max-width:100%;height:auto}
+.node-lbl{font-family:var(--mono);font-size:15px;font-weight:700;pointer-events:none}
+.node-circ,.edge-line{transition:fill .35s,stroke .35s,stroke-width .35s}
+.order-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px;min-height:44px;align-items:center}
+.order-chip{font-family:var(--mono);font-weight:700;font-size:15px;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(74,222,128,.16);color:var(--green);border:1px solid rgba(74,222,128,.35);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+.order-chip.stackc{background:rgba(192,132,252,.16);color:var(--purple);border-color:rgba(192,132,252,.35)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.order-arrow{color:var(--dim);font-family:var(--mono)}
+.order-label{font-family:var(--mono);font-size:11px;color:var(--dim);width:100%;text-align:center;margin-top:4px}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(1.1)}
+.kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:var(--muted)}
+.speed-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:5px;background:var(--surface2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,143,255,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.progress-track{height:7px;background:var(--surface2);border-radius:7px;margin-top:22px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:7px;transition:width .3s ease}
+.progress-caption{text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:16px}
+.stat .label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.stat .val{font-size:24px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.stat.s-teal .val{color:var(--teal)}.stat.s-green .val{color:var(--green)}.stat.s-red .val{color:var(--red)}.stat.s-amber .val{color:var(--amber)}.stat.s-purple .val{color:var(--purple)}
+.log-box{margin-top:22px;background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:16px 18px;font-family:var(--mono);font-size:13px;height:150px;overflow-y:auto}
+.log-box div{padding:2px 0;color:var(--muted)}
+.log-box .l-teal{color:var(--teal)}.log-box .l-amber{color:var(--amber)}.log-box .l-red{color:var(--red)}.log-box .l-green{color:var(--green)}.log-box .l-purple{color:var(--purple)}
+.log-box::-webkit-scrollbar{width:8px}.log-box::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px}
+.code-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-block pre{margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.tok-key{color:var(--purple)}.tok-type{color:var(--teal)}.tok-fn{color:var(--accent)}.tok-num{color:var(--amber)}.tok-str{color:var(--green)}.tok-com{color:var(--dim);font-style:italic}
+.copy-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.18s}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}.copy-btn.done{color:var(--green);border-color:var(--green)}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.cx-card .label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cx-card .big{font-family:var(--mono);font-size:24px;font-weight:700;margin:8px 0;color:var(--amber)}.cx-card .big.good{color:var(--green)}
+.cx-card p{font-size:13px;color:var(--muted)}
+.notes{background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(108,143,255,.05));border:1px solid var(--border);border-radius:16px;padding:26px}
+.notes ul{list-style:none}.notes li{padding:8px 0 8px 26px;position:relative;color:var(--muted);font-size:15px}
+.notes li::before{content:'✦';position:absolute;left:0;color:var(--purple)}.notes li b{color:var(--text);font-weight:600}
+footer{margin-top:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){h1{font-size:30px}.concept-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cx-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="practice">
+    <span class="tag">Practice</span>
+    <a href="https://www.geeksforgeeks.org/topological-sorting/" target="_blank">GFG · Topological Sorting (DFS)</a>
+    <span class="sep">·</span>
+    <a href="https://leetcode.com/problems/course-schedule-ii/" target="_blank">LeetCode 210 · Course Schedule II</a>
+  </div>
+  <header>
+    <div class="badges"><span class="badge b-teal">Graphs</span><span class="badge b-accent">DFS</span><span class="badge b-purple">Topo Sort</span><span class="badge b-amber">Finish Stack</span></div>
+    <h1>Topological Sort <span class="accent">·</span> DFS-based</h1>
+    <p class="subtitle">A node can only be finalized after everything it points to is done. So push each node onto a stack the moment DFS finishes it, then reverse. Last finished ends up first.</p>
+  </header>
+  <section>
+    <div class="section-label">Concept</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--teal)"></span>The idea</h3>
+        <p>Run DFS. When a node has <b>no more unexplored out-edges</b>, it's finished, push it onto a stack. Because you push children before parents, reversing the stack yields a valid topological order.</p>
+      </div>
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--purple)"></span>Finish order → reverse</h3>
+        <ul>
+          <li>Recurse into all neighbors first</li>
+          <li>Push node on the way <b>out</b> (post-order)</li>
+          <li>Deepest dependencies get pushed earliest</li>
+          <li>Reverse the finish stack = topo order</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Interactive</div>
+    <h2>Watch the finish stack fill</h2>
+    <div class="panel">
+      <div class="legend">
+        <span><i class="sw" style="background:#3a3f57"></i>Unvisited</span>
+        <span><i class="sw" style="background:var(--amber)"></i>On DFS path</span>
+        <span><i class="sw" style="background:var(--green)"></i>Finished</span>
+      </div>
+      <div class="stage"><svg id="graph" viewBox="0 0 640 320" width="640"></svg></div>
+      <div class="order-row" id="orderRow"></div>
+      <div class="order-label" id="orderLabel">Finish stack (push order)</div>
+      <div class="controls">
+        <button class="btn" id="prevBtn">◀ Prev <span class="kbd">←</span></button>
+        <button class="btn primary" id="playBtn">▶ Play <span class="kbd">space</span></button>
+        <button class="btn" id="nextBtn">Next ▶ <span class="kbd">→</span></button>
+        <button class="btn" id="resetBtn">↺ Reset <span class="kbd">R</span></button>
+      </div>
+      <div class="speed-row"><span>slow</span><input type="range" id="speed" min="180" max="1400" value="750" step="50"><span>fast</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-caption" id="progCaption">Step 0</div>
+      <div class="stats">
+        <div class="stat s-green"><div class="label">Finished</div><div class="val" id="statFinished">0</div></div>
+        <div class="stat s-amber"><div class="label">Path depth</div><div class="val" id="statDepth">0</div></div>
+        <div class="stat s-teal"><div class="label">At node</div><div class="val" id="statNode">–</div></div>
+        <div class="stat s-purple"><div class="label">Stacked</div><div class="val" id="statStacked">0</div></div>
+      </div>
+      <div class="log-box" id="log"></div>
+    </div>
+  </section>
+  <section>
+    <div class="code-head">
+      <div><div class="section-label" style="margin-bottom:4px">Implementation</div><h2 style="margin:0">C++</h2></div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block">
+<pre><code id="codeText"><span class="tok-key">void</span> <span class="tok-fn">dfs</span>(<span class="tok-type">int</span> u, vector&lt;vector&lt;<span class="tok-type">int</span>&gt;&gt;&amp; adj,
+         vector&lt;<span class="tok-type">bool</span>&gt;&amp; vis, stack&lt;<span class="tok-type">int</span>&gt;&amp; st) {
+    vis[u] = <span class="tok-key">true</span>;
+    <span class="tok-key">for</span> (<span class="tok-type">int</span> v : adj[u])
+        <span class="tok-key">if</span> (!vis[v]) <span class="tok-fn">dfs</span>(v, adj, vis, st);
+    st.push(u);                     <span class="tok-com">// push on finish (post-order)</span>
+}
+
+vector&lt;<span class="tok-type">int</span>&gt; <span class="tok-fn">topoSort</span>(<span class="tok-type">int</span> n, vector&lt;vector&lt;<span class="tok-type">int</span>&gt;&gt;&amp; adj) {
+    vector&lt;<span class="tok-type">bool</span>&gt; vis(n, <span class="tok-key">false</span>);
+    stack&lt;<span class="tok-type">int</span>&gt; st;
+    <span class="tok-key">for</span> (<span class="tok-type">int</span> i = <span class="tok-num">0</span>; i &lt; n; i++)
+        <span class="tok-key">if</span> (!vis[i]) <span class="tok-fn">dfs</span>(i, adj, vis, st);
+
+    vector&lt;<span class="tok-type">int</span>&gt; order;
+    <span class="tok-key">while</span> (!st.empty()) {           <span class="tok-com">// pop = reverse finish order</span>
+        order.push_back(st.top());
+        st.pop();
+    }
+    <span class="tok-key">return</span> order;
+}</code></pre>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Complexity</div>
+    <div class="cx-grid">
+      <div class="cx-card"><div class="label">Time</div><div class="big good">O(V + E)</div><p>One DFS traversal; each vertex and edge visited once.</p></div>
+      <div class="cx-card"><div class="label">Space</div><div class="big">O(V)</div><p>Visited array, the finish stack, and recursion depth.</p></div>
+      <div class="cx-card"><div class="label">Key insight</div><div class="big good">post-order</div><p>Pushing on exit guarantees dependencies land deeper in the stack.</p></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Notes</div>
+    <div class="notes">
+      <ul>
+        <li><b>DFS vs Kahn's:</b> same result, different mechanics. DFS uses a finish stack; Kahn's uses indegrees and a queue. Pick whichever fits your mental model.</li>
+        <li>Plain DFS topo sort <b>assumes a DAG</b>. To be safe, add 3-color cycle detection, if you hit a gray node, there's no valid order.</li>
+        <li>The reversed post-order is exactly why <b>Kosaraju's SCC</b> algorithm reuses this same finish-time trick.</li>
+        <li>Multiple valid orders exist. Neighbor iteration order decides which one you get.</li>
+        <li>Recursion can overflow on deep graphs, an explicit stack version avoids it.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Topological Sort · DFS-based — arrow keys to step · space to play/pause · R to reset</footer>
+</div>
+<script>
+(function(){
+  const nodes=[{id:0,x:330,y:90},{id:1,x:520,y:170},{id:2,x:200,y:180},{id:3,x:360,y:250},{id:4,x:120,y:70},{id:5,x:120,y:260}];
+  const edges=[[5,0],[5,2],[4,0],[4,1],[2,3],[3,1]];
+  const adj={};nodes.forEach(n=>adj[n.id]=[]);edges.forEach(([u,v])=>adj[u].push(v));
+  const svg=document.getElementById('graph'),logEl=document.getElementById('log'),NS='http://www.w3.org/2000/svg';
+  let steps=[],idx=0,playing=false,timer=null;
+  function buildSteps(){
+    const snaps=[];const state={};nodes.forEach(n=>state[n.id]='wait');
+    const vis={};nodes.forEach(n=>vis[n.id]=false);let stack=[],path=[];
+    function push(active,logObj,final){
+      snaps.push({state:{...state},stack:[...stack],active,depth:path.length,finished:Object.values(state).filter(s=>s==='done').length,final:final||null,log:logObj});
+    }
+    push(null,{cls:'l-teal',txt:'Start DFS from node 0. Push each node when finished.'});
+    function dfs(u){
+      vis[u]=true;state[u]='path';path.push(u);
+      push(u,{cls:'l-amber',txt:`Enter ${u}. Explore its out-edges before finishing.`});
+      for(const v of adj[u]){
+        if(!vis[v]){push(u,{cls:'l-purple',txt:`Edge ${u}→${v}: recurse into ${v}.`});dfs(v);}
+        else push(u,{cls:'l-teal',txt:`Edge ${u}→${v}: ${v} already visited, skip.`});
+      }
+      state[u]='done';stack.push(u);path.pop();
+      push(u,{cls:'l-green',txt:`Finish ${u} → push to stack. Stack: [${stack.join(', ')}].`});
+    }
+    for(const n of nodes){if(!vis[n.id])dfs(n.id);}
+    const order=[...stack].reverse();
+    snaps.push({state:{...state},stack:[...stack],active:null,depth:0,finished:nodes.length,final:order,log:{cls:'l-green',txt:`✓ Reverse the stack → topo order: [${order.join(' → ')}].`}});
+    return snaps;
+  }
+  function nodeFill(st){return st==='wait'?'#3a3f57':st==='path'?'#fbbf24':'#4ade80';}
+  function render(snap){
+    svg.innerHTML='';const defs=document.createElementNS(NS,'defs');
+    defs.innerHTML=`<marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L9,3 L0,6 Z" fill="#5c6076"/></marker>`;svg.appendChild(defs);
+    const pos={};nodes.forEach(n=>pos[n.id]=n);
+    edges.forEach(([u,v])=>{const a=pos[u],b=pos[v];const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,r=25;
+      const line=document.createElementNS(NS,'line');line.setAttribute('x1',a.x+ux*r);line.setAttribute('y1',a.y+uy*r);line.setAttribute('x2',b.x-ux*r);line.setAttribute('y2',b.y-uy*r);
+      line.setAttribute('stroke','#5c6076');line.setAttribute('stroke-width',1.8);line.setAttribute('marker-end','url(#arr)');line.setAttribute('class','edge-line');svg.appendChild(line);});
+    nodes.forEach(n=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',n.x);c.setAttribute('cy',n.y);c.setAttribute('r',23);
+      c.setAttribute('fill',nodeFill(snap.state[n.id]));c.setAttribute('stroke',snap.active===n.id?'#fff':'rgba(255,255,255,.15)');c.setAttribute('stroke-width',snap.active===n.id?3.5:1.5);c.setAttribute('class','node-circ');svg.appendChild(c);
+      const t=document.createElementNS(NS,'text');t.setAttribute('x',n.x);t.setAttribute('y',n.y+5);t.setAttribute('text-anchor','middle');t.setAttribute('class','node-lbl');t.setAttribute('fill',snap.state[n.id]==='wait'?'#e6e8ef':'#0f1117');t.textContent=n.id;svg.appendChild(t);});
+  }
+  function renderOrder(snap){
+    const row=document.getElementById('orderRow');row.innerHTML='';
+    const label=document.getElementById('orderLabel');
+    const arr=snap.final?snap.final:snap.stack;
+    const isFinal=!!snap.final;
+    label.textContent=isFinal?'Final topological order (stack reversed)':'Finish stack (push order)';
+    arr.forEach((v,i)=>{if(i>0){const a=document.createElement('span');a.className='order-arrow';a.textContent=isFinal?'→':',';row.appendChild(a);}const c=document.createElement('div');c.className='order-chip'+(isFinal?'':' stackc');c.textContent=v;row.appendChild(c);});
+  }
+  function renderLog(upto){logEl.innerHTML='';for(let i=0;i<=upto;i++){const d=document.createElement('div');d.className=steps[i].log.cls;d.textContent=steps[i].log.txt;logEl.appendChild(d);}logEl.scrollTop=logEl.scrollHeight;}
+  function update(){
+    const s=steps[idx];render(s);renderOrder(s);renderLog(idx);
+    document.getElementById('statFinished').textContent=s.finished;
+    document.getElementById('statDepth').textContent=s.depth;
+    document.getElementById('statNode').textContent=s.active===null?'–':s.active;
+    document.getElementById('statStacked').textContent=s.stack.length;
+    const pct=steps.length>1?(idx/(steps.length-1))*100:0;document.getElementById('progress').style.width=pct+'%';
+    document.getElementById('progCaption').textContent=`Step ${idx} / ${steps.length-1}`;
+    document.getElementById('prevBtn').disabled=idx===0;document.getElementById('nextBtn').disabled=idx===steps.length-1;
+  }
+  function next(){if(idx<steps.length-1){idx++;update();}else pause();}
+  function prev(){if(idx>0){idx--;update();}}
+  function reset(){pause();idx=0;update();}
+  function play(){if(idx>=steps.length-1)idx=0;playing=true;document.getElementById('playBtn').innerHTML='❚❚ Pause <span class="kbd">space</span>';const spd=+document.getElementById('speed').value;timer=setInterval(()=>{if(idx<steps.length-1)next();else pause();},spd);}
+  function pause(){playing=false;document.getElementById('playBtn').innerHTML='▶ Play <span class="kbd">space</span>';clearInterval(timer);}
+  function togglePlay(){playing?pause():play();}
+  document.getElementById('nextBtn').onclick=next;document.getElementById('prevBtn').onclick=prev;document.getElementById('resetBtn').onclick=reset;document.getElementById('playBtn').onclick=togglePlay;
+  document.getElementById('speed').oninput=()=>{if(playing){pause();play();}};
+  document.getElementById('copyBtn').onclick=function(){const txt=document.getElementById('codeText').innerText;navigator.clipboard.writeText(txt).then(()=>{this.textContent='Copied ✓';this.classList.add('done');setTimeout(()=>{this.textContent='Copy';this.classList.remove('done');},1600);});};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){e.preventDefault();pause();next();}else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}else if(e.key===' '){e.preventDefault();togglePlay();}else if(e.key==='r'||e.key==='R'){e.preventDefault();reset();}});
+  steps=buildSteps();update();
+})();
+</script>
+</body>
+</html>

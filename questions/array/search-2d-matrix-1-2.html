@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search a 2D Matrix — Binary Search &amp; Staircase</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3a4a7a;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace; --sans: 'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.med { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.bs { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; } .formula .keyword { color: var(--purple); }
+  .mode-row { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+  .mode-btn { flex: 1; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: all .15s; text-align: center; }
+  .mode-btn:hover { color: var(--text); border-color: var(--muted); }
+  .mode-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .mode-btn small { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .mode-btn.active small { color: var(--teal); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .matrix-wrap { margin-bottom: 1.1rem; }
+  .matrix-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .matrix-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; display: flex; justify-content: center; }
+  .matrix-grid { display: grid; gap: 6px; }
+  .mcell { width: 52px; height: 44px; border-radius: 6px; border: 1.5px solid var(--border2); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s; position: relative; }
+  .mcell.dim   { color: var(--muted2); opacity: .45; }
+  .mcell.range { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+  .mcell.mid   { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.20); transform: scale(1.05); }
+  .mcell.cursor{ background: var(--accent-bg); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px rgba(108,143,255,.22); transform: scale(1.05); }
+  .mcell.found { background: var(--green-bg); border-color: var(--green); color: var(--green); box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
+  .mcell.elim  { opacity: .35; }
+  .eq-strip { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1.1rem; font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.9; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .eq-chip { padding: 2px 10px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border2); background: var(--surface); }
+  .eq-chip.mid { color: var(--amber); border-color: var(--amber); } .eq-chip.t { color: var(--accent); border-color: var(--accent); }
+  .eq-chip.hit { color: var(--green); border-color: var(--green); } .eq-chip.miss { color: var(--red); border-color: var(--red); }
+  .eq-op { color: var(--muted2); }
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono); display: flex; flex-direction: column; gap: 3px; min-width: 116px; }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); } .alloc-card .ac-sum { font-weight: 700; }
+  .alloc-card.amberc { border-color: var(--amber); background: var(--amber-bg); } .alloc-card.amberc .ac-sum { color: var(--amber); }
+  .alloc-card.accentc { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.accentc .ac-sum { color: var(--accent); }
+  .alloc-card.ok { border-color: var(--green); background: var(--green-bg); } .alloc-card.ok .ac-sum { color: var(--green); }
+  .alloc-card.over { border-color: var(--red); background: var(--red-bg); } .alloc-card.over .ac-sum { color: var(--red); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); } .alloc-card.info .ac-sum { color: var(--accent); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-lo { color: var(--teal); } .tp-hi { color: var(--red); } .tp-mid { color: var(--amber); } .tp-ans { color: var(--green); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.teal .val { color: var(--teal); } .stat-box.amber .val { color: var(--amber); } .stat-box.accent .val { color: var(--accent); } .stat-box.green .val { color: var(--green); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; } .log-box .pos { color: var(--green); font-weight: 600; } .log-box .neg { color: var(--red); font-weight: 600; } .log-box .acc { color: var(--accent); font-weight: 600; } .log-box .amb { color: var(--amber); font-weight: 600; } .log-box .sol { color: var(--purple); font-weight: 600; } .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); } .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)} .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s} .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)} .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none} .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)} .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px} .notes-footer .save-status.saved{color:var(--green)} .notes-footer .save-status.saving{color:var(--amber)} .notes-footer .save-status.error{color:var(--red)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;} .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);} .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge bs">Binary Search on Index</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>Search a 2D Matrix I &amp; II</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice both variants on <b>LeetCode</b> to reinforce your understanding.</div>
+      <a href="https://leetcode.com/problems/search-a-2d-matrix/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>Variant I: treat the matrix as one sorted list and binary search it. Variant II: walk a staircase from the top-right corner</p>
+  </div>
+</header>
+
+<main>
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Search for a target in a matrix with sorted structure. <strong style="color:var(--teal)">Matrix I</strong>: each row is sorted and every row's first value exceeds the previous row's last, so the whole thing is one sorted sequence. <strong style="color:var(--teal)">Matrix II</strong>: rows and columns are each sorted, but rows don't chain together.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> for I, map a 1-D index <code style="color:var(--accent)">idx</code> to cell <code style="color:var(--accent)">(idx/cols, idx%cols)</code> and binary search over <code style="color:var(--accent)">rows·cols</code> → <strong style="color:var(--teal)">O(log(mn))</strong>. For II, start at the <strong style="color:var(--teal)">top-right</strong>: bigger than target → move left, smaller → move down. Each step drops a row or column → <strong style="color:var(--teal)">O(m+n)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula" id="idea-formula"></div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Matrix I · time</div><div class="big">O(log mn)</div><p>Binary search over all m·n cells using the flat-index trick. O(1) space.</p></div>
+    <div class="complex-card"><div class="lbl">Matrix II · time</div><div class="big">O(m + n)</div><p>The staircase walk eliminates one row or column per step from the top-right. O(1) space.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="mode-1" onclick="setMode(1)">Matrix I<small>fully sorted · binary search</small></button>
+    <button class="mode-btn" id="mode-2" onclick="setMode(2)">Matrix II<small>row/col sorted · staircase</small></button>
+  </div>
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs"></div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title" id="anim-title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="matrix-wrap">
+      <div class="matrix-label" id="matrix-label">Matrix</div>
+      <div class="matrix-outer"><div class="matrix-grid" id="matrix-grid"></div></div>
+    </div>
+    <div class="eq-strip" id="eq-strip">Press Play to begin…</div>
+    <div class="alloc-section">
+      <div class="alloc-label">Current step detail</div>
+      <div class="alloc-row" id="need-row"></div>
+    </div>
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-lo">—</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">—</span>
+      <span class="tracker-pill tp-hi" id="pill-hi">—</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">found = —</span>
+    </div>
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl" id="s-lo-lbl">probe cell</div><div class="val" id="s-lo">—</div><div class="sub" id="s-lo-sub">value</div></div>
+      <div class="stat-box accent"><div class="lbl">target</div><div class="val" id="s-hi">—</div><div class="sub">searching for</div></div>
+      <div class="stat-box teal"><div class="lbl">search space</div><div class="val" id="s-mid">—</div><div class="sub" id="s-mid-sub">cells left</div></div>
+      <div class="stat-box green"><div class="lbl">answer</div><div class="val" id="s-ans">—</div><div class="sub" id="s-ans-sub">found?</div></div>
+    </div>
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speed" min="1" max="5" value="3" step="1"><span id="spd-lbl" style="min-width:50px">Medium</span></div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table"><thead><tr id="thead-row"></tr></thead><tbody id="step-tbody"></tbody></table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span id="code-name">search_2d.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"></pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader"><h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3><span class="toggle-icon" id="toggleIcon">&#x25BC;</span></div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm..."></textarea>
+      <div class="notes-footer"><span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span><span id="charCount">0 chars</span></div>
+    </div>
+  </div>
+
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="search-2d-matrix-1-2"></div>
+</main>
+
+<script>
+const MATRIX = [[1,4,7,11],[2,5,8,12],[3,6,9,16],[10,13,14,17]]; // sorted rows & cols (for II)
+const MATRIX1 = [[1,3,5,7],[10,11,16,20],[23,30,34,60]];         // fully sorted (for I)
+const EX1 = [
+  { m:MATRIX1, t:16, desc:`<strong style="color:var(--text)">Matrix I, target 16 — found.</strong> Flatten to one sorted list of 12 values and binary search. Cell (1,2)=16. Answer <strong style="color:var(--purple)">true</strong>.` },
+  { m:MATRIX1, t:13, desc:`<strong style="color:var(--text)">Matrix I, target 13 — not found.</strong> The flat binary search narrows to a gap between 11 and 16. Answer <strong style="color:var(--purple)">false</strong>.` },
+  { m:MATRIX1, t:1, desc:`<strong style="color:var(--text)">Matrix I, target 1 — first cell.</strong> The minimum; binary search homes in on index 0 = (0,0). Answer <strong style="color:var(--purple)">true</strong>.` },
+  { m:MATRIX1, t:60, desc:`<strong style="color:var(--text)">Matrix I, target 60 — last cell.</strong> The maximum, at (2,3). Answer <strong style="color:var(--purple)">true</strong>.` }
+];
+const EX2 = [
+  { m:MATRIX, t:9, desc:`<strong style="color:var(--text)">Matrix II, target 9 — staircase from top-right.</strong> Start at (0,3)=11 &gt; 9 → left; 7 &lt; 9 → down; etc. Each step drops a row or column. Answer <strong style="color:var(--purple)">true</strong>.` },
+  { m:MATRIX, t:13, desc:`<strong style="color:var(--text)">Matrix II, target 13 — found lower-left region.</strong> The walk descends and slides left until it lands on 13. Answer <strong style="color:var(--purple)">true</strong>.` },
+  { m:MATRIX, t:15, desc:`<strong style="color:var(--text)">Matrix II, target 15 — not present.</strong> The staircase walks off the grid without a match. Answer <strong style="color:var(--purple)">false</strong>.` },
+  { m:MATRIX, t:1, desc:`<strong style="color:var(--text)">Matrix II, target 1 — top-left min.</strong> The walk goes all the way left then down to (0,0). Answer <strong style="color:var(--purple)">true</strong>.` }
+];
+const IDEA1 = `<span class="comment">// Matrix I: flat binary search</span><br>lo=0, hi=rows*cols-1<br><span class="keyword">while</span> lo&lt;=hi:<br>&nbsp;&nbsp;mid=(lo+hi)/2<br>&nbsp;&nbsp;v = M[mid/cols][mid%cols]<br>&nbsp;&nbsp;v==t? found ; v&lt;t? lo=mid+1 : hi=mid-1`;
+const IDEA2 = `<span class="comment">// Matrix II: staircase from top-right</span><br>r=0, c=cols-1<br><span class="keyword">while</span> r&lt;rows and c&gt;=0:<br>&nbsp;&nbsp;M[r][c]==t? found<br>&nbsp;&nbsp;M[r][c]&gt;t? c-- : r++`;
+const CODE1 = `<span class="kw">bool</span> <span class="fn">searchMatrix</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; M, <span class="kw">int</span> t) {\n    <span class="kw">int</span> rows = M.size(), cols = M[<span class="nm">0</span>].size();\n    <span class="kw">int</span> lo = <span class="nm">0</span>, hi = rows * cols - <span class="nm">1</span>;\n    <span class="kw">while</span> (lo &lt;= hi) {\n        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nm">2</span>;\n        <span class="kw">int</span> v = M[mid / cols][mid % cols];  <span class="cm">// flat index → (row, col)</span>\n        <span class="kw">if</span> (v == t) <span class="kw">return</span> <span class="kw">true</span>;\n        <span class="kw">if</span> (v &lt; t) lo = mid + <span class="nm">1</span>;\n        <span class="kw">else</span> hi = mid - <span class="nm">1</span>;\n    }\n    <span class="kw">return</span> <span class="kw">false</span>;\n}`;
+const CODE2 = `<span class="kw">bool</span> <span class="fn">searchMatrixII</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; M, <span class="kw">int</span> t) {\n    <span class="kw">int</span> r = <span class="nm">0</span>, c = (<span class="kw">int</span>)M[<span class="nm">0</span>].size() - <span class="nm">1</span>;  <span class="cm">// start top-right</span>\n    <span class="kw">while</span> (r &lt; (<span class="kw">int</span>)M.size() &amp;&amp; c &gt;= <span class="nm">0</span>) {\n        <span class="kw">if</span> (M[r][c] == t) <span class="kw">return</span> <span class="kw">true</span>;\n        <span class="kw">if</span> (M[r][c] &gt; t) c--;  <span class="cm">// too big → drop this column</span>\n        <span class="kw">else</span> r++;             <span class="cm">// too small → drop this row</span>\n    }\n    <span class="kw">return</span> <span class="kw">false</span>;\n}`;
+
+const SPEEDS=[1600,1000,600,300,120]; const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input',function(){document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];});
+let MODE=1, M=[], ROWS=0, COLS=0, T=0, steps=[], cursor=-1, playing=false, timer=null, exIdx=0;
+
+function buildSteps1(mat,t){
+  M=mat;ROWS=mat.length;COLS=mat[0].length;T=t;
+  const total=ROWS*COLS;const stps=[];let lo=0,hi=total-1,ans=false,ansCell=null;
+  stps.push({phase:'init',lo,hi,mid:null,cell:null,ans:false,msg:`<span class="hi">Treat the ${ROWS}×${COLS} matrix as one sorted list of ${total} values.</span> lo=0, hi=${total-1}. Map flat index → M[idx/${COLS}][idx%${COLS}].`});
+  while(lo<=hi){
+    const mid=lo+Math.floor((hi-lo)/2);const r=Math.floor(mid/COLS),c=mid%COLS;const v=mat[r][c];
+    if(v===t){ans=true;ansCell=[r,c];stps.push({phase:'found',lo,hi,mid,cell:[r,c],ans:true,msg:`<span class="hi">flat idx ${mid} → cell (${r},${c}) = ${v} = target.</span> <span class="pos">Found!</span>`});break;}
+    if(v<t){stps.push({phase:'step',lo,hi,mid,cell:[r,c],ans:false,dir:'right',msg:`<span class="hi">cell (${r},${c}) = ${v} &lt; ${t}.</span> Search the upper half → lo = ${mid+1}.`});lo=mid+1;}
+    else{stps.push({phase:'step',lo,hi,mid,cell:[r,c],ans:false,dir:'left',msg:`<span class="hi">cell (${r},${c}) = ${v} &gt; ${t}.</span> Search the lower half → hi = ${mid-1}.`});hi=mid-1;}
+  }
+  if(!ans)stps.push({phase:'done',lo,hi,mid:null,cell:null,ans:false,msg:`<span class="hi">lo &gt; hi — range empty.</span> <span class="neg">${t} is not in the matrix.</span> Return false.`});
+  else stps.push({phase:'done',lo,hi,mid:null,cell:ansCell,ans:true,msg:`<span class="hi">Done.</span> <span class="pos">${t} found at (${ansCell[0]},${ansCell[1]}).</span>`});
+  return stps;
+}
+function buildSteps2(mat,t){
+  M=mat;ROWS=mat.length;COLS=mat[0].length;T=t;
+  const stps=[];let r=0,c=COLS-1,ans=false,ansCell=null;
+  stps.push({phase:'init',r,c,ans:false,msg:`<span class="hi">Start at the top-right corner (0,${COLS-1}) = ${mat[0][COLS-1]}.</span> From here, larger-than-target means move left, smaller means move down.`});
+  while(r<ROWS&&c>=0){
+    const v=mat[r][c];
+    if(v===t){ans=true;ansCell=[r,c];stps.push({phase:'found',r,c,ans:true,msg:`<span class="hi">M[${r}][${c}] = ${v} = target.</span> <span class="pos">Found!</span>`});break;}
+    if(v>t){stps.push({phase:'step',r,c,ans:false,dir:'left',msg:`<span class="hi">M[${r}][${c}] = ${v} &gt; ${t}.</span> Everything below in this column is even bigger → <span class="tl">drop the column</span>, c = ${c-1}.`});c--;}
+    else{stps.push({phase:'step',r,c,ans:false,dir:'down',msg:`<span class="hi">M[${r}][${c}] = ${v} &lt; ${t}.</span> Everything left in this row is even smaller → <span class="tl">drop the row</span>, r = ${r+1}.`});r++;}
+  }
+  if(!ans)stps.push({phase:'done',r,c,ans:false,msg:`<span class="hi">Walked off the grid.</span> <span class="neg">${t} is not present.</span> Return false.`});
+  else stps.push({phase:'done',r:ansCell[0],c:ansCell[1],ans:true,msg:`<span class="hi">Done.</span> <span class="pos">${t} found at (${ansCell[0]},${ansCell[1]}).</span>`});
+  return stps;
+}
+
+function buildTableRows(stps){
+  const thead=document.getElementById('thead-row');const tbody=document.getElementById('step-tbody');
+  if(MODE===1){
+    thead.innerHTML='<th>Step</th><th>lo</th><th>mid</th><th>hi</th><th>cell</th><th>value</th><th>action</th>';
+    tbody.innerHTML=stps.map((s,i)=>{
+      let act= s.phase==='init'?'set lo,hi':s.phase==='step'?(s.dir==='right'?'lo=mid+1':'hi=mid-1'):s.phase==='found'?'return true':(s.ans?'true':'false');
+      return `<tr id="tr-${i}"><td>${i+1}</td><td style="color:var(--teal)">${s.lo}</td><td style="color:var(--amber)">${s.mid!==null?s.mid:'—'}</td><td style="color:var(--red)">${s.hi}</td><td style="color:var(--accent)">${s.cell?`(${s.cell[0]},${s.cell[1]})`:'—'}</td><td style="color:var(--text)">${s.cell&&s.phase!=='done'?M[s.cell[0]][s.cell[1]]:'—'}</td><td style="color:var(--muted)">${act}</td></tr>`;
+    }).join('');
+  }else{
+    thead.innerHTML='<th>Step</th><th>row</th><th>col</th><th>value</th><th>vs target</th><th>action</th>';
+    tbody.innerHTML=stps.map((s,i)=>{
+      const v=s.phase!=='done'||s.ans?(M[s.r]&&M[s.r][s.c]!==undefined?M[s.r][s.c]:'—'):'—';
+      let vs= s.phase==='step'?(s.dir==='left'?'&gt;':'&lt;'):s.phase==='found'?'=':'—';
+      let act= s.phase==='init'?'start TR':s.phase==='step'?(s.dir==='left'?'c--':'r++'):s.phase==='found'?'return true':(s.ans?'true':'false');
+      return `<tr id="tr-${i}"><td>${i+1}</td><td style="color:var(--teal)">${s.r}</td><td style="color:var(--red)">${s.c}</td><td style="color:var(--text)">${v}</td><td>${vs}</td><td style="color:var(--muted)">${act}</td></tr>`;
+    }).join('');
+  }
+}
+
+function renderMatrix(st){
+  const grid=document.getElementById('matrix-grid');
+  grid.style.gridTemplateColumns=`repeat(${COLS}, 52px)`;
+  let html='';
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    let cls='mcell';
+    if(MODE===1){
+      const flat=r*COLS+c;const inRange=st.lo!==undefined&&flat>=st.lo&&flat<=st.hi;
+      if((st.phase==='found'||st.phase==='done')&&st.ans&&st.cell&&r===st.cell[0]&&c===st.cell[1])cls+=' found';
+      else if(st.cell&&r===st.cell[0]&&c===st.cell[1]&&st.phase==='step')cls+=' mid';
+      else if(inRange&&st.phase!=='done')cls+=' range';
+      else cls+=' elim dim';
+    }else{
+      if((st.phase==='found'||st.phase==='done')&&st.ans&&r===st.r&&c===st.c)cls+=' found';
+      else if(r===st.r&&c===st.c&&st.phase!=='done')cls+=' cursor';
+      else{
+        // eliminated: above current row, or right of current col
+        const elim=(r<st.r)||(c>st.c);
+        cls+= elim?' elim dim':' range';
+      }
+    }
+    html+=`<div class="${cls}">${M[r][c]}</div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function renderEq(st){
+  const strip=document.getElementById('eq-strip');
+  if(st.phase==='init'){strip.innerHTML= MODE===1?`<span class="eq-op">flat range</span> <span class="eq-chip mid">[0, ${ROWS*COLS-1}]</span> <span class="eq-op">·</span> target <span class="eq-chip t">${T}</span>`:`<span class="eq-op">start</span> <span class="eq-chip mid">(0, ${COLS-1})</span> <span class="eq-op">·</span> target <span class="eq-chip t">${T}</span>`;return;}
+  if(st.phase==='done'){strip.innerHTML=st.ans?`<span class="eq-op">result</span> <span class="eq-chip hit">found${st.cell?` at (${st.cell[0]},${st.cell[1]})`:(st.r!==undefined?` at (${st.r},${st.c})`:'')}</span>`:`<span class="eq-op">result</span> <span class="eq-chip miss">not found</span>`;return;}
+  if(MODE===1){
+    const v=M[st.cell[0]][st.cell[1]];
+    strip.innerHTML=`idx ${st.mid} → <span class="eq-chip mid">M[${st.cell[0]}][${st.cell[1]}] = ${v}</span> <span class="eq-op">vs</span> <span class="eq-chip t">${T}</span> <span class="eq-op">→</span> ${st.phase==='found'?`<span class="eq-chip hit">equal ✓</span>`:v<T?`<span class="eq-op">go right</span>`:`<span class="eq-op">go left</span>`}`;
+  }else{
+    const v=M[st.r][st.c];
+    strip.innerHTML=`<span class="eq-chip mid">M[${st.r}][${st.c}] = ${v}</span> <span class="eq-op">vs</span> <span class="eq-chip t">${T}</span> <span class="eq-op">→</span> ${st.phase==='found'?`<span class="eq-chip hit">equal ✓</span>`:v>T?`<span class="eq-op">too big, ← left</span>`:`<span class="eq-op">too small, ↓ down</span>`}`;
+  }
+}
+
+function renderNeed(st){
+  const row=document.getElementById('need-row');
+  if(st.phase==='init'){row.innerHTML=`<div class="alloc-card info"><div class="ac-head">${MODE===1?'flatten':'top-right'}</div><div class="ac-books">${MODE===1?`${ROWS}×${COLS} → ${ROWS*COLS} cells`:`start (0,${COLS-1})`}</div><div class="ac-sum">target ${T}</div></div>`;return;}
+  if(st.phase==='done'){row.innerHTML=st.ans?`<div class="alloc-card ok"><div class="ac-head">answer</div><div class="ac-books">found</div><div class="ac-sum">true ✓</div></div>`:`<div class="alloc-card over"><div class="ac-head">answer</div><div class="ac-books">absent</div><div class="ac-sum">false ✗</div></div>`;return;}
+  if(MODE===1){
+    const v=M[st.cell[0]][st.cell[1]];
+    row.innerHTML=`<div class="alloc-card amberc"><div class="ac-head">probe</div><div class="ac-books">(${st.cell[0]},${st.cell[1]}) = ${v}</div><div class="ac-sum">idx ${st.mid}</div></div>
+      <div class="alloc-card accentc"><div class="ac-head">vs target</div><div class="ac-books">${v} ${v<T?'&lt;':'&gt;'} ${T}</div><div class="ac-sum">${v<T?'go right':'go left'}</div></div>`;
+  }else{
+    const v=M[st.r][st.c];const left=v>T;
+    row.innerHTML=`<div class="alloc-card amberc"><div class="ac-head">cursor</div><div class="ac-books">(${st.r},${st.c}) = ${v}</div><div class="ac-sum">top-right walk</div></div>
+      <div class="alloc-card accentc"><div class="ac-head">${v} ${left?'&gt;':'&lt;'} ${T}</div><div class="ac-books">${left?'drop column':'drop row'}</div><div class="ac-sum">${left?'c--':'r++'}</div></div>`;
+  }
+}
+
+function applyState(idx){
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('done-pill').style.display='none';
+  if(idx<0){
+    const seed= MODE===1?{phase:'idle',lo:0,hi:ROWS*COLS-1,mid:null,cell:null,ans:false}:{phase:'idle',r:0,c:COLS-1,ans:false};
+    renderMatrix(seed);renderNeed({phase:'init'});
+    document.getElementById('eq-strip').innerHTML='Press Play to begin…';
+    if(MODE===1){document.getElementById('pill-lo').textContent='lo = 0';document.getElementById('pill-mid').textContent='mid = —';document.getElementById('pill-hi').textContent=`hi = ${ROWS*COLS-1}`;}
+    else{document.getElementById('pill-lo').textContent='row = 0';document.getElementById('pill-mid').textContent=`col = ${COLS-1}`;document.getElementById('pill-hi').textContent='';}
+    document.getElementById('pill-ans').textContent='found = —';
+    document.getElementById('s-lo').textContent='—';document.getElementById('s-hi').textContent=T;document.getElementById('s-mid').textContent= MODE===1?ROWS*COLS:(ROWS+COLS);document.getElementById('s-ans').textContent='—';
+    document.getElementById('s-mid-sub').textContent= MODE===1?'cells left':'max steps';
+    document.getElementById('step-label').textContent='Step — of —';document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+  const s=steps[idx];renderMatrix(s);renderEq(s);renderNeed(s);
+  if(MODE===1){
+    document.getElementById('pill-lo').textContent=`lo = ${s.lo}`;
+    document.getElementById('pill-mid').textContent=`mid = ${s.mid!==null?s.mid:'—'}`;
+    document.getElementById('pill-hi').textContent=`hi = ${s.hi}`;
+    document.getElementById('s-lo-lbl').textContent='probe cell';
+    document.getElementById('s-lo').textContent=s.cell&&s.phase!=='done'?M[s.cell[0]][s.cell[1]]:'—';
+    document.getElementById('s-mid').textContent=Math.max(0,s.hi-s.lo+1);
+    document.getElementById('s-mid-sub').textContent='cells left';
+  }else{
+    document.getElementById('pill-lo').textContent=`row = ${s.r}`;
+    document.getElementById('pill-mid').textContent=`col = ${s.c}`;
+    document.getElementById('pill-hi').textContent='';
+    document.getElementById('s-lo-lbl').textContent='cursor';
+    document.getElementById('s-lo').textContent=(s.phase!=='done'||s.ans)&&M[s.r]&&M[s.r][s.c]!==undefined?M[s.r][s.c]:'—';
+    document.getElementById('s-mid').textContent=(ROWS-s.r)+(s.c+1);
+    document.getElementById('s-mid-sub').textContent='cells in reach';
+  }
+  document.getElementById('s-hi').textContent=T;
+  document.getElementById('pill-ans').textContent=`found = ${s.phase==='done'||s.phase==='found'?(s.ans?'yes':'no'):'—'}`;
+  document.getElementById('s-ans').textContent= s.ans?'true':(s.phase==='done'?'false':'—');
+  document.getElementById('s-ans-sub').textContent= s.phase==='done'||s.phase==='found'?(s.ans?'present':'absent'):'searching';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML=s.msg;
+  if(s.phase==='done'){const p=document.getElementById('done-pill');p.textContent=s.ans?'✓ Found (true)':'✓ Not found (false)';p.style.display='inline-block';}
+  const tr=document.getElementById('tr-'+idx);if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+
+function renderTabs(){
+  const ex= MODE===1?EX1:EX2;
+  document.getElementById('tabs').innerHTML=ex.map((e,i)=>`<button class="tab ${i===0?'active':''}" onclick="loadExample(${i},this)">target ${e.t} <span class="tag ${i<2?'tag-classic':'tag-edge'}">${i===0?'classic':i===ex.length-1?'edge':'case'}</span></button>`).join('');
+}
+function loadExample(i,btn){
+  stopPlay();exIdx=i;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');
+  const ex=(MODE===1?EX1:EX2)[i];
+  steps= MODE===1?buildSteps1(ex.m,ex.t):buildSteps2(ex.m,ex.t);
+  document.getElementById('matrix-label').textContent= MODE===1?`Fully-sorted matrix · target ${T}`:`Row/col-sorted matrix · target ${T}`;
+  document.getElementById('example-desc').innerHTML=ex.desc;
+  buildTableRows(steps);cursor=-1;applyState(-1);
+}
+function setMode(m){
+  if(MODE===m)return;stopPlay();MODE=m;
+  document.getElementById('mode-1').classList.toggle('active',m===1);
+  document.getElementById('mode-2').classList.toggle('active',m===2);
+  document.getElementById('anim-title').textContent= m===1?'Live animation — flat binary search':'Live animation — staircase from top-right';
+  document.getElementById('idea-formula').innerHTML= m===1?IDEA1:IDEA2;
+  document.getElementById('code-name').textContent= m===1?'search_2d_matrix_I.cpp':'search_2d_matrix_II.cpp';
+  document.getElementById('code-block').innerHTML= m===1?CODE1:CODE2;
+  document.getElementById('legend').innerHTML= m===1?
+    `<span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> probe (mid)</span><span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span> in range</span><span><span class="dot" style="background:var(--surface);border-color:var(--border)"></span> eliminated</span><span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> found</span>`:
+    `<span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> cursor</span><span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span> still possible</span><span><span class="dot" style="background:var(--surface);border-color:var(--border)"></span> eliminated</span><span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> found</span>`;
+  renderTabs();loadExample(0,document.querySelector('.tab.active'));
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){if(playing){stopPlay();return;}if(cursor>=steps.length-1){cursor=-1;applyState(-1);}playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();}
+function tick(){if(!playing)return;if(cursor>=steps.length-1){stopPlay();return;}cursor++;applyState(cursor);timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);}
+function togglePin(){const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');const p=panel.classList.toggle('pinned');btn.classList.toggle('active',p);btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+
+document.getElementById('idea-formula').innerHTML=IDEA1;
+document.getElementById('code-block').innerHTML=CODE1;
+document.getElementById('anim-title').textContent='Live animation — flat binary search';
+document.getElementById('legend').innerHTML=`<span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> probe (mid)</span><span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span> in range</span><span><span class="dot" style="background:var(--surface);border-color:var(--border)"></span> eliminated</span><span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> found</span>`;
+renderTabs();
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const algoName=document.title.replace(' - AlgoCrux','');
+  let currentUser=null,isCompleted=false;
+  const trackerUI=document.createElement('div');
+  trackerUI.innerHTML=`<div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div><div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div></div><button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button><div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div></div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn=document.getElementById('markCompleteBtn'),trackerStatus=document.getElementById('trackerStatus'),trackerIcon=document.getElementById('trackerIcon'),trackerLogin=document.getElementById('trackerLogin');
+  function setCompletedState(){isCompleted=true;markBtn.innerHTML='<span>&#x2705; Completed</span>';markBtn.style.background='#0d2318';markBtn.style.borderColor='#1a6b3a';markBtn.style.color='#4ade80';markBtn.style.cursor='default';trackerStatus.textContent='Completed!';trackerStatus.style.color='#4ade80';trackerIcon.innerHTML='&#x2705;';trackerIcon.style.background='#0d2318';trackerIcon.style.border='1px solid #1a6b3a';trackerIcon.style.color='#4ade80';}
+  function setLoggedOutState(){markBtn.style.display='none';trackerLogin.style.display='block';trackerStatus.textContent='Sign in to track';}
+  onAuthStateChanged(auth,async(user)=>{if(!user){setLoggedOutState();return;}currentUser=user;markBtn.style.display='flex';trackerLogin.style.display='none';const userDoc=await getDoc(doc(db,'users',user.uid));if(userDoc.exists()&&(userDoc.data().completedAnimations||[]).includes(algoId))setCompletedState();});
+  markBtn.addEventListener('click',async()=>{if(!currentUser||isCompleted)return;markBtn.disabled=true;markBtn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';try{const userRef=doc(db,'users',currentUser.uid);const userDoc=await getDoc(userRef);const today=(function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();if(userDoc.exists())await updateDoc(userRef,{completedAnimations:arrayUnion(algoId),lastActive:new Date().toISOString(),['activityMap.'+today]:increment(1)});else await setDoc(userRef,{name:currentUser.displayName||currentUser.email.split('@')[0],email:currentUser.email,createdAt:new Date().toISOString(),completedAnimations:[algoId],totalTimeSpent:0,lastActive:new Date().toISOString(),activityMap:{[today]:1}});setCompletedState();}catch(err){markBtn.disabled=false;markBtn.innerHTML='<span>Mark as Complete</span>';}});
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth=getAuth();const db=getFirestore();const btn=document.getElementById('algoBookmark');
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');let isBookmarked=false;
+  auth.onAuthStateChanged(async(user)=>{if(!user)return;const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()){const bm=snap.data().bookmarks||[];isBookmarked=bm.includes(algoId);btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);}});
+  btn.addEventListener('click',async()=>{const user=auth.currentUser;if(!user)return;const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const data=snap.exists()?snap.data():{};const bm=new Set(data.bookmarks||[]);if(bm.has(algoId))bm.delete(algoId);else bm.add(algoId);await setDoc(ref,{bookmarks:Array.from(bm)},{merge:true});isBookmarked=!isBookmarked;btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);});
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const LOCAL_KEY='algocrux_notes_'+algoId;
+  const notesHeader=document.getElementById('notesHeader'),notesBody=document.getElementById('notesBody'),toggleIcon=document.getElementById('toggleIcon'),textarea=document.getElementById('notesTextarea'),saveStatus=document.getElementById('saveStatus'),saveText=document.getElementById('saveText'),saveDot=document.getElementById('saveDot'),charCount=document.getElementById('charCount'),noteIndicator=document.getElementById('noteIndicator');
+  let currentUser=null,saveTimer=null,isSaving=false;
+  notesHeader.addEventListener('click',()=>{const isOpen=notesBody.classList.toggle('open');notesHeader.classList.toggle('open',isOpen);toggleIcon.innerHTML=isOpen?'&#x25B2;':'&#x25BC;';if(isOpen)textarea.focus();});
+  textarea.addEventListener('input',()=>{const len=textarea.value.length;charCount.textContent=len+' char'+(len!==1?'s':'');setSaveStatus('unsaved');clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNotes(),1500);});
+  function setSaveStatus(s){saveStatus.className='save-status '+s;if(s==='saved'){saveText.textContent='Saved';saveDot.innerHTML='&#x2705;';noteIndicator.classList.add('visible');}else if(s==='saving'){saveText.textContent='Saving...';saveDot.innerHTML='&#x23F3;';}else if(s==='error'){saveText.textContent='Error saving';saveDot.innerHTML='&#x274C;';}else{saveText.textContent='Unsaved changes';saveDot.innerHTML='&#x25CF;';}}
+  async function saveNotes(){if(isSaving)return;isSaving=true;setSaveStatus('saving');try{if(currentUser){const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);await setDoc(notesRef,{text:textarea.value,updatedAt:new Date().toISOString()},{merge:true});}localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('saved');}catch(err){localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('error');}finally{isSaving=false;}}
+  async function loadNotes(){let text='';if(currentUser){try{const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);const snap=await getDoc(notesRef);if(snap.exists())text=snap.data().text||'';}catch(err){}}if(!text)text=localStorage.getItem(LOCAL_KEY)||'';textarea.value=text;const len=text.length;charCount.textContent=len+' char'+(len!==1?'s':'');if(text.trim()){noteIndicator.classList.add('visible');setSaveStatus('saved');}else setSaveStatus('unsaved');}
+  onAuthStateChanged(auth,async(user)=>{currentUser=user;await loadNotes();});
+  window.addEventListener('beforeunload',()=>{if(textarea.value.trim()){localStorage.setItem(LOCAL_KEY,textarea.value);if(currentUser&&!isSaving)saveNotes();}});
+</script>
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

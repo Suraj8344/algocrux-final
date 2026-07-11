@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 54 — Spiral Matrix</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --orange:#fb923c;--orange-bg:#2a1500;
+    --pink:#f472b6;  --pink-bg:#2a0a1a;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+  .badge-med{background:#1e1a06;color:#fbbf24;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #4a3a00}
+  .badge-tag{background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #2a3875}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--accent);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}
+  @media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+  .tag{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .tag-e{background:var(--purple-bg);color:var(--purple)}
+  .tag-s{background:var(--accent-bg);color:var(--accent)}
+
+  /* ── ANIM PANEL ── */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.55);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted)}
+  .pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* ── SPLIT LAYOUT: matrix left, output right ── */
+  .vis-split{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.1rem;align-items:start}
+  @media(max-width:620px){.vis-split{grid-template-columns:1fr}}
+
+  /* ── MATRIX CANVAS ── */
+  .matrix-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;overflow:auto}
+  .matrix-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+  #matrix-grid{display:inline-grid;gap:5px}
+
+  .mcell{
+    width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+    border-radius:8px;border:2px solid var(--border2);background:var(--surface);
+    font-family:var(--mono);font-size:15px;font-weight:700;color:var(--muted);
+    transition:all .22s;position:relative;
+    cursor:default;
+  }
+  .mcell.state-current{
+    border-color:var(--teal);background:var(--teal-bg);color:var(--teal);
+    transform:scale(1.12);box-shadow:0 0 0 3px rgba(45,212,191,.25);
+    z-index:2;
+  }
+  .mcell.state-visited{border-color:var(--border2);background:var(--surface2);color:var(--border2)}
+
+  /* Direction colour tinting for visited */
+  .mcell.dir-right.state-visited  {border-color:#3a5588;background:#141c33;color:#6c8fff}
+  .mcell.dir-down.state-visited   {border-color:#2e6640;background:#0d2318;color:#4ade80}
+  .mcell.dir-left.state-visited   {border-color:#6a4500;background:#231500;color:#fbbf24}
+  .mcell.dir-up.state-visited     {border-color:#5a1a3a;background:#220a18;color:#f472b6}
+
+  /* Boundary overlay – drawn via pseudo or SVG – we use canvas overlay */
+  #matrix-canvas-overlay{position:absolute;top:0;left:0;pointer-events:none}
+  .matrix-canvas-container{position:relative;display:inline-block}
+
+  /* ── OUTPUT STRIP ── */
+  .output-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem}
+  .output-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+  .output-strip{display:flex;flex-wrap:wrap;gap:5px}
+  .out-chip{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:36px;height:36px;border-radius:7px;
+    font-family:var(--mono);font-size:13px;font-weight:700;
+    border:1.5px solid;transition:all .2s;
+    padding:0 6px;
+  }
+  .out-chip.dir-right{background:#141c33;border-color:#3a5588;color:#6c8fff}
+  .out-chip.dir-down {background:#0d2318;border-color:#2e6640;color:#4ade80}
+  .out-chip.dir-left {background:#231500;border-color:#6a4500;color:#fbbf24}
+  .out-chip.dir-up   {background:#220a18;border-color:#5a1a3a;color:#f472b6}
+  .out-chip.current  {box-shadow:0 0 0 2px var(--teal);transform:scale(1.1)}
+  .out-chip-empty{color:var(--border2);font-size:12px;font-style:italic}
+
+  /* ── BOUNDARY INFO ── */
+  .boundary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
+  .bnd-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;text-align:center}
+  .bnd-box .bl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .bnd-box .bv{font-size:20px;font-weight:700;font-family:var(--mono)}
+
+  /* DIRECTION badge */
+  .dir-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:1rem}
+  .dir-badge.right{background:#141c33;border:1px solid #3a5588;color:#6c8fff}
+  .dir-badge.down {background:#0d2318;border:1px solid #2e6640;color:#4ade80}
+  .dir-badge.left {background:#231500;border:1px solid #6a4500;color:#fbbf24}
+  .dir-badge.up   {background:#220a18;border:1px solid #5a1a3a;color:#f472b6}
+  .dir-badge.idle {background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .3s ease;width:0%}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+  .stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+  .stat-box.teal   .val{color:var(--teal)}
+  .stat-box.amber  .val{color:var(--amber)}
+  .stat-box.accent .val{color:var(--accent)}
+  .stat-box.purple .val{color:var(--purple)}
+
+  /* LOG */
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:52px;margin-bottom:1.1rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:500}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .pnk{color:var(--pink);font-weight:600}
+  .log-box .grn{color:var(--green);font-weight:600}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+  .btn.primary:hover{background:#0f3330}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--teal)}
+  .done-pill{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+
+  /* TABLE */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:580px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .ct{color:var(--teal)}
+  .cam{color:var(--amber)} .cp{color:var(--purple)} .cpk{color:var(--pink)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic} .nm{color:var(--amber)} .st{color:var(--green)}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="badge-med">Medium</span>
+      <span class="badge-tag">Matrix</span>
+      <span class="badge-tag">Simulation</span>
+      <h1>54. Spiral Matrix</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/spiral-matrix/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Traverse a matrix in clockwise spiral order — O(m·n) time · O(1) extra space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given an <code style="color:var(--accent)">m × n</code> matrix, return all elements in <strong style="color:var(--text)">clockwise spiral order</strong> — starting top-left, going right → down → left → up, then peeling inward one layer at a time.</p>
+      <p style="margin-top:.75rem">Example: <code style="color:var(--muted)">[[1,2,3],[4,5,6],[7,8,9]]</code> → <code style="color:var(--teal)">[1,2,3,6,9,8,7,4,5]</code></p>
+    </div>
+    <div>
+      <h2>Shrinking boundaries</h2>
+      <div class="formula">
+        <span class="cm">// 4 walls shrink after each direction</span><br>
+        top=0, bottom=m-1, left=0, right=n-1<br><br>
+        → Right: top row  → top++<br>
+        ↓ Down: right col → right--<br>
+        ← Left: bottom row → bottom--<br>
+        ↑ Up: left col  → left++<br>
+        <span class="cm">// repeat until boundaries cross</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Key insight:</strong> Think of the matrix as <strong>nested rectangular rings</strong>. After traversing one complete ring (right → down → left → up), shrink all four boundaries inward by 1. The traversal ends when <code>top &gt; bottom</code> or <code>left &gt; right</code>. The write pointer and read pointer (boundaries) never conflict — making this O(1) space.
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time</div><div class="big">O(m·n)</div><p>Every cell is visited exactly once — one element added to result per step.</p></div>
+    <div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>Only four boundary variables. Output array not counted as extra space.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">3×3 matrix <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(1,this)">3×4 matrix <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(2,this)">Single row <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(3,this)">Single column <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(4,this)">1×1 matrix <span class="tag tag-e">edge</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — Shrinking Boundaries</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#141c33;border-color:#3a5588"></span>→ Right</span>
+      <span><span class="dot" style="background:#0d2318;border-color:#2e6640"></span>↓ Down</span>
+      <span><span class="dot" style="background:#231500;border-color:#6a4500"></span>← Left</span>
+      <span><span class="dot" style="background:#220a18;border-color:#5a1a3a"></span>↑ Up</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Current cell</span>
+    </div>
+
+    <!-- Direction badge -->
+    <div id="dir-badge" class="dir-badge idle">⏸ Waiting</div>
+
+    <!-- Main split view -->
+    <div class="vis-split">
+      <!-- Matrix -->
+      <div class="matrix-wrap">
+        <div class="matrix-title">Matrix — boundaries shown as border</div>
+        <div class="matrix-canvas-container" id="matrix-canvas-container">
+          <div id="matrix-grid"></div>
+          <canvas id="boundary-canvas" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+        </div>
+      </div>
+
+      <!-- Output strip -->
+      <div class="output-wrap">
+        <div class="output-title">Spiral output — elements collected</div>
+        <div class="output-strip" id="output-strip">
+          <span class="out-chip-empty">Empty — press Play</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boundaries -->
+    <div class="boundary-row">
+      <div class="bnd-box"><div class="bl">top ↓</div><div class="bv" id="b-top" style="color:var(--accent)">—</div></div>
+      <div class="bnd-box"><div class="bl">bottom ↑</div><div class="bv" id="b-bot" style="color:var(--green)">—</div></div>
+      <div class="bnd-box"><div class="bl">left →</div><div class="bv" id="b-left" style="color:var(--amber)">—</div></div>
+      <div class="bnd-box"><div class="bl">right ←</div><div class="bv" id="b-right" style="color:var(--pink)">—</div></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Position</div><div class="val" id="s-pos">—</div><div class="sub">row, col</div></div>
+      <div class="stat-box amber"><div class="lbl">Direction</div><div class="val" id="s-dir" style="font-size:14px;padding-top:2px">—</div><div class="sub" id="s-dir-sub">—</div></div>
+      <div class="stat-box accent"><div class="lbl">Collected</div><div class="val" id="s-collected">0</div><div class="sub" id="s-of">of — cells</div></div>
+      <div class="stat-box purple"><div class="lbl">Layer</div><div class="val" id="s-layer">—</div><div class="sub">spiral ring</div></div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr><th>Step</th><th>Action</th><th>Position</th><th>Value</th><th>Direction</th><th>top/bot/left/right</th><th>Output so far</th></tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>spiral_matrix.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">spiralOrder</span>(<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; matrix) {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; result;
+    <span class="kw">int</span> top = <span class="nm">0</span>, bottom = matrix.size() - <span class="nm">1</span>;
+    <span class="kw">int</span> left = <span class="nm">0</span>, right = matrix[<span class="nm">0</span>].size() - <span class="nm">1</span>;
+
+    <span class="kw">while</span> (top &lt;= bottom &amp;&amp; left &lt;= right) {
+        <span class="cm">// → Traverse right along top row</span>
+        <span class="kw">for</span> (<span class="kw">int</span> col = left; col &lt;= right; col++)
+            result.push_back(matrix[top][col]);
+        top++;
+
+        <span class="cm">// ↓ Traverse down along right column</span>
+        <span class="kw">for</span> (<span class="kw">int</span> row = top; row &lt;= bottom; row++)
+            result.push_back(matrix[row][right]);
+        right--;
+
+        <span class="cm">// ← Traverse left along bottom row (if still valid)</span>
+        <span class="kw">if</span> (top &lt;= bottom) {
+            <span class="kw">for</span> (<span class="kw">int</span> col = right; col &gt;= left; col--)
+                result.push_back(matrix[bottom][col]);
+            bottom--;
+        }
+
+        <span class="cm">// ↑ Traverse up along left column (if still valid)</span>
+        <span class="kw">if</span> (left &lt;= right) {
+            <span class="kw">for</span> (<span class="kw">int</span> row = bottom; row &gt;= top; row--)
+                result.push_back(matrix[row][left]);
+            left++;
+        }
+    }
+    <span class="kw">return</span> result;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; matrix = {{<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>},{<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>},{<span class="nm">7</span>,<span class="nm">8</span>,<span class="nm">9</span>}};
+    <span class="kw">auto</span> res = <span class="fn">spiralOrder</span>(matrix);
+    <span class="cm">// [1,2,3,6,9,8,7,4,5]</span>
+    <span class="kw">for</span> (<span class="kw">int</span> x : res) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>;
+}</pre>
+  </div>
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    matrix:[[1,2,3],[4,5,6],[7,8,9]],
+    desc:`<strong style="color:var(--text)">LeetCode Example 1 — 3×3 matrix.</strong> Classic spiral: right along row 0 → down along col 2 → left along row 2 → up along col 0 → right to centre. Output: <code style="color:var(--teal)">[1,2,3,6,9,8,7,4,5]</code>.`
+  },
+  {
+    matrix:[[1,2,3,4],[5,6,7,8],[9,10,11,12]],
+    desc:`<strong style="color:var(--text)">LeetCode Example 2 — 3×4 matrix.</strong> Non-square matrix. After the outer ring, the inner layer is a single row. Watch boundaries shrink asymmetrically. Output: <code style="color:var(--teal)">[1,2,3,4,8,12,11,10,9,5,6,7]</code>.`
+  },
+  {
+    matrix:[[1,2,3,4,5]],
+    desc:`<strong style="color:var(--text)">Edge case: single row.</strong> Only one direction — right. No down/left/up phases execute. Boundaries: top=bottom=0. Output is simply the row itself: <code style="color:var(--teal)">[1,2,3,4,5]</code>.`
+  },
+  {
+    matrix:[[1],[2],[3],[4],[5]],
+    desc:`<strong style="color:var(--text)">Edge case: single column.</strong> Right traversal picks one cell per row (right=left=0), then down does the rest. Left and Up phases never execute since boundaries cross immediately. Output: <code style="color:var(--teal)">[1,2,3,4,5]</code>.`
+  },
+  {
+    matrix:[[42]],
+    desc:`<strong style="color:var(--text)">Edge case: 1×1 matrix.</strong> Single cell — only one element to collect. All boundaries start equal: top=bottom=0, left=right=0. The right traversal picks it, boundaries cross, loop ends. Output: <code style="color:var(--teal)">[42]</code>.`
+  }
+];
+
+const DIR_NAMES=['→ Right','↓ Down','← Left','↑ Up'];
+const DIR_KEYS=['right','down','left','up'];
+const SPEEDS=[1800,1200,700,380,160];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let matrix=[], steps=[], cursor=-1, playing=false, timer=null;
+let ROWS=0,COLS=0;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── BUILD STEPS ── */
+function buildSteps(mat){
+  const m=mat.length, n=mat[0].length;
+  const stps=[];
+  let top=0, bottom=m-1, left=0, right=n-1;
+  const output=[];
+  let layer=0;
+
+  stps.push({type:'init', row:-1, col:-1, dir:-1, top, bottom, left, right, output:[], layer:0,
+    note:'Initialize: top=0, bottom='+(m-1)+', left=0, right='+(n-1)+'. Begin spiral traversal.'});
+
+  while(top<=bottom && left<=right){
+    // Right
+    for(let col=left;col<=right;col++){
+      output.push({v:mat[top][col], row:top, col, dir:0});
+      stps.push({type:'visit', row:top, col, dir:0, top, bottom, left, right, output:[...output], layer,
+        note:`→ Right: collect mat[${top}][${col}]=${mat[top][col]}`});
+    }
+    top++;
+    stps.push({type:'shrink', row:-1, col:-1, dir:0, top, bottom, left, right, output:[...output], layer,
+      note:`→ Right done. top++ → top=${top}`});
+
+    // Down
+    for(let row=top;row<=bottom;row++){
+      output.push({v:mat[row][right], row, col:right, dir:1});
+      stps.push({type:'visit', row, col:right, dir:1, top, bottom, left, right, output:[...output], layer,
+        note:`↓ Down: collect mat[${row}][${right}]=${mat[row][right]}`});
+    }
+    right--;
+    stps.push({type:'shrink', row:-1, col:-1, dir:1, top, bottom, left, right, output:[...output], layer,
+      note:`↓ Down done. right-- → right=${right}`});
+
+    // Left (guard)
+    if(top<=bottom){
+      for(let col=right;col>=left;col--){
+        output.push({v:mat[bottom][col], row:bottom, col, dir:2});
+        stps.push({type:'visit', row:bottom, col, dir:2, top, bottom, left, right, output:[...output], layer,
+          note:`← Left: collect mat[${bottom}][${col}]=${mat[bottom][col]}`});
+      }
+      bottom--;
+      stps.push({type:'shrink', row:-1, col:-1, dir:2, top, bottom, left, right, output:[...output], layer,
+        note:`← Left done. bottom-- → bottom=${bottom}`});
+    }
+
+    // Up (guard)
+    if(left<=right){
+      for(let row=bottom;row>=top;row--){
+        output.push({v:mat[row][left], row, col:left, dir:3});
+        stps.push({type:'visit', row, col:left, dir:3, top, bottom, left, right, output:[...output], layer,
+          note:`↑ Up: collect mat[${row}][${left}]=${mat[row][left]}`});
+      }
+      left++;
+      stps.push({type:'shrink', row:-1, col:-1, dir:3, top, bottom, left, right, output:[...output], layer,
+        note:`↑ Up done. left++ → left=${left}`});
+    }
+    layer++;
+  }
+  stps.push({type:'done', row:-1, col:-1, dir:-1, top, bottom, left, right, output:[...output], layer,
+    note:`All ${m*n} cells collected. Spiral complete!`});
+  return stps;
+}
+
+/* ── BUILD MATRIX GRID ── */
+function buildGrid(mat){
+  const m=mat.length, n=mat[0].length;
+  const grid=document.getElementById('matrix-grid');
+  grid.style.gridTemplateColumns=`repeat(${n},52px)`;
+  grid.innerHTML='';
+  for(let r=0;r<m;r++){
+    for(let c=0;c<n;c++){
+      const d=document.createElement('div');
+      d.className='mcell';
+      d.id=`mc${r}_${c}`;
+      d.textContent=mat[r][c];
+      grid.appendChild(d);
+    }
+  }
+}
+
+/* ── DRAW BOUNDARY CANVAS ── */
+function drawBoundary(top, bottom, left, right){
+  const grid=document.getElementById('matrix-grid');
+  const canvas=document.getElementById('boundary-canvas');
+  const cont=document.getElementById('matrix-canvas-container');
+  const gw=grid.offsetWidth, gh=grid.offsetHeight;
+  canvas.width=gw; canvas.height=gh;
+  cont.style.width=gw+'px'; cont.style.height=gh+'px';
+
+  if(top>bottom||left>right){canvas.getContext('2d').clearRect(0,0,gw,gh);return;}
+
+  const m=matrix.length, n=matrix[0].length;
+  const CW=Math.floor(gw/n), CH=Math.floor(gh/m);
+  const GAP=5;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,gw,gh);
+
+  // boundary rectangle
+  const bx=left*CW+2, by=top*CH+2;
+  const bw=(right-left+1)*CW-GAP, bh=(bottom-top+1)*CH-GAP;
+  ctx.strokeStyle='rgba(45,212,191,0.6)';
+  ctx.lineWidth=2.5;
+  ctx.setLineDash([6,3]);
+  ctx.strokeRect(bx,by,bw,bh);
+  ctx.setLineDash([]);
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  const m=matrix.length, n=matrix[0].length;
+
+  // reset all cells
+  for(let r=0;r<m;r++) for(let c=0;c<n;c++){
+    const el=document.getElementById(`mc${r}_${c}`);
+    if(el){ el.className='mcell'; el.style.color=''; }
+  }
+
+  steps.forEach((_,i)=>{ const tr=document.getElementById('tr-'+i); if(tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display='none';
+
+  if(idx<0){
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('s-pos').textContent='—';
+    document.getElementById('s-dir').textContent='—';
+    document.getElementById('s-dir-sub').textContent='—';
+    document.getElementById('s-collected').textContent='0';
+    document.getElementById('s-of').textContent=`of ${m*n} cells`;
+    document.getElementById('s-layer').textContent='—';
+    ['b-top','b-bot','b-left','b-right'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    document.getElementById('output-strip').innerHTML='<span class="out-chip-empty">Empty — press Play</span>';
+    setDirBadge(-1);
+    drawBoundary(0,m-1,0,n-1);
+    return;
+  }
+
+  const s=steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+
+  // Color visited cells
+  s.output.forEach(o=>{
+    const el=document.getElementById(`mc${o.row}_${o.col}`);
+    if(el){ el.className=`mcell dir-${DIR_KEYS[o.dir]} state-visited`; }
+  });
+
+  // Current cell
+  if(s.row>=0&&s.col>=0){
+    const cur=document.getElementById(`mc${s.row}_${s.col}`);
+    if(cur) cur.className=`mcell state-current`;
+  }
+
+  // Draw boundary
+  drawBoundary(s.top, s.bottom, s.left, s.right);
+
+  // Boundaries
+  document.getElementById('b-top').textContent=s.top;
+  document.getElementById('b-bot').textContent=s.bottom;
+  document.getElementById('b-left').textContent=s.left;
+  document.getElementById('b-right').textContent=s.right;
+
+  // Direction badge
+  setDirBadge(s.dir);
+
+  // Stats
+  const val=s.row>=0?matrix[s.row][s.col]:'—';
+  document.getElementById('s-pos').textContent=s.row>=0?`(${s.row},${s.col})`:'—';
+  document.getElementById('s-dir').textContent=s.dir>=0?DIR_NAMES[s.dir]:'—';
+  document.getElementById('s-dir-sub').textContent=s.type==='shrink'?'boundary shrunk':s.dir>=0?`collecting`:'';
+  document.getElementById('s-collected').textContent=s.output.length;
+  document.getElementById('s-of').textContent=`of ${m*n} cells`;
+  document.getElementById('s-layer').textContent=s.layer+1;
+
+  // Output strip
+  const strip=document.getElementById('output-strip');
+  if(s.output.length===0){
+    strip.innerHTML='<span class="out-chip-empty">Empty — press Play</span>';
+  } else {
+    strip.innerHTML=s.output.map((o,i)=>{
+      const isCurrent=(i===s.output.length-1 && s.type==='visit');
+      return `<span class="out-chip dir-${DIR_KEYS[o.dir]}${isCurrent?' current':''}" title="mat[${o.row}][${o.col}]">${o.v}</span>`;
+    }).join('');
+  }
+
+  // Log
+  let msg='';
+  const step=`<span class="hi">Step ${idx+1}.</span> `;
+  const dirColors=['acc','grn','amb','pnk'];
+  if(s.type==='init') msg=`${step}Initialize boundaries: top=<span class="acc">0</span>, bottom=<span class="grn">${m-1}</span>, left=<span class="amb">0</span>, right=<span class="pnk">${n-1}</span>. Begin spiral.`;
+  else if(s.type==='visit'){
+    const dc=dirColors[s.dir];
+    msg=`${step}<span class="${dc}">${DIR_NAMES[s.dir]}</span>: Visit mat[${s.row}][${s.col}] = <span class="tea">${matrix[s.row][s.col]}</span>. Output[${s.output.length-1}] = ${matrix[s.row][s.col]}.`;
+  }
+  else if(s.type==='shrink'){
+    const dc=dirColors[s.dir];
+    const walls=['top++','right--','bottom--','left++'];
+    const wvals=[`top=${s.top}`,`right=${s.right}`,`bottom=${s.bottom}`,`left=${s.left}`];
+    msg=`${step}<span class="${dc}">${DIR_NAMES[s.dir]} complete.</span> Shrink: <span class="tea">${walls[s.dir]}</span> → ${wvals[s.dir]}. Boundary tightens inward.`;
+  }
+  else if(s.type==='done') msg=`${step}<span class="pos">🎉 Spiral complete!</span> All <span class="tea">${m*n}</span> cells collected in order: [${s.output.map(o=>o.v).join(', ')}].`;
+
+  if(s.type==='done') document.getElementById('done-pill').style.display='inline-block';
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function setDirBadge(dir){
+  const b=document.getElementById('dir-badge');
+  if(dir<0){b.className='dir-badge idle';b.textContent='⏸ Waiting';return;}
+  const icons=['→','↓','←','↑'];
+  const labels=['Moving Right','Moving Down','Moving Left','Moving Up'];
+  b.className=`dir-badge ${DIR_KEYS[dir]}`;
+  b.textContent=`${icons[dir]} ${labels[dir]}`;
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    const val=s.row>=0?matrix[s.row][s.col]:'—';
+    const pos=s.row>=0?`(${s.row},${s.col})`:'—';
+    const dirStr=s.dir>=0?`<span class="c${['a','g','am','pk'][s.dir]||'t'}">${DIR_NAMES[s.dir]}</span>`:'—';
+    const bnds=`${s.top}/${s.bottom}/${s.left}/${s.right}`;
+    const outStr=`[${s.output.map(o=>o.v).join(',')}]`;
+    let action='';
+    if(s.type==='init') action=`<span class="ct">Initialize</span>`;
+    else if(s.type==='visit') action=`<span class="ct">Visit</span>`;
+    else if(s.type==='shrink') action=`<span class="cam">Shrink boundary</span>`;
+    else action=`<span class="cg">✓ Done</span>`;
+    // fix: use ca for right, cg for down, cam for left, cpk for up
+    const dcs=['ca','cg','cam','cpk'];
+    const dStr=s.dir>=0?`<span class="${dcs[s.dir]}">${DIR_NAMES[s.dir]}</span>`:'—';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td>${action}</td><td class="ct">${pos}</td>
+      <td class="ct" style="font-weight:700">${val}</td><td>${dStr}</td>
+      <td style="font-size:11px;color:var(--muted)">${bnds}</td>
+      <td style="font-size:11px;color:var(--teal);max-width:160px;overflow:hidden;text-overflow:ellipsis">${outStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadEx(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  matrix=EXAMPLES[n].matrix.map(r=>[...r]);
+  ROWS=matrix.length; COLS=matrix[0].length;
+  document.getElementById('example-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(matrix);
+  buildGrid(matrix);
+  buildTable(steps);
+  cursor=-1;
+  setTimeout(()=>applyState(-1),50);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+window.addEventListener('resize',()=>{ if(cursor>=0) drawBoundary(steps[cursor].top,steps[cursor].bottom,steps[cursor].left,steps[cursor].right); });
+loadEx(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

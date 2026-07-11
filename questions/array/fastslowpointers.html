@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fast & Slow Pointers — Cycle Detection</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3c4a8c;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.easy { background: var(--green-bg);  color: var(--green);  border: 1px solid #1a6b3a; }
+  .badge.tp   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.gfg  { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── LINKED LIST VISUAL ── */
+  .list-section { margin-bottom: 1.1rem; }
+  .list-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .list-row { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 0; row-gap: 14px; }
+  .ll-cell { display: flex; align-items: center; }
+  .ll-node-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ll-lane { height: 22px; display: flex; gap: 4px; align-items: center; justify-content: center; }
+  .ll-badge {
+    font-size: 14px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+    animation: hop .35s ease;
+  }
+  @keyframes hop { 0% { transform: translateY(-6px); opacity:.4; } 100% { transform: translateY(0); opacity:1; } }
+  .ll-node {
+    width: 46px; height: 46px; border-radius: 10px;
+    border: 1.5px solid var(--border2); background: var(--surface2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: var(--mono); transition: background .25s, border-color .25s, color .25s, box-shadow .25s;
+    position: relative;
+  }
+  .ll-node .ll-val { font-size: 14px; font-weight: 700; color: var(--text); }
+  .ll-node .ll-idx { font-size: 9px; color: var(--muted); margin-top: 1px; }
+  .ll-node.slow  { background: var(--teal-bg);   border-color: var(--teal);   }
+  .ll-node.slow  .ll-val { color: var(--teal); }
+  .ll-node.fast  { background: var(--purple-bg); border-color: var(--purple); }
+  .ll-node.fast  .ll-val { color: var(--purple); }
+  .ll-node.meet  { background: var(--green-bg);  border-color: var(--green); box-shadow: 0 0 0 3px rgba(74,222,128,.18); }
+  .ll-node.meet  .ll-val { color: var(--green); }
+  .ll-node.entry { box-shadow: 0 0 0 2px var(--amber); }
+  .ll-node.entry.slow, .ll-node.entry.fast, .ll-node.entry.meet { box-shadow: 0 0 0 3px var(--amber); }
+  .ll-arrow { color: var(--muted2); font-size: 16px; padding: 0 6px; align-self: center; margin-top: 22px; font-family: var(--mono); }
+  .ll-arrow.cyc  { color: var(--amber); font-weight: 700; }
+  .ll-arrow.null { color: var(--red); font-size: 13px; }
+  .cycle-caption {
+    font-size: 11px; color: var(--muted); margin-top: 12px; font-family: var(--mono);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cycle-caption .cc-amber { color: var(--amber); }
+  .cycle-caption .cc-red { color: var(--red); }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; margin-top: 1.1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-slow { color: var(--teal); }
+  .tp-fast { color: var(--purple); }
+  .tp-step { color: var(--amber); }
+  .tp-res  { color: var(--green); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.green  .val { color: var(--green); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+
+  /* ===== LEETCODE LINK ===== */
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge gfg">Pattern / Two Pointers</span>
+      <span class="badge tp">Fast &amp; Slow (Floyd's)</span>
+      <span class="badge easy">Easy</span>
+    </div>
+    <h1>Fast &amp; Slow Pointers — Cycle Detection</h1>
+    <p>Two pointers moving the same direction at different speeds detect a linked-list cycle in — O(N) time, O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="lc-banner" id="lcBanner">
+    <div class="lc-icon">LC</div>
+    <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+    <a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Walk two pointers through a linked list <strong style="color:var(--text)">in the same direction</strong>: <strong style="color:var(--teal)">slow</strong> advances one node per step, <strong style="color:var(--purple)">fast</strong> advances two. If the list ends, <code style="color:var(--accent)">fast</code> falls off into <code style="color:var(--accent)">null</code> — no cycle. If there's a loop, <code style="color:var(--accent)">fast</code> laps <code style="color:var(--accent)">slow</code> and they land on the same node.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> inside a cycle the gap between fast and slow shrinks by exactly one each step, so a meeting is <em>guaranteed</em>. No hash set, no extra memory — just <strong style="color:var(--teal)">O(1) space</strong>. Same idea powers "find the middle" and "happy number".</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// two pointers, same direction</span><br>
+        slow = head, fast = head<br>
+        <span class="keyword">while</span> fast <span class="keyword">and</span> fast.next:<br>
+        &nbsp;&nbsp;slow = slow.next&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// +1</span><br>
+        &nbsp;&nbsp;fast = fast.next.next&nbsp;<span class="comment">// +2</span><br>
+        &nbsp;&nbsp;<span class="keyword">if</span> slow == fast:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> true&nbsp;<span class="comment">// cycle</span><br>
+        <span class="keyword">return</span> false&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// no cycle</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N)</div>
+      <p>Slow visits each node at most once. Fast moves twice as fast but travels at most 2N nodes before meeting or exiting. Linear either way.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Two pointer variables. No visited-set, no recursion stack. That constant space is the whole reason this beats the hashing approach.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[3,2,0,-4] pos=1 <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[1,2] pos=0 <span class="tag tag-classic">2-node loop</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[1] pos=-1 <span class="tag tag-edge">single node</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[1,2,3,4,5] pos=-1 <span class="tag tag-edge">no cycle</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[7,4,9,1,3,8] pos=2 <span class="tag tag-classic">long tail</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — tortoise &amp; hare</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> 🐢 slow (+1)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> 🐇 fast (+2)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> meeting point → cycle</span>
+      <span><span class="dot" style="background:transparent;border-color:var(--amber);box-shadow:0 0 0 2px var(--amber) inset"></span> cycle entry (pos)</span>
+    </div>
+
+    <!-- LINKED LIST VISUAL -->
+    <div class="list-section">
+      <div class="list-label">
+        Linked list
+        <span style="font-size:11px;color:var(--muted)" id="list-sub">— head → … → null / cycle</span>
+      </div>
+      <div class="list-row" id="list-row"></div>
+      <div class="cycle-caption" id="cycle-caption"></div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-slow" id="pill-slow">slow = —</span>
+      <span class="tracker-pill tp-fast" id="pill-fast">fast = —</span>
+      <span class="tracker-pill tp-step" id="pill-step">step = —</span>
+      <span class="tracker-pill tp-res"  id="pill-res">result = —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box teal">
+        <div class="lbl">slow (tortoise)</div>
+        <div class="val" id="s-slow">—</div>
+        <div class="sub" id="s-slow-sub">moves +1</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">fast (hare)</div>
+        <div class="val" id="s-fast">—</div>
+        <div class="sub" id="s-fast-sub">moves +2</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="lbl">steps taken</div>
+        <div class="val" id="s-step">—</div>
+        <div class="sub">pointer advances</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Result</div>
+        <div class="val" id="s-res">—</div>
+        <div class="sub" id="s-res-sub">searching…</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Result: —</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Phase</th>
+          <th>slow idx</th>
+          <th>fast idx</th>
+          <th>slow val</th>
+          <th>fast val</th>
+          <th>Met?</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>fast_slow_pointers.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Singly linked list node</span>
+<span class="kw">struct</span> <span class="fn">ListNode</span> {
+    <span class="kw">int</span> val;
+    ListNode* next;
+    <span class="fn">ListNode</span>(<span class="kw">int</span> x) : val(x), next(<span class="kw">nullptr</span>) {}
+};
+
+<span class="cm">// Floyd's cycle detection — tortoise &amp; hare</span>
+<span class="kw">bool</span> <span class="fn">hasCycle</span>(ListNode* head) {
+    ListNode* slow = head;
+    ListNode* fast = head;
+
+    <span class="kw">while</span> (fast != <span class="kw">nullptr</span> &amp;&amp; fast->next != <span class="kw">nullptr</span>) {
+        slow = slow->next;        <span class="cm">// +1 step</span>
+        fast = fast->next->next;  <span class="cm">// +2 steps</span>
+        <span class="kw">if</span> (slow == fast) <span class="kw">return true</span>;  <span class="cm">// pointers meet → cycle</span>
+    }
+    <span class="kw">return false</span>;                     <span class="cm">// fast fell off the end → no cycle</span>
+}
+
+<span class="cm">// Optional: find the node where the cycle begins (Floyd stage 2)</span>
+ListNode* <span class="fn">cycleStart</span>(ListNode* head) {
+    ListNode *slow = head, *fast = head;
+    <span class="kw">while</span> (fast &amp;&amp; fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        <span class="kw">if</span> (slow == fast) {            <span class="cm">// meeting point found</span>
+            ListNode* p = head;
+            <span class="kw">while</span> (p != slow) { p = p->next; slow = slow->next; }
+            <span class="kw">return</span> p;                  <span class="cm">// entry of the cycle</span>
+        }
+    }
+    <span class="kw">return</span> <span class="kw">nullptr</span>;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="cm">// build 3 -> 2 -> 0 -> -4, tail links back to node index 1</span>
+    ListNode* a = <span class="kw">new</span> <span class="fn">ListNode</span>(<span class="nm">3</span>);
+    ListNode* b = <span class="kw">new</span> <span class="fn">ListNode</span>(<span class="nm">2</span>);
+    ListNode* c = <span class="kw">new</span> <span class="fn">ListNode</span>(<span class="nm">0</span>);
+    ListNode* d = <span class="kw">new</span> <span class="fn">ListNode</span>(-<span class="nm">4</span>);
+    a->next = b; b->next = c; c->next = d; d->next = b; <span class="cm">// cycle</span>
+
+    cout &lt;&lt; <span class="fn">hasCycle</span>(a) &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 1 (true)</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+  <!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Why the gap shrinks by 1 each step&#10;- Stage 2: finding the cycle entry&#10;- Similar problems (middle of list, happy number)&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="fastslowpointers"></div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  EXAMPLES  — { vals, pos (cycle-entry index, -1 = none), desc }
+// ─────────────────────────────────────────────
+const EXAMPLES = [
+  {
+    vals: [3,2,0,-4], pos: 1,
+    desc: `<strong style="color:var(--text)">[3,2,0,-4], pos=1 — cycle detected.</strong> The tail (-4) links back to node <span style="color:var(--amber)">[1]</span>. Fast laps slow inside the loop and they collide. Result: <strong style="color:var(--green)">true</strong>.`
+  },
+  {
+    vals: [1,2], pos: 0,
+    desc: `<strong style="color:var(--text)">[1,2], pos=0 — smallest cycle.</strong> Two nodes pointing at each other. Fast bounces around the tiny loop and meets slow. Result: <strong style="color:var(--green)">true</strong>.`
+  },
+  {
+    vals: [1], pos: -1,
+    desc: `<strong style="color:var(--text)">[1], pos=-1 — single node, no cycle.</strong> <code style="color:var(--accent)">fast.next</code> is null immediately, so the loop never runs. Result: <strong style="color:var(--red)">false</strong> in zero iterations.`
+  },
+  {
+    vals: [1,2,3,4,5], pos: -1,
+    desc: `<strong style="color:var(--text)">[1,2,3,4,5], pos=-1 — linear list.</strong> Fast races ahead and falls off the end into null before slow ever catches up. Result: <strong style="color:var(--red)">false</strong>.`
+  },
+  {
+    vals: [7,4,9,1,3,8], pos: 2,
+    desc: `<strong style="color:var(--text)">[7,4,9,1,3,8], pos=2 — long tail into a loop.</strong> Two nodes precede the cycle entry <span style="color:var(--amber)">[2]</span>. Watch slow enter the loop, then fast reel it in. Result: <strong style="color:var(--green)">true</strong>.`
+  }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+let VALS = [], POS = -1;
+let steps = [], cursor = -1, playing = false, timer = null;
+
+// next index in the list (respects the cycle); returns -1 for null
+function nextIdx(i) {
+  if (i < 0) return -1;
+  if (i < VALS.length - 1) return i + 1;
+  return POS; // tail: POS (cycle) or -1 (null)
+}
+
+// ─────────────────────────────────────────────
+//  BUILD STEPS  (Floyd's tortoise & hare)
+// ─────────────────────────────────────────────
+function buildSteps() {
+  const stps = [];
+  let slow = 0, fast = 0, count = 0;
+
+  stps.push({
+    phase:'init', slow, fast, met:false, result:null, count,
+    msg:`<span class="hi">Initialise both pointers at the head (node [0]).</span> <span class="tl">slow</span> will move <span class="tl">+1</span> per step, <span class="sol">fast</span> will move <span class="sol">+2</span>. We loop while <span class="acc">fast</span> and <span class="acc">fast.next</span> both exist.`
+  });
+
+  // guard against pathological infinite loop
+  let guard = 0, MAX = VALS.length * 4 + 10;
+
+  while (fast >= 0 && nextIdx(fast) >= 0 && guard++ < MAX) {
+    const prevSlow = slow, prevFast = fast;
+    slow = nextIdx(slow);
+    fast = nextIdx(nextIdx(fast));
+    count++;
+    const met = slow === fast;
+    stps.push({
+      phase: met ? 'meet' : 'move',
+      slow, fast, met, result: met ? true : null, count,
+      msg: met
+        ? `<span class="hi">Step ${count}:</span> slow → node [${slow}] (val ${VALS[slow]}), fast → node [${fast}] (val ${VALS[fast]}). <span class="pos">They meet!</span> Fast lapped slow, so there is a <span class="sol">cycle</span>.`
+        : `<span class="hi">Step ${count}:</span> slow moves [${prevSlow}]→<span class="tl">[${slow}]</span>, fast moves [${prevFast}]→<span class="sol">[${fast}]</span>. Different nodes — <span class="acc">keep going</span>.`
+    });
+    if (met) break;
+  }
+
+  const last = stps[stps.length - 1];
+  if (!last || last.phase !== 'meet') {
+    stps.push({
+      phase:'no-cycle', slow, fast, met:false, result:false, count,
+      msg:`<span class="hi">fast (or fast.next) reached null.</span> <span class="neg">No cycle</span> — the list terminates. Result: <span class="neg">false</span> after ${count} step(s).`
+    });
+  } else {
+    stps.push({
+      phase:'done', slow, fast, met:true, result:true, count,
+      msg:`<span class="hi">Search complete.</span> <span class="pos">Cycle confirmed</span> at node <span class="sol">[${slow}]</span>. Result: <span class="sol">true</span>. (Stage 2 could now find the cycle's entry node.)`
+    });
+  }
+  return stps;
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,i) => {
+    let phaseLbl, action, metStr;
+    if (s.phase==='init')          { phaseLbl=`<span style="color:var(--muted)">Init</span>`; action='slow=fast=head'; metStr='—'; }
+    else if(s.phase==='move')      { phaseLbl=`<span style="color:var(--amber)">Move</span>`; action='slow+1, fast+2'; metStr=`<span style="color:var(--muted)">No</span>`; }
+    else if(s.phase==='meet')      { phaseLbl=`<span style="color:var(--green)">Meet ✓</span>`; action='slow == fast'; metStr=`<span style="color:var(--green)">Yes</span>`; }
+    else if(s.phase==='no-cycle')  { phaseLbl=`<span style="color:var(--red)">Null ✗</span>`; action='return false'; metStr=`<span style="color:var(--red)">No</span>`; }
+    else                           { phaseLbl=`<span style="color:var(--teal)">Done ✓</span>`; action='return true'; metStr=`<span style="color:var(--green)">Yes</span>`; }
+    const sVal = (s.phase!=='no-cycle' && s.slow>=0 && s.slow<VALS.length) ? VALS[s.slow] : '—';
+    const fVal = (s.phase!=='no-cycle' && s.fast>=0 && s.fast<VALS.length) ? VALS[s.fast] : 'null';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td>
+      <td>${phaseLbl}</td>
+      <td style="color:var(--teal)">${s.slow>=0?s.slow:'—'}</td>
+      <td style="color:var(--purple)">${s.fast>=0?s.fast:'null'}</td>
+      <td style="color:var(--teal)">${sVal}</td>
+      <td style="color:var(--purple)">${fVal}</td>
+      <td>${metStr}</td>
+      <td style="color:var(--muted)">${action}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  RENDER LINKED LIST
+// ─────────────────────────────────────────────
+function renderList(slow, fast) {
+  const row = document.getElementById('list-row');
+  const meetIdx = (slow === fast && slow >= 0) ? slow : -2;
+
+  row.innerHTML = VALS.map((v,i) => {
+    const isSlow = i === slow;
+    const isFast = i === fast;
+    const isMeet = i === meetIdx;
+    let cls = 'll-node';
+    if (isMeet) cls += ' meet';
+    else { if (isSlow) cls += ' slow'; if (isFast) cls += ' fast'; }
+    if (i === POS) cls += ' entry';
+
+    const lane = `<div class="ll-lane">
+        ${isSlow ? '<span class="ll-badge">🐢</span>' : ''}
+        ${isFast ? '<span class="ll-badge">🐇</span>' : ''}
+      </div>`;
+
+    let arrow;
+    if (i < VALS.length - 1) arrow = '<span class="ll-arrow">→</span>';
+    else if (POS >= 0)       arrow = '<span class="ll-arrow cyc">↩︎</span>';
+    else                     arrow = '<span class="ll-arrow null">→ ∅</span>';
+
+    return `<div class="ll-cell">
+        <div class="ll-node-wrap">
+          ${lane}
+          <div class="${cls}"><span class="ll-val">${v}</span><span class="ll-idx">[${i}]</span></div>
+        </div>
+        ${arrow}
+      </div>`;
+  }).join('');
+
+  const cap = document.getElementById('cycle-caption');
+  if (POS >= 0) {
+    cap.innerHTML = `<span class="cc-amber">↩︎ tail (node [${VALS.length-1}]) links back to node [${POS}] = ${VALS[POS]}</span>`;
+  } else {
+    cap.innerHTML = `<span class="cc-red">→ ∅ tail points to null (list terminates)</span>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  APPLY STATE
+// ─────────────────────────────────────────────
+function applyState(idx) {
+  steps.forEach((_,i) => {
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    renderList(0, 0);
+    document.getElementById('pill-slow').textContent = 'slow = —';
+    document.getElementById('pill-fast').textContent = 'fast = —';
+    document.getElementById('pill-step').textContent = 'step = —';
+    document.getElementById('pill-res').textContent  = 'result = —';
+    document.getElementById('s-slow').textContent = '—';
+    document.getElementById('s-fast').textContent = '—';
+    document.getElementById('s-step').textContent = '—';
+    document.getElementById('s-res').textContent  = '—';
+    document.getElementById('s-slow-sub').textContent = 'moves +1';
+    document.getElementById('s-fast-sub').textContent = 'moves +2';
+    document.getElementById('s-res-sub').textContent  = 'searching…';
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('log').innerHTML = 'Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    document.getElementById('list-sub').textContent = '— head → … → null / cycle';
+    return;
+  }
+
+  const s = steps[idx];
+  const fastNull = (s.phase === 'no-cycle');
+
+  renderList(s.slow, fastNull ? -3 : s.fast);
+
+  document.getElementById('list-sub').textContent =
+    s.phase === 'init' ? '— both pointers at head' :
+    fastNull ? '— fast ran off the end' :
+    s.met ? '— pointers collided' : '— chasing…';
+
+  // pills
+  document.getElementById('pill-slow').textContent = `slow = ${s.slow>=0?`[${s.slow}]`:'—'}`;
+  document.getElementById('pill-fast').textContent = `fast = ${fastNull?'null':(s.fast>=0?`[${s.fast}]`:'—')}`;
+  document.getElementById('pill-step').textContent = `step = ${s.count}`;
+  const resTxt = s.result === true ? 'CYCLE' : s.result === false ? 'NO CYCLE' : '—';
+  document.getElementById('pill-res').textContent = `result = ${resTxt}`;
+
+  // stats
+  document.getElementById('s-slow').textContent = s.slow>=0 ? `[${s.slow}] = ${VALS[s.slow]}` : '—';
+  document.getElementById('s-fast').textContent = fastNull ? 'null' : (s.fast>=0 ? `[${s.fast}] = ${VALS[s.fast]}` : '—');
+  document.getElementById('s-step').textContent = s.count;
+  document.getElementById('s-slow-sub').textContent = 'moves +1';
+  document.getElementById('s-fast-sub').textContent = fastNull ? 'off the end' : 'moves +2';
+
+  const resBox = document.getElementById('s-res');
+  if (s.result === true)       { resBox.textContent = 'CYCLE';   document.getElementById('s-res-sub').textContent = 'pointers met'; }
+  else if (s.result === false) { resBox.textContent = 'NONE';    document.getElementById('s-res-sub').textContent = 'reached null'; }
+  else                         { resBox.textContent = '…';       document.getElementById('s-res-sub').textContent = 'searching…'; }
+
+  // progress
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.phase === 'done' || s.phase === 'no-cycle') {
+    const pill = document.getElementById('done-pill');
+    pill.textContent = s.result ? '✓ Result: cycle' : '✓ Result: no cycle';
+    pill.style.display = 'inline-block';
+  }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+// ─────────────────────────────────────────────
+//  LOAD EXAMPLE
+// ─────────────────────────────────────────────
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[i];
+  VALS = ex.vals; POS = ex.pos;
+  document.getElementById('example-desc').innerHTML = ex.desc;
+  steps = buildSteps();
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+
+<!-- ===== ACTIVE TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  window.addEventListener('beforeunload', () => saveTime());
+
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+
+<!-- ===== ACTIVITY / DAY TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

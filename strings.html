@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strings — Complete DSA String Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}.insight.red{background:var(--red-bg);border-color:#5a2020}.insight.red strong{color:var(--red)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.str-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.5rem 1rem;margin-bottom:1rem;overflow-x:auto}
+.str-row{display:flex;gap:5px;justify-content:center;flex-wrap:nowrap}
+.ch-cell{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.ch-idx{font-family:var(--mono);font-size:10px;color:#5c6189}
+.ch-box{width:40px;height:44px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .25s}
+.ch-box.i{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 2px rgba(45,212,191,.25)}
+.ch-box.j{border-color:var(--pink);color:var(--pink);box-shadow:0 0 0 2px rgba(244,114,182,.25)}
+.ch-box.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.3);transform:scale(1.08)}
+.ch-box.match{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.ch-box.win{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.ch-box.bad{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.ch-ptr{font-family:var(--mono);font-size:10px;font-weight:700;min-height:14px}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.red .val{color:var(--red)}.stat-box.acc .val{color:var(--accent)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.txt-input{padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}.txt-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="badges"><span class="badge b-ds">Data Structure</span><span class="badge b-cpp">String</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span></div>
+  <h1>Strings — Complete DSA String Theory</h1>
+  <p>Interactive visualization of string structure, two-pointer and sliding-window patterns, pattern matching, and interview problems.</p>
+</header>
+<main>
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → operations → the interactive visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div><h2>What is a String?</h2>
+      <p>A <strong style="color:var(--teal)">String</strong> is a sequence of characters, stored as a <strong style="color:var(--amber)">contiguous array</strong> of code units. In C it's null-terminated (<code>'\0'</code>); in C++ <code>std::string</code> tracks its own length and grows dynamically.</p>
+      <p>Because it's an array under the hood, indexed access is <strong style="color:var(--teal)">O(1)</strong>, but insertion/deletion in the middle is O(n) and (in many languages) strings are <strong style="color:var(--text)">immutable</strong>, so edits create new strings.</p>
+    </div>
+    <div><h2>Layout</h2>
+      <div class="formula">
+        <span class="cm">// "hello" as a char array</span><br>
+        Index:&nbsp;&nbsp;0 1 2 3 4 5<br>
+        Char:&nbsp;&nbsp;&nbsp;h e l l o \0<br><br>
+        <span class="cm">// s[i] = base + i * sizeof(char)</span><br>
+        <span class="kw">char</span> c = s[<span class="nm">1</span>]; <span class="cm">// 'e' — O(1)</span>
+      </div>
+    </div>
+  </div>
+  <div class="insight purple"><strong>Why Strings matter.</strong> Text is everywhere: parsing, search, tokenization, DNA sequences, URLs, JSON. String problems dominate interviews because they combine arrays, hashing, two pointers, sliding windows, and DP.</div>
+
+  <div class="section-label">Key techniques</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">↔️</div><div class="tc-name">Two Pointers</div><div class="tc-def">Pointers from both ends (palindrome, reverse) or same direction (dedup).</div><div class="tc-use">Use: palindrome, reverse, compare.</div></div>
+    <div class="type-card"><div class="tc-icon">🪟</div><div class="tc-name">Sliding Window</div><div class="tc-def">Expand/contract a window over the string tracking a frequency condition.</div><div class="tc-use">Use: longest substring, anagrams, min window.</div></div>
+    <div class="type-card"><div class="tc-icon">🔤</div><div class="tc-name">Frequency / Hashing</div><div class="tc-def">Count characters in an int[26]/int[128] array or hash map.</div><div class="tc-use">Use: anagrams, first unique char, ransom note.</div></div>
+    <div class="type-card"><div class="tc-icon">🔎</div><div class="tc-name">Pattern Matching</div><div class="tc-def">KMP prefix function, Rabin-Karp hashing, Z-algorithm.</div><div class="tc-use">Use: substring search in O(n+m).</div></div>
+    <div class="type-card"><div class="tc-icon">🧮</div><div class="tc-name">Dynamic Programming</div><div class="tc-def">2D DP over indices for edit distance, LCS, palindrome partition.</div><div class="tc-use">Use: edit distance, LCS, regex match.</div></div>
+    <div class="type-card"><div class="tc-icon">🌲</div><div class="tc-name">Trie</div><div class="tc-def">Prefix tree of characters for fast multi-word prefix queries.</div><div class="tc-use">Use: autocomplete, word search, dictionary.</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Substring</div><div class="ic-desc">A contiguous slice of the string, s[i..j].</div></div>
+    <div class="info-card"><div class="ic-title">Subsequence</div><div class="ic-desc">Characters kept in order but not necessarily contiguous.</div></div>
+    <div class="info-card"><div class="ic-title">Prefix / Suffix</div><div class="ic-desc">A leading / trailing substring. Central to KMP and tries.</div></div>
+    <div class="info-card"><div class="ic-title">Palindrome</div><div class="ic-desc">Reads the same forwards and backwards.</div></div>
+    <div class="info-card"><div class="ic-title">Anagram</div><div class="ic-desc">A rearrangement of the same character multiset.</div></div>
+    <div class="info-card"><div class="ic-title">Immutability</div><div class="ic-desc">In Java/Python, edits create a new string; C++ string is mutable.</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Access s[i]</div><div class="big">O(1)</div><p>Direct index into the char array.</p></div>
+    <div class="cx-card"><div class="lbl">Concatenation</div><div class="big">O(n+m)</div><p>Copies both strings into a new buffer.</p></div>
+    <div class="cx-card"><div class="lbl">Substring search</div><div class="big">O(n+m)</div><p>KMP / Z / Rabin-Karp.</p></div>
+    <div class="cx-card"><div class="lbl">Reverse</div><div class="big">O(n)</div><p>Two pointers, in-place for mutable strings.</p></div>
+    <div class="cx-card"><div class="lbl">Sort chars</div><div class="big">O(n log n)</div><p>O(n) with counting sort for small alphabet.</p></div>
+    <div class="cx-card"><div class="lbl">Edit distance</div><div class="big">O(n·m)</div><p>2D DP over both strings.</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>O(1) indexed character access.</li>
+      <li>Rich STL API (find, substr, compare, replace).</li>
+      <li>Fits every classic pattern: two pointers, windows, hashing, DP.</li>
+      <li>Small fixed alphabet enables O(n) counting tricks.</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>Immutability (Java/Python) makes naive concatenation O(n²).</li>
+      <li>Middle insert/delete is O(n).</li>
+      <li>Unicode/encoding pitfalls: a "character" may be multiple code units.</li>
+      <li>Pattern matching needs care to avoid O(n·m) brute force.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>string_basics.cpp · std::string essentials</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    string s = <span class="st">"hello world"</span>;
+    cout &lt;&lt; s.<span class="fn">size</span>() &lt;&lt; <span class="st">"\n"</span>;          <span class="cm">// 11</span>
+    cout &lt;&lt; s[<span class="nm">0</span>] &lt;&lt; <span class="st">"\n"</span>;               <span class="cm">// 'h' — O(1)</span>
+    cout &lt;&lt; s.<span class="fn">substr</span>(<span class="nm">6</span>) &lt;&lt; <span class="st">"\n"</span>;        <span class="cm">// "world"</span>
+    cout &lt;&lt; s.<span class="fn">find</span>(<span class="st">"world"</span>) &lt;&lt; <span class="st">"\n"</span>;   <span class="cm">// 6</span>
+    <span class="fn">reverse</span>(s.<span class="fn">begin</span>(), s.<span class="fn">end</span>());     <span class="cm">// in-place O(n)</span>
+    sort(s.<span class="fn">begin</span>(), s.<span class="fn">end</span>());          <span class="cm">// sort chars</span>
+    <span class="cm">// frequency count</span>
+    <span class="kw">int</span> freq[<span class="nm">26</span>] = {<span class="nm">0</span>};
+    <span class="kw">for</span> (<span class="kw">char</span> c : s) <span class="kw">if</span> (c &gt;= <span class="st">'a'</span> &amp;&amp; c &lt;= <span class="st">'z'</span>) freq[c - <span class="st">'a'</span>]++;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>patterns.cpp · Palindrome, anagram, sliding window</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="cm">// Palindrome — two pointers O(n)</span>
+<span class="kw">bool</span> <span class="fn">isPalindrome</span>(string s) {
+    <span class="kw">int</span> i = <span class="nm">0</span>, j = s.size() - <span class="nm">1</span>;
+    <span class="kw">while</span> (i &lt; j) <span class="kw">if</span> (s[i++] != s[j--]) <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// Valid anagram — frequency O(n)</span>
+<span class="kw">bool</span> <span class="fn">isAnagram</span>(string a, string b) {
+    <span class="kw">if</span> (a.size() != b.size()) <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">int</span> f[<span class="nm">26</span>] = {<span class="nm">0</span>};
+    <span class="kw">for</span> (<span class="kw">char</span> c : a) f[c - <span class="st">'a'</span>]++;
+    <span class="kw">for</span> (<span class="kw">char</span> c : b) <span class="kw">if</span> (--f[c - <span class="st">'a'</span>] &lt; <span class="nm">0</span>) <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// Longest substring w/o repeating — sliding window O(n)</span>
+<span class="kw">int</span> <span class="fn">lengthOfLongest</span>(string s) {
+    vector&lt;<span class="kw">int</span>&gt; last(<span class="nm">128</span>, -<span class="nm">1</span>);
+    <span class="kw">int</span> left = <span class="nm">0</span>, best = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> r = <span class="nm">0</span>; r &lt; s.size(); r++) {
+        <span class="kw">if</span> (last[s[r]] &gt;= left) left = last[s[r]] + <span class="nm">1</span>;
+        last[s[r]] = r;
+        best = max(best, r - left + <span class="nm">1</span>);
+    }
+    <span class="kw">return</span> best;
+}</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive String Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="palindrome">Palindrome</button>
+    <button class="tab" data-op="reverse">Reverse</button>
+    <button class="tab" data-op="search">Find Substring</button>
+    <button class="tab" data-op="window">Longest Substring</button>
+    <button class="tab" data-op="freq">Char Frequency</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive String Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Char</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Pointer i</span>
+      <span><span class="dot" style="background:var(--pink-bg);border-color:var(--pink)"></span>Pointer j</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Window</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Match</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Mismatch</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="str-wrap"><div class="str-row" id="strRow"></div></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">Pointer(s)</div><div class="val" id="opPtr">—</div></div>
+        <div class="op-card"><div class="lbl">Best / Result</div><div class="val" id="opRes">—</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Comparisons</div><div class="val" id="sComp">0</div><div class="sub">checks</div></div>
+      <div class="stat-box amber"><div class="lbl">Window len</div><div class="val" id="sWin">0</div><div class="sub">current</div></div>
+      <div class="stat-box green"><div class="lbl">Length</div><div class="val" id="sLen">0</div><div class="sub">chars</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — enter your own string</div>
+      <label style="font-size:12px;color:var(--muted)">String: <input type="text" class="txt-input" id="strInput" value="racecar" style="width:170px"></label>
+      <label style="font-size:12px;color:var(--muted)">Pattern/char: <input type="text" class="txt-input" id="argInput" value="ace" style="width:100px"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>i</th><th>j</th><th>Action</th><th>State</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>Sliding window.</strong> Expand the right edge to include a new char; when the window breaks the condition (repeat char, too many distinct), shrink from the left. Track the best window length. Most "longest/shortest substring" problems are O(n) this way.</div>
+  <div class="insight"><strong>Frequency arrays beat hash maps for fixed alphabets.</strong> An <code>int[26]</code> or <code>int[128]</code> is faster and simpler than a hash map for lowercase/ASCII problems — anagrams, first unique char, ransom note.</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Task</th><th>Technique</th><th>Time</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Palindrome check</td><td class="qcol">Two pointers</td><td>O(n)</td><td>Compare ends inward</td></tr>
+      <tr><td>Reverse</td><td>Two pointers</td><td>O(n)</td><td>Swap in place</td></tr>
+      <tr><td>Anagram</td><td>Frequency array</td><td>O(n)</td><td>int[26] counts</td></tr>
+      <tr><td>Longest substring</td><td class="scol">Sliding window</td><td>O(n)</td><td>Expand/contract</td></tr>
+      <tr><td>Substring search</td><td>KMP / Z</td><td>O(n+m)</td><td>Prefix function</td></tr>
+      <tr><td>Edit distance / LCS</td><td>2D DP</td><td>O(n·m)</td><td>Tabulation</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>String Basics</h4><p>std::string API, indexing, substr, find, immutability vs mutability.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>Two Pointers &amp; Frequency</h4><p>Palindrome, reverse, anagram, first unique char, valid palindrome II.</p></div><span class="rm-time">~3 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>Sliding Window</h4><p>Longest substring without repeats, min window substring, find all anagrams.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Pattern Matching</h4><p>KMP prefix function, Z-algorithm, Rabin-Karp rolling hash.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">5</span><div class="rm-body"><h4>String DP</h4><p>Edit distance, longest common subsequence, palindromic substrings, regex matching.</p></div><span class="rm-time">~4 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Valid Palindrome</div><div class="ic-a">Two pointers from both ends, skip non-alphanumerics, compare case-insensitively. O(n)/O(1).</div><div class="ic-tag">Two Pointers</div></div>
+    <div class="int-card"><div class="ic-q">Longest Substring Without Repeating</div><div class="ic-a">Sliding window with last-seen index array; jump left past the repeat. O(n).</div><div class="ic-tag">Window</div></div>
+    <div class="int-card"><div class="ic-q">Group Anagrams</div><div class="ic-a">Key each word by its sorted form (or char-count signature) into a hash map. O(n·k log k).</div><div class="ic-tag">Hashing</div></div>
+    <div class="int-card"><div class="ic-q">Minimum Window Substring</div><div class="ic-a">Two frequency maps (need/have) and a shrinking window once all chars are covered. O(n).</div><div class="ic-tag">Window</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Valid Palindrome</span><span class="ptag">Two Pointers</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Valid Anagram</span><span class="ptag">Frequency</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Reverse String</span><span class="ptag">Two Pointers</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Longest Substring Without Repeating</span><span class="ptag">Window</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Group Anagrams</span><span class="ptag">Hashing</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Longest Palindromic Substring</span><span class="ptag">Expand Center</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Minimum Window Substring</span><span class="ptag">Window</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Edit Distance</span><span class="ptag">DP</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">🔤</span><span><strong style="color:var(--text)">Strings are char arrays:</strong> O(1) index, O(n) middle edits, often immutable — avoid naive concatenation in loops.</span></div>
+    <div class="take"><span class="tk-ic">🪟</span><span><strong style="color:var(--text)">Sliding window:</strong> the workhorse for "longest/shortest substring" problems, turning O(n²) into O(n).</span></div>
+    <div class="take"><span class="tk-ic">🔢</span><span><strong style="color:var(--text)">Frequency arrays:</strong> int[26]/int[128] beats a hash map for fixed alphabets — anagrams, uniqueness, counting.</span></div>
+    <div class="take"><span class="tk-ic">🔎</span><span><strong style="color:var(--text)">Pattern matching &amp; DP:</strong> KMP/Z for search in O(n+m); 2D DP for edit distance, LCS, and regex.</span></div>
+  </div>
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={s:'racecar',op:'palindrome',arg:'ace',steps:[],idx:-1,playing:false,timer:null};
+const els={row:document.getElementById('strRow'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opPtr:document.getElementById('opPtr'),opRes:document.getElementById('opRes'),sSteps:document.getElementById('sSteps'),sComp:document.getElementById('sComp'),sWin:document.getElementById('sWin'),sLen:document.getElementById('sLen'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {palindrome:'Palindrome',reverse:'Reverse',search:'Find Substring',window:'Longest Substring',freq:'Char Frequency'}[op]||op;}
+
+function gen(){
+  const s=[...V.s],op=V.op,arg=V.arg,steps=[];let comp=0;
+  const snap=(e)=>({s:[...s],comp,...e});
+  steps.push(snap({log:`Start <span class="tea">${opLabel(op)}</span> on "<span class="hi">${s.join('')}</span>".`,phase:'idle'}));
+  if(op==='palindrome'){
+    let i=0,j=s.length-1,ok=true;
+    while(i<j){comp++;steps.push(snap({i,j,log:`Compare s[${i}]='${s[i]}' with s[${j}]='${s[j]}'.`,phase:'traversing'}));if(s[i]!==s[j]){ok=false;steps.push(snap({i,j,bad:[i,j],log:`<span class="neg">'${s[i]}' ≠ '${s[j]}' — not a palindrome.</span>`,phase:'warning',done:true,res:'No'}));break;}i++;j--;}
+    if(ok)steps.push(snap({log:`All pairs matched. <span class="pos">It's a palindrome!</span>`,phase:'done',done:true,res:'Yes'}));
+  } else if(op==='reverse'){
+    let i=0,j=s.length-1;
+    while(i<j){steps.push(snap({i,j,log:`Swap s[${i}]='${s[i]}' ↔ s[${j}]='${s[j]}'.`,phase:'visiting'}));const t=s[i];s[i]=s[j];s[j]=t;i++;j--;}
+    steps.push(snap({log:`<span class="pos">Reversed</span> to "<span class="hi">${s.join('')}</span>".`,phase:'done',done:true,res:s.join('')}));
+  } else if(op==='search'){
+    const p=[...arg];let found=-1;
+    for(let i=0;i+p.length<=s.length;i++){let ok=true;for(let k=0;k<p.length;k++){comp++;if(s[i+k]!==p[k]){ok=false;break;}}steps.push(snap({winStart:i,winEnd:i+p.length-1,i,log:`Try match at index ${i}: "${s.slice(i,i+p.length).join('')}" vs "${arg}". ${ok?'match!':'no.'}`,phase:ok?'done':'traversing',match:ok}));if(ok){found=i;steps.push(snap({winStart:i,winEnd:i+p.length-1,match:true,log:`<span class="pos">Found "${arg}" at index ${i}.</span>`,phase:'done',done:true,res:`@${i}`}));break;}}
+    if(found<0)steps.push(snap({log:`<span class="neg">"${arg}" not found.</span>`,phase:'warning',done:true,res:'-1'}));
+  } else if(op==='window'){
+    const last={};let left=0,best=0,bs=0,be=0;
+    for(let r=0;r<s.length;r++){comp++;if(last[s[r]]!==undefined&&last[s[r]]>=left)left=last[s[r]]+1;last[s[r]]=r;const len=r-left+1;if(len>best){best=len;bs=left;be=r;}steps.push(snap({winStart:left,winEnd:r,i:r,win:len,log:`r=${r} '${s[r]}'. Window [${left}..${r}] len ${len}. Best so far ${best}.`,phase:'traversing'}));}
+    steps.push(snap({winStart:bs,winEnd:be,win:best,log:`<span class="pos">Longest = ${best}</span> ("${s.slice(bs,be+1).join('')}").`,phase:'done',done:true,res:String(best)}));
+  } else if(op==='freq'){
+    const f={};for(let i=0;i<s.length;i++){comp++;f[s[i]]=(f[s[i]]||0)+1;steps.push(snap({i,log:`Count '${s[i]}' → ${f[s[i]]}.`,phase:'traversing'}));}
+    const summary=Object.entries(f).map(([k,v])=>`${k}:${v}`).join('  ');
+    steps.push(snap({log:`<span class="pos">Frequencies:</span> ${summary}`,phase:'done',done:true,res:Object.keys(f).length+' distinct'}));
+  }
+  return steps;
+}
+function render(){
+  const st=V.steps[V.idx];if(!st)return;const s=st.s;
+  let html='';
+  for(let i=0;i<s.length;i++){let cls='ch-box';if(st.winStart!==undefined&&i>=st.winStart&&i<=st.winEnd)cls+=' win';if(st.match&&st.winStart!==undefined&&i>=st.winStart&&i<=st.winEnd)cls+=' match';if(st.i===i)cls+=' i';if(st.j===i)cls+=' j';if(st.bad&&st.bad.includes(i))cls+=' bad';if(st.done&&(V.op==='palindrome'||V.op==='reverse'))cls+=' match';let ptr='';if(st.i===i&&st.j===i)ptr='<span style="color:var(--teal)">i</span><span style="color:var(--pink)">j</span>';else if(st.i===i)ptr='<span style="color:var(--teal)">i</span>';else if(st.j===i)ptr='<span style="color:var(--pink)">j</span>';html+=`<div class="ch-cell"><div class="ch-idx">${i}</div><div class="${cls}">${s[i]}</div><div class="ch-ptr">${ptr}</div></div>`;}
+  els.row.innerHTML=html;
+  els.phase.className='phase-badge '+(st.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Scanning',visiting:'Working',done:'Done',warning:'Attention'}[st.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);
+  els.opPtr.textContent=(st.i!==undefined?'i='+st.i:'')+(st.j!==undefined?' j='+st.j:'')||'—';
+  els.opRes.textContent=st.res!==undefined?st.res:'—';
+  els.sSteps.textContent=V.idx;els.sComp.textContent=st.comp;els.sWin.textContent=st.win!==undefined?st.win:0;els.sLen.textContent=s.length;
+  els.log.innerHTML=st.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';els.stepLabel.textContent=`Step ${V.idx} of ${total}`;els.pill.style.display=st.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const x=V.steps[i];const plain=x.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${x.i!==undefined?x.i:'—'}</td><td>${x.j!==undefined?x.j:'—'}</td><td>${plain.slice(0,44)}</td><td>${x.s.join('')}</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  const s=[...V.s];let html='';
+  for(let i=0;i<s.length;i++)html+=`<div class="ch-cell"><div class="ch-idx">${i}</div><div class="ch-box">${s[i]}</div><div class="ch-ptr"></div></div>`;
+  els.row.innerHTML=html;
+  els.sLen.textContent=s.length;els.sSteps.textContent=0;els.sComp.textContent=0;els.sWin.textContent=0;
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';els.phase.className='phase-badge idle';els.phase.textContent='Idle';
+  els.opName.textContent=opLabel(V.op);els.opPtr.textContent='—';els.opRes.textContent='—';
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('strInput').value.trim();if(raw.length<1||raw.length>16){alert('Use 1–16 characters.');return;}V.s=raw;V.arg=document.getElementById('argInput').value.trim();reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const words=['racecar','abcabcbb','level','anagram','sliding','pattern','window','deque'];const w=words[Math.floor(Math.random()*words.length)];document.getElementById('strInput').value=w;V.s=w;reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;if(V.op==='window'){V.s='abcabcbb';document.getElementById('strInput').value='abcabcbb';}else if(V.op==='palindrome'){V.s='racecar';document.getElementById('strInput').value='racecar';}V.arg=document.getElementById('argInput').value.trim();reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House Robber II — LeetCode 213</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+  .badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+  .b-med{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .b-dp {background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+  .b-arr{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .b-lc {background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:3px}
+
+  main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  /* CONCEPT */
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--purple)}
+  .formula .nm{color:var(--amber)}
+  .formula .p1{color:var(--accent)}
+  .formula .p2{color:var(--red)}
+
+  .insight{background:var(--purple-bg);border:1px solid #3a1a52;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--purple)}
+
+  /* SPLIT VISUAL */
+  .split-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:2rem}
+  .split-box h3{font-size:.9rem;font-weight:600;margin-bottom:1rem;color:var(--muted)}
+  .split-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:560px){.split-grid{grid-template-columns:1fr}}
+  .split-card{border-radius:10px;padding:1rem 1.1rem;border:1px solid}
+  .split-card.p1{background:var(--accent-bg);border-color:#2a3875}
+  .split-card.p2{background:var(--red-bg);border-color:#5a2020}
+  .split-card .slbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700}
+  .split-card.p1 .slbl{color:var(--accent)}
+  .split-card.p2 .slbl{color:var(--red)}
+  .split-card .sval{font-family:var(--mono);font-size:13px;line-height:1.9;color:var(--muted)}
+  .split-card .sval b{color:var(--text)}
+
+  /* COMPLEXITY */
+  .cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+  .cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+  .cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+  .tag-s{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--teal-bg);color:var(--teal)}
+  .tag-e{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--accent-bg);color:var(--accent)}
+
+  /* ANIMATION PANEL */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text)}
+  .pin-btn.active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+
+  /* PASS SELECTOR */
+  .pass-tabs{display:flex;gap:6px;margin-bottom:1.1rem}
+  .pass-tab{flex:1;padding:7px 10px;border-radius:8px;text-align:center;font-size:13px;font-weight:600;font-family:var(--sans);border:1.5px solid var(--border2);background:var(--surface2);color:var(--muted);transition:all .2s}
+  .pass-tab.p1-active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .pass-tab.p2-active{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  .pass-tab.done-active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* PHASE */
+  .phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+  .phase-badge.pass1  {background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+  .phase-badge.pass2  {background:var(--red-bg);color:var(--red);border:1px solid #5a2020}
+  .phase-badge.compare{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .phase-badge.done   {background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .phase-badge.idle   {background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+
+  /* CIRCLE CANVAS */
+  .circle-wrap{display:flex;justify-content:center;margin-bottom:1.1rem}
+  #circle-canvas{display:block}
+
+  /* DP STRIPS */
+  .dp-strips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+  @media(max-width:560px){.dp-strips{grid-template-columns:1fr}}
+  .dp-strip-box{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.75rem .9rem}
+  .dp-strip-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;font-weight:700}
+  .dp-strip-lbl.p1{color:var(--accent)}
+  .dp-strip-lbl.p2{color:var(--red)}
+  .dp-strip-row{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .dpc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:36px}
+  .dpc .di{font-family:var(--mono);font-size:9px;color:var(--muted2,#5c6189)}
+  .dpc .dv{width:34px;height:32px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
+  .dpc .dv.filled {background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+  .dpc .dv.cur    {background:var(--amber-bg);border-color:var(--amber);color:var(--amber);box-shadow:0 0 10px rgba(251,191,36,.2)}
+  .dpc .dv.final  {background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .dpc .dv.excl   {background:#14161f;border-color:#262a3d;color:#3d4266}
+  .dpc .dl{font-size:9px;color:var(--muted2,#5c6189);font-family:var(--mono)}
+
+  /* DECISION CARDS */
+  .decision-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+  @media(max-width:540px){.decision-row{grid-template-columns:1fr}}
+  .dec-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.75rem 1rem}
+  .dec-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
+  .dec-card .val{font-family:var(--mono);font-size:1.05rem;font-weight:700}
+  .dec-card.rob  .val{color:var(--amber)}
+  .dec-card.skip .val{color:var(--accent)}
+  .dec-card.best .val{color:var(--green)}
+
+  /* COMPARE ROW */
+  .compare-row{display:grid;grid-template-columns:1fr auto 1fr 1fr;gap:8px;margin-bottom:1rem;align-items:center}
+  @media(max-width:540px){.compare-row{grid-template-columns:1fr 1fr}}
+  .cmp-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.75rem 1rem}
+  .cmp-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
+  .cmp-card .val{font-family:var(--mono);font-size:1.2rem;font-weight:700}
+  .cmp-card.p1b .val{color:var(--accent)}
+  .cmp-card.p2b .val{color:var(--red)}
+  .cmp-card.ans .val{color:var(--green)}
+  .cmp-vs{text-align:center;font-size:1.2rem;color:var(--muted);font-weight:700}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+  @media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.55rem .85rem}
+  .stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .stat-box .val{font-size:17px;font-weight:700;font-family:var(--mono)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .stat-box.teal  .val{color:var(--teal)}
+  .stat-box.amber .val{color:var(--amber)}
+  .stat-box.green .val{color:var(--green)}
+  .stat-box.acc   .val{color:var(--accent)}
+  .stat-box.red   .val{color:var(--red)}
+
+  /* LOG */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--red),var(--green));border-radius:2px;transition:width .25s ease}
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+  .log-box .hi {color:var(--text);font-weight:600}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .neg{color:var(--red);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .r1 {color:var(--accent);font-weight:600}
+  .log-box .r2 {color:var(--red);font-weight:600}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .btn.primary:hover{background:#280c45}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--purple)}
+  .result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+
+  /* WALK TABLE */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:580px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cr{color:var(--red)}
+  .cam{color:var(--amber)} .ct{color:var(--teal)} .cp{color:var(--purple)}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic}
+  .nm{color:var(--amber)} .st{color:var(--green)}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badges">
+      <span class="badge b-med">Medium</span>
+      <span class="badge b-dp">Dynamic Programming</span>
+      <span class="badge b-arr">Circular Array</span>
+      <span class="badge b-lc">LC #213</span>
+      <h1>House Robber II</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/house-robber-ii/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Houses arranged in a circle — first and last are adjacent — split into two linear sub-problems · O(n) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What changes from Part 1?</h2>
+      <p>The houses now form a <strong style="color:var(--text)">circle</strong>. House 0 and house n−1 are adjacent neighbors. You still can't rob two adjacent houses.</p>
+      <p>This one extra constraint breaks the linear DP from Part 1 — you can no longer rob both ends.</p>
+      <p style="margin-top:.5rem"><strong style="color:var(--text)">Key trick:</strong> If you can't have both house 0 and house n−1, then the answer must come from one of two scenarios — either you <em>exclude house 0</em> or you <em>exclude house n−1</em>. Run linear House Robber on each range, take the max.</p>
+    </div>
+    <div>
+      <h2>Algorithm</h2>
+      <div class="formula">
+        <span class="cm">// Two passes of linear House Robber</span><br><br>
+        <span class="p1">Pass 1:</span> rob(nums[<span class="nm">0</span> .. n−<span class="nm">2</span>])<br>
+        <span class="cm">  // exclude last house</span><br><br>
+        <span class="p2">Pass 2:</span> rob(nums[<span class="nm">1</span> .. n−<span class="nm">1</span>])<br>
+        <span class="cm">  // exclude first house</span><br><br>
+        <span class="kw">return</span> max(Pass1, Pass2)<br><br>
+        <span class="cm">// Base case: n==1 → return nums[0]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Why two passes work:</strong> In any valid solution, house 0 and house n−1 are never <em>both</em> robbed. So the optimal answer must lie entirely within <strong>nums[0..n−2]</strong> (skip last) or entirely within <strong>nums[1..n−1]</strong> (skip first). These two ranges together cover every possible valid selection. Run the O(n) Part 1 DP on each range and take the maximum.
+  </div>
+
+  <!-- SPLIT VISUAL -->
+  <div class="split-box">
+    <h3>How the array is split for a circle of n houses</h3>
+    <div class="split-grid">
+      <div class="split-card p1">
+        <div class="slbl">🔵 Pass 1 — Exclude last house (n−1)</div>
+        <div class="sval">
+          Range: <b>nums[0 .. n−2]</b><br>
+          House 0 is <b>eligible</b> · House n−1 is <b>excluded</b><br>
+          Finds best loot from the first n−1 houses
+        </div>
+      </div>
+      <div class="split-card p2">
+        <div class="slbl">🔴 Pass 2 — Exclude first house (0)</div>
+        <div class="sval">
+          Range: <b>nums[1 .. n−1]</b><br>
+          House 0 is <b>excluded</b> · House n−1 is <b>eligible</b><br>
+          Finds best loot from the last n−1 houses
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Time</div><div class="big">O(n)</div><p>Two linear passes of O(n) each — still just one scan effectively.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>Two variables (prev2, prev1) per pass. No dp array needed.</p></div>
+    <div class="cx-card"><div class="lbl">Sub-problems</div><div class="big">2×</div><p>Exact same logic as Part 1, run twice on overlapping sub-arrays.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">[2,3,2]<span class="tag-s">classic</span></button>
+    <button class="tab" onclick="loadEx(1,this)">[1,2,3,1]<span class="tag-s">classic</span></button>
+    <button class="tab" onclick="loadEx(2,this)">[1,2,3,4,5]<span class="tag-s">increasing</span></button>
+    <button class="tab" onclick="loadEx(3,this)">[200,3,140,20,10]<span class="tag-s">big start</span></button>
+    <button class="tab" onclick="loadEx(4,this)">[1,3,1,3,100]<span class="tag-s">big end</span></button>
+    <button class="tab" onclick="loadEx(5,this)">[5]<span class="tag-e">n=1</span></button>
+    <button class="tab" onclick="loadEx(6,this)">[4,8]<span class="tag-e">n=2</span></button>
+  </div>
+
+  <div id="ex-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-head">
+      <span class="title">Live Animation — House Robber II (Circular)</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <!-- PASS STATUS TABS -->
+    <div class="pass-tabs">
+      <div class="pass-tab" id="pt1" >🔵 Pass 1: nums[0..n−2]</div>
+      <div class="pass-tab" id="pt2" >🔴 Pass 2: nums[1..n−1]</div>
+      <div class="pass-tab" id="pt3" >🏆 Compare & Return</div>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Pass 1 active</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Pass 2 active</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Current house</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>dp filled</span>
+      <span><span class="dot" style="background:#14161f;border-color:#262a3d"></span>Excluded</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Answer</span>
+    </div>
+
+    <div id="phase-badge" class="phase-badge idle">⏸ Waiting to start</div>
+
+    <!-- CIRCULAR CANVAS -->
+    <div class="circle-wrap">
+      <canvas id="circle-canvas" width="420" height="260"></canvas>
+    </div>
+
+    <!-- DP STRIPS -->
+    <div class="dp-strips">
+      <div class="dp-strip-box">
+        <div class="dp-strip-lbl p1">🔵 Pass 1 dp — nums[0..n−2]</div>
+        <div class="dp-strip-row" id="dp-row-1"></div>
+      </div>
+      <div class="dp-strip-box">
+        <div class="dp-strip-lbl p2">🔴 Pass 2 dp — nums[1..n−1]</div>
+        <div class="dp-strip-row" id="dp-row-2"></div>
+      </div>
+    </div>
+
+    <!-- DECISION CARDS -->
+    <div class="decision-row" id="dec-row">
+      <div class="dec-card rob">
+        <div class="lbl">🔓 Rob current</div>
+        <div class="val" id="d-rob">prev2 + val = —</div>
+      </div>
+      <div class="dec-card skip">
+        <div class="lbl">🚶 Skip current</div>
+        <div class="val" id="d-skip">prev1 = —</div>
+      </div>
+      <div class="dec-card best">
+        <div class="lbl">✅ dp[i]</div>
+        <div class="val" id="d-best">—</div>
+      </div>
+    </div>
+
+    <!-- COMPARE ROW (shown at end) -->
+    <div class="compare-row" id="cmp-row" style="display:none">
+      <div class="cmp-card p1b"><div class="lbl">🔵 Pass 1 result</div><div class="val" id="cmp-p1">—</div></div>
+      <div class="cmp-vs">vs</div>
+      <div class="cmp-card p2b"><div class="lbl">🔴 Pass 2 result</div><div class="val" id="cmp-p2">—</div></div>
+      <div class="cmp-card ans"><div class="lbl">🏆 Answer</div><div class="val" id="cmp-ans">—</div></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box acc"><div class="lbl">Pass 1 best</div><div class="val" id="s-p1">—</div><div class="sub">excl. last</div></div>
+      <div class="stat-box red"><div class="lbl">Pass 2 best</div><div class="val" id="s-p2">—</div><div class="sub">excl. first</div></div>
+      <div class="stat-box teal"><div class="lbl">Current dp</div><div class="val" id="s-cur">—</div></div>
+      <div class="stat-box green"><div class="lbl">Answer</div><div class="val" id="s-ans">—</div></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="result-pill" class="result-pill">🏆 Max loot: —</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALK TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step DP table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr><th>Step</th><th>Pass</th><th>House i</th><th>nums[i]</th><th>Rob</th><th>Skip</th><th>dp[i]</th><th>Decision</th></tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>house_robber_ii.cpp · LeetCode 213</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">class</span> <span class="fn">Solution</span> {
+<span class="kw">private</span>:
+    <span class="cm">// Linear House Robber on subarray [lo, hi] inclusive</span>
+    <span class="kw">int</span> <span class="fn">robLinear</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums, <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+        <span class="kw">if</span> (lo == hi) <span class="kw">return</span> nums[lo];
+
+        <span class="kw">int</span> prev2 = nums[lo];
+        <span class="kw">int</span> prev1 = max(nums[lo], nums[lo + <span class="nm">1</span>]);
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = lo + <span class="nm">2</span>; i &lt;= hi; i++) {
+            <span class="kw">int</span> cur = max(prev2 + nums[i], prev1);
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        <span class="kw">return</span> prev1;
+    }
+
+<span class="kw">public</span>:
+    <span class="kw">int</span> <span class="fn">rob</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums) {
+        <span class="kw">int</span> n = nums.size();
+        <span class="kw">if</span> (n == <span class="nm">1</span>) <span class="kw">return</span> nums[<span class="nm">0</span>];
+        <span class="kw">if</span> (n == <span class="nm">2</span>) <span class="kw">return</span> max(nums[<span class="nm">0</span>], nums[<span class="nm">1</span>]);
+
+        <span class="cm">// Pass 1: exclude last house  → rob range [0, n-2]</span>
+        <span class="kw">int</span> pass1 = <span class="fn">robLinear</span>(nums, <span class="nm">0</span>, n - <span class="nm">2</span>);
+
+        <span class="cm">// Pass 2: exclude first house → rob range [1, n-1]</span>
+        <span class="kw">int</span> pass2 = <span class="fn">robLinear</span>(nums, <span class="nm">1</span>, n - <span class="nm">1</span>);
+
+        <span class="kw">return</span> max(pass1, pass2);
+    }
+};</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ── EXAMPLES ── */
+const EXAMPLES = [
+  { nums:[2,3,2],
+    desc:`<strong style="color:var(--text)">[2,3,2] — The classic trap.</strong> Can you rob houses 0 and 2? No — they're adjacent in the circle! Pass 1 (skip last): max loot = 3. Pass 2 (skip first): max loot = 3. Answer: <span style="color:var(--green)">3</span>.` },
+  { nums:[1,2,3,1],
+    desc:`<strong style="color:var(--text)">[1,2,3,1] — Classic example.</strong> Pass 1 [1,2,3]: rob 1+3=4. Pass 2 [2,3,1]: rob 2+1=3. Best = <span style="color:var(--green)">4</span>. (Rob houses 0 and 2 — not touching the circular neighbor at index 3.)` },
+  { nums:[1,2,3,4,5],
+    desc:`<strong style="color:var(--text)">[1,2,3,4,5] — Increasing values.</strong> Pass 1 [1,2,3,4]: max = 6 (houses 1,3). Pass 2 [2,3,4,5]: max = 8 (houses 1,3 of this subarray = orig indices 2,4). Answer: <span style="color:var(--green)">8</span>.` },
+  { nums:[200,3,140,20,10],
+    desc:`<strong style="color:var(--text)">[200,3,140,20,10] — Dominant start.</strong> House 0 has $200 and house 2 has $140 — but they're not adjacent, so we can grab both in Pass 1. Pass 1: 200+140=340. Pass 2: 140+10=150. Answer: <span style="color:var(--green)">340</span>.` },
+  { nums:[1,3,1,3,100],
+    desc:`<strong style="color:var(--text)">[1,3,1,3,100] — Big payoff at end.</strong> Last house has $100. Pass 1 (skip last): best = 6. Pass 2 (include last): 3+100=103. Answer: <span style="color:var(--green)">103</span>. Pass 2 captures the giant payday.` },
+  { nums:[5],
+    desc:`<strong style="color:var(--text)">[5] — n=1 base case.</strong> One house, one choice. No circular adjacency problem. Return nums[0] = <span style="color:var(--green)">5</span>.` },
+  { nums:[4,8],
+    desc:`<strong style="color:var(--text)">[4,8] — n=2 base case.</strong> Both houses are adjacent to each other (it's a circle of 2). Can only rob one. Return max(4,8) = <span style="color:var(--green)">8</span>.` },
+];
+
+/* ── LINEAR ROBBER STEP BUILDER ── */
+function linearSteps(nums, lo, hi, pass) {
+  const stps = [];
+  const len = hi - lo + 1;
+  const dp = new Array(len).fill(null);
+
+  if (len === 1) {
+    dp[0] = nums[lo];
+    stps.push({ pass, lo, hi, localI:0, globalI:lo, dp:[...dp], nums, robVal:null, skipVal:null, decision:'base', prev2:null, prev1:dp[0], type:'base0' });
+    return stps;
+  }
+
+  dp[0] = nums[lo];
+  stps.push({ pass, lo, hi, localI:0, globalI:lo, dp:[...dp], nums, robVal:null, skipVal:null, decision:'base', prev2:null, prev1:dp[0], type:'base0' });
+
+  dp[1] = Math.max(nums[lo], nums[lo+1]);
+  const d1 = dp[1]===nums[lo+1]?'rob':'skip';
+  stps.push({ pass, lo, hi, localI:1, globalI:lo+1, dp:[...dp], nums, robVal:nums[lo+1], skipVal:nums[lo], decision:d1, prev2:dp[0], prev1:dp[1], type:'base1' });
+
+  for (let li=2; li<len; li++) {
+    const gi = lo + li;
+    const robVal  = dp[li-2] + nums[gi];
+    const skipVal = dp[li-1];
+    dp[li] = Math.max(robVal, skipVal);
+    const decision = robVal >= skipVal ? 'rob' : 'skip';
+    stps.push({ pass, lo, hi, localI:li, globalI:gi, dp:[...dp], nums, robVal, skipVal, decision, prev2:dp[li-2], prev1:dp[li-1], type:'fill' });
+  }
+  return stps;
+}
+
+function buildSteps(nums) {
+  const n = nums.length;
+  const allSteps = [];
+
+  if (n === 1) {
+    allSteps.push({ type:'base-n1', pass:'none', nums, answer:nums[0], p1:nums[0], p2:nums[0] });
+    allSteps.push({ type:'done', pass:'done', nums, answer:nums[0], p1:nums[0], p2:nums[0] });
+    return allSteps;
+  }
+  if (n === 2) {
+    allSteps.push({ type:'base-n2', pass:'none', nums, answer:Math.max(nums[0],nums[1]), p1:nums[0], p2:nums[1] });
+    allSteps.push({ type:'done', pass:'done', nums, answer:Math.max(nums[0],nums[1]), p1:nums[0], p2:nums[1] });
+    return allSteps;
+  }
+
+  // Pass 1: [0, n-2]
+  const p1Steps = linearSteps(nums, 0, n-2, 1);
+  p1Steps.forEach(s => allSteps.push(s));
+
+  // Pass 2: [1, n-1]
+  const p2Steps = linearSteps(nums, 1, n-1, 2);
+  p2Steps.forEach(s => allSteps.push(s));
+
+  const p1 = p1Steps[p1Steps.length-1].prev1;
+  const p2 = p2Steps[p2Steps.length-1].prev1;
+  const answer = Math.max(p1, p2);
+
+  allSteps.push({ type:'compare', pass:'done', nums, p1, p2, answer });
+  allSteps.push({ type:'done',    pass:'done', nums, p1, p2, answer });
+  return allSteps;
+}
+
+/* ── DRAW CIRCULAR CANVAS ── */
+function drawCircle(idx) {
+  const canvas = document.getElementById('circle-canvas');
+  const n = curNums.length;
+  if (!n) { canvas.width=0; return; }
+
+  const W = Math.min(canvas.parentElement.clientWidth || 420, 560);
+  const H = Math.min(260, W * 0.62);
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const s = idx >= 0 ? steps[idx] : null;
+  const pass = s ? s.pass : 0;
+  const lo   = s ? (s.lo ?? 0) : 0;
+  const hi   = s ? (s.hi ?? n-1) : n-1;
+  const gi   = s ? (s.globalI ?? -1) : -1;
+  const dp   = s ? (s.dp || []) : [];
+  const localI = s ? (s.localI ?? -1) : -1;
+  const isDone = s && (s.type==='done' || s.type==='compare');
+
+  // Arrange houses in a circle
+  const cx = W/2, cy = H/2;
+  const rx = W*0.36, ry = H*0.38;
+  const CELL = Math.max(28, Math.min(54, Math.floor(Math.min(rx,ry)*1.1/n*3.8)));
+
+  for (let i=0; i<n; i++) {
+    const angle = (2*Math.PI*i/n) - Math.PI/2;
+    const hx = cx + rx*Math.cos(angle);
+    const hy = cy + ry*Math.sin(angle);
+
+    const isCurrent = i === gi && !isDone;
+    const isExcluded = s && !isDone &&
+      ((pass===1 && i===n-1) || (pass===2 && i===0));
+    const inRange = !s || isDone || (i>=lo && i<=hi);
+
+    // dp value for this house in current pass
+    const localIdx = s ? i - lo : -1;
+    const dpVal = (s && localIdx>=0 && localIdx<dp.length) ? dp[localIdx] : null;
+    const isFilled = dpVal !== null && !isCurrent;
+
+    let fillCol='#22263a', strokeCol='#3d4266', strokeW=1.5, textCol='#8b90b8';
+
+    if (isDone) {
+      fillCol='#0d2318'; strokeCol='#4ade80'; strokeW=2.5; textCol='#4ade80';
+    } else if (isExcluded) {
+      fillCol='#14161f'; strokeCol='#262a3d'; strokeW=1; textCol='#3d4266';
+    } else if (isCurrent) {
+      fillCol = pass===1?'#2a1e06':'#2a1111';
+      strokeCol = pass===1?'#fbbf24':'#f87171'; strokeW=2.5;
+      textCol = pass===1?'#fbbf24':'#f87171';
+    } else if (isFilled) {
+      fillCol=pass===1?'#0c2624':'#1f0d0d'; strokeCol=pass===1?'#2dd4bf':'#f87171'; strokeW=1.5; textCol=pass===1?'#2dd4bf':'#f87171';
+    } else if (!inRange) {
+      fillCol='#14161f'; strokeCol='#262a3d'; textCol='#3d4266';
+    }
+
+    // Glow
+    if (isCurrent) {
+      ctx.beginPath();
+      ctx.arc(hx,hy,CELL/2+6,0,Math.PI*2);
+      ctx.fillStyle = pass===1?'rgba(251,191,36,.12)':'rgba(248,113,113,.12)';
+      ctx.fill();
+    }
+
+    // House circle
+    ctx.beginPath(); ctx.arc(hx,hy,CELL/2,0,Math.PI*2);
+    ctx.fillStyle=fillCol; ctx.fill();
+    ctx.strokeStyle=strokeCol; ctx.lineWidth=strokeW; ctx.stroke();
+
+    // Index
+    ctx.font=`bold ${Math.max(11,CELL*.28)}px monospace`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=textCol;
+    ctx.fillText(i, hx, hy-5);
+
+    // Value
+    ctx.font=`${Math.max(9,CELL*.22)}px monospace`;
+    ctx.fillStyle=textCol;
+    ctx.fillText('$'+curNums[i], hx, hy+7);
+
+    // DP value badge
+    if (dpVal !== null && !isExcluded) {
+      ctx.font=`bold ${Math.max(9,CELL*.2)}px monospace`;
+      ctx.fillStyle=isDone?'#4ade80':isCurrent?(pass===1?'#fbbf24':'#f87171'):(pass===1?'#2dd4bf':'#f87171');
+      ctx.fillText('dp='+dpVal, hx, hy+CELL/2+10);
+    }
+
+    // Excluded X mark
+    if (isExcluded) {
+      ctx.font=`bold ${Math.max(12,CELL*.3)}px sans-serif`;
+      ctx.fillStyle='#5a2020';
+      ctx.fillText('✕', hx, hy);
+    }
+
+    // Draw connecting arc to next house
+    const angle2 = (2*Math.PI*((i+1)%n)/n) - Math.PI/2;
+    const nx2 = cx + rx*Math.cos(angle2);
+    const ny2 = cy + ry*Math.sin(angle2);
+    ctx.beginPath();
+    ctx.moveTo(hx + (nx2-hx)*0.28, hy + (ny2-hy)*0.28);
+    ctx.lineTo(nx2 - (nx2-hx)*0.28, ny2 - (ny2-hy)*0.28);
+    const isCircularEdge = i===n-1;
+    ctx.strokeStyle = isCircularEdge ? 'rgba(248,113,113,0.5)' : '#2e3248';
+    ctx.lineWidth = isCircularEdge ? 2 : 1.2;
+    ctx.setLineDash(isCircularEdge ? [5,3] : []);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Labels
+  ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+  // Pass label
+  if (pass===1 && !isDone) {
+    ctx.fillStyle='#6c8fff';
+    ctx.fillText('PASS 1 — excluding house '+(n-1), W/2, 4);
+  } else if (pass===2 && !isDone) {
+    ctx.fillStyle='#f87171';
+    ctx.fillText('PASS 2 — excluding house 0', W/2, 4);
+  } else if (isDone) {
+    ctx.fillStyle='#4ade80';
+    ctx.fillText('🏆 Max loot: '+(s.answer!==undefined?s.answer:''), W/2, 4);
+  }
+
+  // Red dashed ring label at top right
+  ctx.font='10px sans-serif'; ctx.fillStyle='rgba(248,113,113,0.6)';
+  ctx.fillText('↺ circular', W-40, H-16);
+}
+
+/* ── DP STRIPS ── */
+function updateDpStrips(s) {
+  const n = curNums.length;
+  const pass = s ? s.pass : 0;
+
+  // Pass 1 strip: indices 0..n-2
+  const row1 = document.getElementById('dp-row-1');
+  const row2 = document.getElementById('dp-row-2');
+
+  function makeStrip(lo, hi, dp, curLocalI, activePass, myPass) {
+    const len = hi - lo + 1;
+    const isDone = s && (s.type==='done'||s.type==='compare');
+    return Array.from({length:len},(_,li)=>{
+      let cls='dv';
+      if (isDone && myPass===activePass) { cls+=' final'; }
+      else if (activePass!==myPass) { cls+=''; } // inactive pass
+      else if (li<curLocalI) cls+=' filled';
+      else if (li===curLocalI) cls+=' cur';
+      const val = dp&&dp[li]!==null&&dp[li]!==undefined ? dp[li] : '?';
+      const shown = (activePass===myPass||(isDone)) && dp && dp[li]!==null ? val : '?';
+      return `<div class="dpc"><div class="di">[${lo+li}]</div><div class="${cls}">${activePass===myPass||isDone?shown:'—'}</div><div class="dl">$${curNums[lo+li]}</div></div>`;
+    }).join('');
+  }
+
+  if (!s || !curNums.length) { row1.innerHTML=''; row2.innerHTML=''; return; }
+
+  const dp  = s.dp || [];
+  const li  = s.localI ?? -1;
+  const lo  = s.lo ?? 0;
+  const hi  = s.hi ?? n-1;
+
+  if (pass===1 || s.type==='compare'||s.type==='done') {
+    row1.innerHTML = makeStrip(0, n-2, pass===1?dp:(s.type==='compare'||s.type==='done')?Array.from({length:n-1},(_,i)=>null):[], pass===1?li:-1, pass, 1);
+  }
+  if (pass===2 || s.type==='compare'||s.type==='done') {
+    row2.innerHTML = makeStrip(1, n-1, pass===2?dp:(s.type==='compare'||s.type==='done')?Array.from({length:n-1},(_,i)=>null):[], pass===2?li:-1, pass, 2);
+  }
+
+  // Store last dp for each pass for compare step
+  if (pass===1) { lastDp1=[...dp]; lastP1=s.prev1; }
+  if (pass===2) { lastDp2=[...dp]; lastP2=s.prev1; }
+
+  if (s.type==='compare'||s.type==='done') {
+    row1.innerHTML=Array.from({length:n-1},(_,li2)=>{
+      const v=lastDp1[li2]!==undefined&&lastDp1[li2]!==null?lastDp1[li2]:'?';
+      return `<div class="dpc"><div class="di">[${li2}]</div><div class="dv final">${v}</div><div class="dl">$${curNums[li2]}</div></div>`;
+    }).join('');
+    row2.innerHTML=Array.from({length:n-1},(_,li2)=>{
+      const v=lastDp2[li2]!==undefined&&lastDp2[li2]!==null?lastDp2[li2]:'?';
+      return `<div class="dpc"><div class="di">[${li2+1}]</div><div class="dv final">${v}</div><div class="dl">$${curNums[li2+1]}</div></div>`;
+    }).join('');
+  }
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx) {
+  drawCircle(idx);
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('result-pill').style.display='none';
+  document.getElementById('dec-row').style.display='grid';
+  document.getElementById('cmp-row').style.display='none';
+
+  if (idx < 0) {
+    ['s-p1','s-p2','s-cur','s-ans'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('d-rob').textContent='prev2 + val = —';
+    document.getElementById('d-skip').textContent='prev1 = —';
+    document.getElementById('d-best').textContent='—';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    updateDpStrips(null);
+    updatePassTabs(-1);
+    setPhase('idle'); return;
+  }
+
+  const s = steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  updateDpStrips(s);
+  updatePassTabs(s.pass);
+
+  const prev2 = s.prev2 ?? '—';
+  const prev1 = s.prev1 ?? '—';
+  const curVal = s.globalI!==undefined&&s.globalI>=0 ? s.nums[s.globalI] : '—';
+  const dp = s.dp || [];
+  const li = s.localI ?? -1;
+  const dpCur = li>=0&&dp[li]!==null ? dp[li] : '—';
+
+  document.getElementById('s-p1').textContent = lastP1!==null ? lastP1 : (s.pass===1&&s.prev1!==undefined?s.prev1:'—');
+  document.getElementById('s-p2').textContent = lastP2!==null ? lastP2 : '—';
+  document.getElementById('s-cur').textContent = dpCur;
+  document.getElementById('s-ans').textContent = s.type==='done'||s.type==='compare' ? s.answer : '—';
+
+  let msg='';
+  const sp=`<span class="hi">Step ${idx+1}.</span> `;
+
+  if (s.type==='base-n1') {
+    msg=`${sp}n=1: single house in the "circle." No adjacency issue. Answer = nums[0] = <span class="pos">${s.answer}</span>.`;
+    setPhase('done');
+  } else if (s.type==='base-n2') {
+    msg=`${sp}n=2: only two houses, both adjacent to each other. Rob the larger one. Answer = max(${s.nums[0]},${s.nums[1]}) = <span class="pos">${s.answer}</span>.`;
+    setPhase('done');
+  } else if (s.type==='base0') {
+    const passLabel = s.pass===1?'<span class="r1">Pass 1</span>':'<span class="r2">Pass 2</span>';
+    msg=`${sp}${passLabel} — Base case dp[0] = nums[${s.globalI}] = <span class="amb">${s.nums[s.globalI]}</span>. First house in range must be taken (best so far).`;
+    setPhase(s.pass===1?'pass1':'pass2');
+  } else if (s.type==='base1') {
+    const passLabel = s.pass===1?'<span class="r1">Pass 1</span>':'<span class="r2">Pass 2</span>';
+    msg=`${sp}${passLabel} — Base case dp[1] = max(nums[${s.lo}], nums[${s.lo+1}]) = max(<span class="pur">${s.nums[s.lo]}</span>, <span class="amb">${s.nums[s.lo+1]}</span>) = <span class="tea">${dp[1]}</span>.`;
+    setPhase(s.pass===1?'pass1':'pass2');
+  } else if (s.type==='fill') {
+    const passLabel = s.pass===1?'<span class="r1">Pass 1</span>':'<span class="r2">Pass 2</span>';
+    if (s.decision==='rob') {
+      msg=`${sp}${passLabel} — House <span class="amb">i=${s.globalI}</span> (val=${curVal}): <span class="amb">Rob</span> → ${prev2}+${curVal}=<span class="amb">${s.robVal}</span> ≥ skip(${s.skipVal}). dp=${dpCur}.`;
+    } else {
+      msg=`${sp}${passLabel} — House <span class="amb">i=${s.globalI}</span> (val=${curVal}): <span class="acc">Skip</span> → prev1=<span class="acc">${s.skipVal}</span> > rob(${s.robVal}). dp=${dpCur}.`;
+    }
+    document.getElementById('d-rob').textContent  = `${prev2} + ${curVal} = ${s.robVal}`;
+    document.getElementById('d-skip').textContent = `prev1 = ${s.skipVal}`;
+    document.getElementById('d-best').textContent = `dp[${s.localI}] = ${dpCur}`;
+    setPhase(s.pass===1?'pass1':'pass2');
+  } else if (s.type==='compare') {
+    document.getElementById('dec-row').style.display='none';
+    document.getElementById('cmp-row').style.display='grid';
+    document.getElementById('cmp-p1').textContent = s.p1;
+    document.getElementById('cmp-p2').textContent = s.p2;
+    document.getElementById('cmp-ans').textContent = s.answer;
+    msg=`${sp}<span class="tea">Compare results:</span> Pass 1 = <span class="r1">${s.p1}</span> vs Pass 2 = <span class="r2">${s.p2}</span>. Answer = max(${s.p1}, ${s.p2}) = <span class="pos">${s.answer}</span>. Return <span class="pos">${s.answer}</span>.`;
+    setPhase('compare');
+  } else if (s.type==='done') {
+    document.getElementById('dec-row').style.display='none';
+    document.getElementById('cmp-row').style.display='grid';
+    document.getElementById('cmp-p1').textContent=s.p1??'—';
+    document.getElementById('cmp-p2').textContent=s.p2??'—';
+    document.getElementById('cmp-ans').textContent=s.answer;
+    document.getElementById('s-ans').textContent=s.answer;
+    document.getElementById('result-pill').textContent=`🏆 Max loot: ${s.answer}`;
+    document.getElementById('result-pill').style.display='inline-block';
+    msg=`${sp}<span class="pos">🏆 Done!</span> Maximum loot from the circular street = <span class="pos">${s.answer}</span>.`;
+    setPhase('done');
+  }
+
+  if (!['compare','done','base-n1','base-n2'].includes(s.type)) {
+    if (s.type!=='fill') {
+      document.getElementById('d-rob').textContent  = '—';
+      document.getElementById('d-skip').textContent = '—';
+      document.getElementById('d-best').textContent = dpCur!=='—'?`dp[${li}] = ${dpCur}`:'—';
+    }
+  }
+
+  document.getElementById('log').innerHTML = msg;
+  const tr = document.getElementById('tr-'+idx);
+  if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+
+function updatePassTabs(pass) {
+  document.getElementById('pt1').className='pass-tab'+(pass===1?' p1-active':'');
+  document.getElementById('pt2').className='pass-tab'+(pass===2?' p2-active':'');
+  document.getElementById('pt3').className='pass-tab'+(pass==='done'?' done-active':'');
+}
+
+function setPhase(type) {
+  const b=document.getElementById('phase-badge');
+  b.className='phase-badge '+type;
+  if(type==='pass1')   b.textContent='🔵 Pass 1 — Rob houses 0 to n−2';
+  else if(type==='pass2')  b.textContent='🔴 Pass 2 — Rob houses 1 to n−1';
+  else if(type==='compare') b.textContent='⚖️ Comparing pass results…';
+  else if(type==='done')   b.textContent='🏆 Max loot found!';
+  else b.textContent='⏸ Waiting to start';
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps) {
+  document.getElementById('step-tbody').innerHTML = stps.map((s,i)=>{
+    let pass='—',hi2='—',val='—',rob='—',skip='—',dpi='—',dec='';
+    if(s.pass===1||s.pass===2){
+      pass=s.pass===1?`<span class="ca">Pass 1</span>`:`<span class="cr">Pass 2</span>`;
+      hi2=s.globalI??'—';
+      val=s.globalI!==undefined?s.nums[s.globalI]:'—';
+      const dp=s.dp||[];
+      const li=s.localI??-1;
+      dpi=li>=0&&dp[li]!==null?dp[li]:'—';
+    }
+    if(s.type==='base0'){rob='—';skip='—';dec=`<span class="cam">Base case</span>`;}
+    else if(s.type==='base1'){rob=s.nums&&s.lo!==undefined?s.nums[s.lo+1]:'—';skip=s.nums&&s.lo!==undefined?s.nums[s.lo]:'—';dec=`<span class="cam">Base case</span>`;}
+    else if(s.type==='fill'){rob=s.robVal;skip=s.skipVal;dec=s.decision==='rob'?`<span class="cam">🔓 Rob</span>`:`<span class="ca">🚶 Skip</span>`;}
+    else if(s.type==='compare'||s.type==='done'){pass='—';dec=`<span class="cg">🏆 max(${s.p1??''},${s.p2??''})=${s.answer}</span>`;dpi=s.answer;}
+    else if(s.type==='base-n1'||s.type==='base-n2'){dec=`<span class="cg">Base case → ${s.answer}</span>`;dpi=s.answer;}
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td>${pass}</td><td class="cam">${hi2}</td><td class="ct">${val}</td>
+      <td class="cp">${rob}</td><td class="ca">${skip}</td><td class="cg">${dpi}</td><td>${dec}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+const SPEEDS=[1600,1000,600,280,100];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let curNums=[], steps=[], cursor=-1, playing=false, timer=null;
+let lastDp1=[], lastDp2=[], lastP1=null, lastP2=null;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+function loadEx(n, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  curNums=EXAMPLES[n].nums;
+  lastDp1=[]; lastDp2=[]; lastP1=null; lastP2=null;
+  document.getElementById('ex-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(curNums);
+  buildTable(steps);
+  cursor=-1;
+  setTimeout(()=>applyState(-1),30);
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){
+  if(cursor>0){cursor--;applyState(cursor);}
+  else if(cursor===0){cursor=-1;applyState(-1);}
+}
+function resetAnim(){stopPlay();lastDp1=[];lastDp2=[];lastP1=null;lastP2=null;cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){lastDp1=[];lastDp2=[];lastP1=null;lastP2=null;cursor=-1;applyState(-1);}
+  playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn');b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+window.addEventListener('resize',()=>drawCircle(cursor));
+loadEx(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

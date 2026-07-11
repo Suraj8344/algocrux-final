@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insertion Sort — Build Sorted Region One Element at a Time</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8;
+    --accent:#6c8fff; --accent-bg:#1a2140;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171;   --red-bg:#2a1111;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc;--purple-bg:#1e0f33;
+    --teal:#2dd4bf;  --teal-bg:#0c2624;
+    --mono:'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+  .badge{background:var(--purple-bg);color:var(--purple);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #3a1a66}
+  .badge-tag{background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #2a3875}
+  header h1{font-size:1.25rem;font-weight:600}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:640px){.concept{grid-template-columns:1fr}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--purple);line-height:2.1}
+  .formula .cm{color:var(--muted);font-style:italic}
+  .formula .kw{color:var(--accent)}
+
+  .insight{background:var(--accent-bg);border:1px solid #2a3875;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+  .insight strong{color:var(--accent)}
+
+  .complexity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+  @media(max-width:620px){.complexity-grid{grid-template-columns:1fr}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+  .complex-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--purple)}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66}
+  .tag{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .tag-e{background:var(--amber-bg);color:var(--amber)}
+  .tag-s{background:var(--accent-bg);color:var(--accent)}
+
+  /* ── ANIM PANEL ── */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.55);max-height:calc(100vh - 24px);overflow-y:auto}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted)}
+  .pin-btn.active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+
+  .legend{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+
+  /* PHASE BADGE */
+  .phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:1rem}
+  .phase-badge.picking  {background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66}
+  .phase-badge.shifting {background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+  .phase-badge.inserting{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+  .phase-badge.sorted   {background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+  .phase-badge.idle     {background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+
+  /* ── CARD ROW (cards-in-hand metaphor) ── */
+  .cards-outer{overflow-x:auto;padding-bottom:6px}
+  .cards-row{display:flex;gap:7px;min-width:max-content;align-items:flex-end;padding-top:30px;position:relative}
+
+  .card-col{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+  .card{
+    width:58px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-radius:9px;border:2px solid var(--border2);background:var(--surface2);
+    font-family:var(--mono);transition:all .28s cubic-bezier(.4,0,.2,1);position:relative;
+  }
+  .card .cv{font-size:18px;font-weight:700;color:var(--text);line-height:1}
+  .card .ci{font-size:10px;color:var(--muted);margin-top:2px}
+
+  .card.sorted-region{border-color:var(--teal);background:var(--teal-bg)}
+  .card.unsorted-region{border-color:var(--border2);background:var(--surface2)}
+  .card.key-card{
+    border-color:var(--purple);background:var(--purple-bg);
+    transform:translateY(-22px) scale(1.1);
+    box-shadow:0 10px 28px rgba(192,132,252,.35);
+    z-index:5;
+  }
+  .card.shift-card{
+    border-color:var(--amber);background:var(--amber-bg);
+    transform:translateY(-8px) scale(1.05);
+    box-shadow:0 6px 18px rgba(251,191,36,.28);
+  }
+  .card.compare-card{border-color:var(--accent);background:var(--accent-bg)}
+  .card.empty-slot{border-color:var(--border);background:transparent;border-style:dashed;opacity:.5}
+  .card.final-sorted{border-color:var(--teal);background:var(--teal-bg);color:var(--teal)}
+
+  .key-label{
+    position:absolute;top:-28px;left:50%;transform:translateX(-50%);
+    background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a66;
+    font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;
+    white-space:nowrap;font-family:var(--mono);
+  }
+
+  /* Boundary divider between sorted/unsorted */
+  .boundary-marker{position:absolute;top:30px;bottom:0;width:0;border-left:2px dashed rgba(45,212,191,.5);pointer-events:none}
+
+  /* SORTED/KEY/UNSORTED info */
+  .region-info{display:flex;gap:14px;flex-wrap:wrap;margin:1rem 0;font-size:12px;color:var(--muted)}
+  .region-chip{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:4px 10px}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.1rem;overflow:hidden}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--purple),var(--accent));border-radius:2px;transition:width .3s ease;width:0%}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+  .stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}
+  .stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+  .stat-box.purple .val{color:var(--purple)}
+  .stat-box.amber  .val{color:var(--amber)}
+  .stat-box.teal   .val{color:var(--teal)}
+  .stat-box.accent .val{color:var(--accent)}
+
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:52px;margin-bottom:1.1rem;line-height:1.65}
+  .log-box .hi {color:var(--text);font-weight:500}
+  .log-box .pos{color:var(--green);font-weight:600}
+  .log-box .pur{color:var(--purple);font-weight:600}
+  .log-box .amb{color:var(--amber);font-weight:600}
+  .log-box .tea{color:var(--teal);font-weight:600}
+  .log-box .acc{color:var(--accent);font-weight:600}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--border);border-color:var(--muted)}
+  .btn.primary{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .btn.primary:hover{background:#2a1044}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+  input[type=range]{width:80px;accent-color:var(--purple)}
+  .done-pill{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+  .tbl-wrap{overflow-x:auto}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:580px}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+  .ca{color:var(--accent)} .cg{color:var(--green)} .cp{color:var(--purple)}
+  .cam{color:var(--amber)} .ct{color:var(--teal)}
+
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}
+  .kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic} .nm{color:var(--amber)} .st{color:var(--green)}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="badge">Sorting</span>
+      <span class="badge-tag">Comparison-Based</span>
+      <span class="badge-tag">In-Place</span>
+      <span class="badge-tag">Stable</span>
+      <h1>Insertion Sort</h1>
+    </div>
+    <p>Grow a sorted region by inserting one element at a time — O(n²) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Sort an array by building a <strong style="color:var(--text)">sorted region</strong> on the left, one element at a time. At each step, take the next unsorted element (the "key") and shift it backward through the sorted region until it lands in its correct position.</p>
+      <p style="margin-top:.75rem">Think of <strong style="color:var(--text)">sorting playing cards in your hand</strong> — you pick up one card and slide it into the right spot among the cards you've already sorted.</p>
+    </div>
+    <div>
+      <h2>The algorithm</h2>
+      <div class="formula">
+        <span class="cm">// i starts at 1: arr[0] is trivially sorted</span><br>
+        <span class="kw">for</span> i = 1 to n-1:<br>
+        &nbsp;&nbsp;key = arr[i]<br>
+        &nbsp;&nbsp;j = i - 1<br>
+        &nbsp;&nbsp;<span class="cm">// shift larger elements right</span><br>
+        &nbsp;&nbsp;<span class="kw">while</span> j &gt;= 0 and arr[j] &gt; key:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;arr[j+1] = arr[j]<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;j--<br>
+        &nbsp;&nbsp;arr[j+1] = key
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    💡 <strong>Key insight:</strong> Unlike Bubble Sort which compares neighboring pairs blindly, Insertion Sort <strong>only shifts elements that are actually larger</strong> than the key — it stops as soon as it finds an element ≤ key. This makes it extremely fast on <strong>nearly sorted</strong> data (close to O(n)), which is why it's often used as the base case in hybrid algorithms like Timsort.
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Best case</div><div class="big">O(n)</div><p>Already sorted — each key needs zero shifts, just one comparison.</p></div>
+    <div class="complex-card"><div class="lbl">Average / Worst</div><div class="big">O(n²)</div><p>Reverse sorted — every key shifts all the way to the front.</p></div>
+    <div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>Sorts in-place; only the `key` variable is extra storage.</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs">
+    <button class="tab active" onclick="loadEx(0,this)">Classic unsorted <span class="tag tag-s">standard</span></button>
+    <button class="tab" onclick="loadEx(1,this)">Already sorted <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(2,this)">Reverse sorted <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(3,this)">Duplicate values <span class="tag tag-e">edge</span></button>
+    <button class="tab" onclick="loadEx(4,this)">Two elements <span class="tag tag-e">edge</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — Cards-in-Hand Insertion</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Sorted region</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span>Key (being inserted)</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Shifting right</span>
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span>Unsorted region</span>
+    </div>
+
+    <div id="phase-badge" class="phase-badge idle">⏸ Waiting to start</div>
+
+    <div class="cards-outer">
+      <div class="cards-row" id="cards-row"></div>
+    </div>
+
+    <div class="region-info">
+      <div class="region-chip">🟢 Sorted: <span id="ri-sorted" style="color:var(--teal);font-family:monospace;font-weight:700">—</span></div>
+      <div class="region-chip">🟣 Key: <span id="ri-key" style="color:var(--purple);font-family:monospace;font-weight:700">—</span></div>
+      <div class="region-chip">⚪ Unsorted: <span id="ri-unsorted" style="color:var(--muted);font-family:monospace;font-weight:700">—</span></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="lbl">Key value</div><div class="val" id="s-key">—</div><div class="sub" id="s-key-sub">arr[i]</div></div>
+      <div class="stat-box amber"><div class="lbl">Comparisons</div><div class="val" id="s-comps">0</div><div class="sub">so far</div></div>
+      <div class="stat-box accent"><div class="lbl">Shifts</div><div class="val" id="s-shifts">0</div><div class="sub">so far</div></div>
+      <div class="stat-box teal"><div class="lbl">Sorted count</div><div class="val" id="s-sorted">1</div><div class="sub">from left</div></div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to begin.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Sorted!</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <div class="tbl-wrap">
+      <table class="step-table">
+        <thead>
+          <tr><th>Step</th><th>i</th><th>Key</th><th>j</th><th>Action</th><th>Array state</th></tr>
+        </thead>
+        <tbody id="step-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>insertion_sort.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">insertionSort</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr) {
+    <span class="kw">int</span> n = arr.size();
+
+    <span class="cm">// arr[0] is trivially sorted — start from index 1</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; n; i++) {
+        <span class="kw">int</span> key = arr[i];   <span class="cm">// element to insert</span>
+        <span class="kw">int</span> j = i - <span class="nm">1</span>;
+
+        <span class="cm">// Shift all elements greater than key one position right</span>
+        <span class="kw">while</span> (j &gt;= <span class="nm">0</span> &amp;&amp; arr[j] &gt; key) {
+            arr[j + <span class="nm">1</span>] = arr[j];
+            j--;
+        }
+
+        <span class="cm">// Place key in its correct position</span>
+        arr[j + <span class="nm">1</span>] = key;
+    }
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; arr = {<span class="nm">12</span>, <span class="nm">11</span>, <span class="nm">13</span>, <span class="nm">5</span>, <span class="nm">6</span>};
+    <span class="fn">insertionSort</span>(arr);
+    <span class="kw">for</span> (<span class="kw">int</span> x : arr) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>; <span class="cm">// 5 6 11 12 13</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    arr:[12,11,13,5,6],
+    desc:`<strong style="color:var(--text)">Classic unsorted array.</strong> arr=[12,11,13,5,6]. Watch each key get picked up and slide left through the sorted region until it finds its place. The element 5 needs to shift all the way to the front! Final result: <code style="color:var(--teal)">[5,6,11,12,13]</code>.`
+  },
+  {
+    arr:[1,2,3,4,5],
+    desc:`<strong style="color:var(--text)">Edge case: already sorted.</strong> arr=[1,2,3,4,5]. Every key is immediately ≥ the element before it — <strong style="color:var(--purple)">zero shifts needed</strong> for any key. Just one comparison per key. This is Insertion Sort's <strong style="color:var(--teal)">best case: O(n)</strong>.`
+  },
+  {
+    arr:[9,7,5,3,1],
+    desc:`<strong style="color:var(--text)">Edge case: reverse sorted — worst case.</strong> arr=[9,7,5,3,1]. Every key is smaller than everything before it, forcing a shift all the way to index 0 each time. This is the maximum possible work — O(n²) shifts.`
+  },
+  {
+    arr:[5,2,5,1,5,3],
+    desc:`<strong style="color:var(--text)">Edge case: duplicate values.</strong> arr=[5,2,5,1,5,3]. The shift condition uses strict <code>&gt;</code> (not <code>≥</code>), so a key never moves past an equal element — preserving original relative order. This makes Insertion Sort <strong style="color:var(--teal)">stable</strong>. Result: <code style="color:var(--teal)">[1,2,3,5,5,5]</code>.`
+  },
+  {
+    arr:[8,3],
+    desc:`<strong style="color:var(--text)">Edge case: two elements.</strong> arr=[8,3]. Minimum non-trivial case — key=3 compares against 8, shifts it right, and inserts itself at index 0. Result: <code style="color:var(--teal)">[3,8]</code>.`
+  }
+];
+
+const SPEEDS=[1800,1200,700,380,160];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+let origArr=[], steps=[], cursor=-1, playing=false, timer=null;
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── BUILD STEPS ── */
+function buildSteps(inputArr){
+  const arr=[...inputArr];
+  const n=arr.length;
+  const stps=[];
+  let totalComps=0, totalShifts=0;
+
+  stps.push({type:'init', arr:[...arr], i:0, key:null, j:-1, sortedCount:1,
+    totalComps, totalShifts, holeAt:-1,
+    note:`Initialize. arr[0]=${arr[0]} is trivially sorted (a single element is always "sorted").`});
+
+  for(let i=1;i<n;i++){
+    const key=arr[i];
+    let j=i-1;
+
+    stps.push({type:'pick-key', arr:[...arr], i, key, j, sortedCount:i,
+      totalComps, totalShifts, holeAt:i,
+      note:`Pick up key = arr[${i}] = ${key}. Will insert it into the sorted region [0..${i-1}].`});
+
+    let didShift=false;
+    while(j>=0 && arr[j]>key){
+      totalComps++;
+      stps.push({type:'compare', arr:[...arr], i, key, j, sortedCount:i,
+        totalComps, totalShifts, holeAt:j+1,
+        note:`Compare arr[${j}]=${arr[j]} with key=${key}: ${arr[j]} > ${key} → shift arr[${j}] right.`});
+
+      arr[j+1]=arr[j];
+      totalShifts++;
+      didShift=true;
+      stps.push({type:'shift', arr:[...arr], i, key, j, sortedCount:i,
+        totalComps, totalShifts, holeAt:j,
+        note:`Shifted arr[${j}]=${arr[j+1]} to position ${j+1}. Hole now at position ${j}.`});
+      j--;
+    }
+
+    if(j>=0){
+      totalComps++;
+      stps.push({type:'compare-stop', arr:[...arr], i, key, j, sortedCount:i,
+        totalComps, totalShifts, holeAt:j+1,
+        note:`Compare arr[${j}]=${arr[j]} with key=${key}: ${arr[j]} ≤ ${key} → stop shifting. Insert key here.`});
+    }
+
+    arr[j+1]=key;
+    stps.push({type:'insert', arr:[...arr], i, key, j, sortedCount:i+1,
+      totalComps, totalShifts, holeAt:-1,
+      note:`Insert key=${key} at position ${j+1}. Sorted region now spans [0..${i}].`});
+  }
+
+  stps.push({type:'done', arr:[...arr], i:n, key:null, j:-1, sortedCount:n,
+    totalComps, totalShifts, holeAt:-1,
+    note:`Sorting complete! Total comparisons: ${totalComps}, total shifts: ${totalShifts}.`});
+  return stps;
+}
+
+/* ── RENDER CARDS ── */
+function buildCards(arr){
+  document.getElementById('cards-row').innerHTML=arr.map((v,i)=>`
+    <div class="card-col">
+      <div class="card" id="card-${i}"><span class="cv">${v}</span><span class="ci">${i}</span></div>
+    </div>`).join('');
+}
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  const n=origArr.length;
+  // reset all cards
+  for(let i=0;i<n;i++){
+    const c=document.getElementById('card-'+i);
+    if(c) c.className='card';
+    const lbl=c?.querySelector('.key-label');
+    if(lbl) lbl.remove();
+  }
+
+  steps.forEach((_,k)=>{ const tr=document.getElementById('tr-'+k); if(tr) tr.classList.remove('highlighted'); });
+  document.getElementById('done-pill').style.display='none';
+
+  if(idx<0){
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('s-key').textContent='—';
+    document.getElementById('s-key-sub').textContent='arr[i]';
+    document.getElementById('s-comps').textContent='0';
+    document.getElementById('s-shifts').textContent='0';
+    document.getElementById('s-sorted').textContent='1';
+    document.getElementById('ri-sorted').textContent='—';
+    document.getElementById('ri-key').textContent='—';
+    document.getElementById('ri-unsorted').textContent='—';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to begin.';
+    setPhase('idle');
+    // initial coloring — index 0 sorted
+    const c0=document.getElementById('card-0');
+    if(c0) c0.className='card sorted-region';
+    for(let i=1;i<n;i++){ const c=document.getElementById('card-'+i); if(c) c.className='card unsorted-region'; }
+    return;
+  }
+
+  const s=steps[idx];
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+
+  const arr=s.arr;
+  for(let pos=0;pos<n;pos++){
+    const c=document.getElementById('card-'+pos);
+    if(!c) continue;
+    const cv=c.querySelector('.cv');
+    if(cv) cv.textContent=arr[pos];
+
+    if(pos===s.holeAt && (s.type==='pick-key'||s.type==='compare'||s.type==='shift'||s.type==='compare-stop')){
+      // this is where the key conceptually sits (floating)
+      if(s.type==='pick-key' && pos===s.i){
+        c.className='card key-card';
+        const lbl=document.createElement('div');
+        lbl.className='key-label'; lbl.textContent=`key=${s.key}`;
+        c.appendChild(lbl);
+      } else {
+        c.className='card key-card';
+        const lbl=document.createElement('div');
+        lbl.className='key-label'; lbl.textContent=`key=${s.key}`;
+        c.appendChild(lbl);
+      }
+    } else if(s.type==='compare' && pos===s.j){
+      c.className='card shift-card';
+    } else if(s.type==='compare-stop' && pos===s.j){
+      c.className='card compare-card';
+    } else if(pos < s.sortedCount && s.type!=='pick-key' && !(s.type!=='insert'&&pos===s.holeAt)){
+      c.className='card sorted-region';
+    } else if(pos < s.sortedCount){
+      c.className='card sorted-region';
+    } else if(pos===s.i && (s.type==='compare'||s.type==='shift'||s.type==='compare-stop')){
+      // original key position now might be a gap (already shifted away) — show as empty-ish
+      c.className='card unsorted-region';
+    } else {
+      c.className='card unsorted-region';
+    }
+  }
+  // ensure final sorted-region styling for all pos<sortedCount, except active hole
+  for(let pos=0;pos<s.sortedCount;pos++){
+    if(pos===s.holeAt && s.type!=='insert') continue;
+    const c=document.getElementById('card-'+pos);
+    if(c && !c.classList.contains('key-card') && !c.classList.contains('shift-card') && !c.classList.contains('compare-card')){
+      c.className='card sorted-region';
+    }
+  }
+  if(s.type==='done'){
+    for(let pos=0;pos<n;pos++){
+      const c=document.getElementById('card-'+pos);
+      if(c) c.className='card final-sorted';
+    }
+  }
+
+  // region info
+  document.getElementById('ri-sorted').textContent = `[${arr.slice(0, s.sortedCount).join(',')}]`;
+  document.getElementById('ri-key').textContent = s.key!==null ? s.key : '—';
+  const unsortedStart = s.type==='insert'||s.type==='done' ? s.sortedCount : s.i+1;
+  document.getElementById('ri-unsorted').textContent = unsortedStart<n ? `[${arr.slice(unsortedStart).join(',')}]` : '[]';
+
+  // stats
+  document.getElementById('s-key').textContent = s.key!==null ? s.key : '—';
+  document.getElementById('s-key-sub').textContent = s.i<n ? `arr[${s.i}] original` : '—';
+  document.getElementById('s-comps').textContent = s.totalComps;
+  document.getElementById('s-shifts').textContent = s.totalShifts;
+  document.getElementById('s-sorted').textContent = s.sortedCount;
+
+  // phase
+  if(s.type==='done') setPhase('sorted');
+  else if(s.type==='pick-key') setPhase('picking');
+  else if(s.type==='compare'||s.type==='shift') setPhase('shifting');
+  else if(s.type==='compare-stop'||s.type==='insert') setPhase('inserting');
+  else setPhase('idle');
+
+  // log
+  let msg='';
+  const step=`<span class="hi">Step ${idx+1}.</span> `;
+  if(s.type==='init') msg=`${step}Initialize. Single-element region [0..0] is trivially sorted. Begin inserting from index 1.`;
+  else if(s.type==='pick-key') msg=`${step}🃏 <span class="pur">Pick up key</span> = arr[${s.i}] = <span class="pur">${s.key}</span>. Will compare backward through the sorted region to find its spot.`;
+  else if(s.type==='compare') msg=`${step}<span class="amb">Compare</span> arr[${s.j}]=${origArr.length?s.arr[s.j+1===s.j+1?s.j:s.j]:''} with key=${s.key}: <span class="amb">greater than key → shift right.</span>`;
+  else if(s.type==='shift') msg=`${step}<span class="amb">↪ Shifted</span> element right to fill the gap. Hole moves one step left to position ${s.j}.`;
+  else if(s.type==='compare-stop') msg=`${step}<span class="acc">Compare</span> arr[${s.j}] with key=${s.key}: <span class="pos">≤ key → stop shifting.</span> Key will be inserted right after this position.`;
+  else if(s.type==='insert') msg=`${step}<span class="pos">✅ Inserted!</span> key=${s.key} placed at position ${s.j+1}. Sorted region now spans [0..${s.i}] = <span class="tea">[${s.arr.slice(0,s.i+1).join(',')}]</span>.`;
+  else if(s.type==='done') msg=`${step}<span class="pos">🎉 Sorting complete!</span> Final array: <span class="tea">[${s.arr.join(', ')}]</span>. Total comparisons: <span class="amb">${s.totalComps}</span>, total shifts: <span class="acc">${s.totalShifts}</span>.`;
+
+  if(s.type==='done') document.getElementById('done-pill').style.display='inline-block';
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function setPhase(type){
+  const b=document.getElementById('phase-badge');
+  b.className='phase-badge '+type;
+  if(type==='picking') b.textContent='🃏 Picking up key';
+  else if(type==='shifting') b.textContent='↪ Shifting elements';
+  else if(type==='inserting') b.textContent='📍 Inserting key';
+  else if(type==='sorted') b.textContent='🎉 Fully Sorted!';
+  else b.textContent='⏸ Waiting to start';
+}
+
+/* ── BUILD TABLE ── */
+function buildTable(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    let action='';
+    if(s.type==='init') action=`<span class="ca">Initialize</span>`;
+    else if(s.type==='pick-key') action=`<span class="cp">Pick key=${s.key}</span>`;
+    else if(s.type==='compare') action=`<span class="cam">Compare → shift</span>`;
+    else if(s.type==='shift') action=`<span class="cam">Shift right</span>`;
+    else if(s.type==='compare-stop') action=`<span class="ca">Compare → stop</span>`;
+    else if(s.type==='insert') action=`<span class="cg">Insert key</span>`;
+    else action=`<span class="cg">✓ Sorted</span>`;
+    const arrStr='['+s.arr.map((v,p)=> p<s.sortedCount?`<strong>${v}</strong>`:v).join(',')+']';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td><td class="ca">${s.i<s.arr.length?s.i:'—'}</td>
+      <td class="cp">${s.key!==null?s.key:'—'}</td>
+      <td class="cam">${s.j>=0?s.j:'—'}</td>
+      <td>${action}</td>
+      <td style="font-size:11px">${arrStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CONTROLS ── */
+function loadEx(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  origArr=[...EXAMPLES[n].arr];
+  document.getElementById('example-desc').innerHTML=EXAMPLES[n].desc;
+  steps=buildSteps(origArr);
+  buildCards(origArr);
+  buildTable(steps);
+  cursor=-1;
+  setTimeout(()=>applyState(-1),30);
+}
+function stepForward(){ if(cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack(){ if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim(){ stopPlay();cursor=-1;applyState(-1); }
+function stopPlay(){ playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){stopPlay();return;}
+  if(cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing)return;
+  if(cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+loadEx(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

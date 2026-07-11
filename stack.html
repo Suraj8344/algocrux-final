@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stacks — Complete DSA Stack Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}
+header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}
+.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}
+.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}
+.insight.red{background:var(--red-bg);border-color:#5a2020}.insight.red strong{color:var(--red)}
+.insight.green{background:var(--green-bg);border-color:#1a4a2e}.insight.green strong{color:var(--green)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}
+.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}
+.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}
+.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}
+.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.stack-viz{display:flex;flex-direction:column-reverse;align-items:center;gap:6px;min-height:230px;justify-content:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem;position:relative}
+.stack-base{width:200px;height:5px;background:var(--border2);border-radius:3px;margin-top:4px}
+.stack-cell{width:170px;height:42px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);transition:all .25s;position:relative}
+.stack-cell.top{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px rgba(108,143,255,.3)}
+.stack-cell.pushing{border-color:var(--green);color:var(--green);animation:pushIn .35s cubic-bezier(.22,1,.36,1)}
+.stack-cell.popping{border-color:var(--red);color:var(--red);animation:popOut .35s cubic-bezier(.22,1,.36,1)}
+.stack-cell.peek{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 2px rgba(45,212,191,.3)}
+.stack-cell .top-tag{position:absolute;right:-52px;font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:700}
+@keyframes pushIn{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes popOut{from{transform:translateY(0);opacity:1}to{transform:translateY(-24px);opacity:.3}}
+.stack-empty{color:#5c6189;font-family:var(--mono);font-size:12px;padding:2rem 0}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}
+.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}
+.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}
+.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.red .val{color:var(--red)}.stat-box.acc .val{color:var(--accent)}.stat-box.purple .val{color:var(--purple)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}.log-box .pur{color:var(--purple);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.num-input{width:80px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.num-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--border);border-color:var(--muted)}
+.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}
+.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}
+.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}
+.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}
+.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}
+.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}
+@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}
+.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}
+.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badges">
+    <span class="badge b-ds">Data Structure</span><span class="badge b-cpp">Stack</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span>
+  </div>
+  <h1>Stacks — Complete DSA Stack Theory</h1>
+  <p>Interactive visualization of stack structure, LIFO operations, patterns, and algorithms from fundamentals to hard interview problems.</p>
+</header>
+
+<main>
+
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → operations → the interactive visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div>
+      <h2>What is a Stack?</h2>
+      <p>A <strong style="color:var(--teal)">Stack</strong> is a linear data structure that follows <strong style="color:var(--amber)">LIFO</strong> (Last In, First Out): the last element pushed is the first popped. Think of a stack of plates — you add and remove from the top only.</p>
+      <p>All the main operations touch just one end (<strong style="color:var(--text)">the top</strong>), so <code>push</code>, <code>pop</code>, and <code>peek</code> are all <strong style="color:var(--teal)">O(1)</strong>.</p>
+    </div>
+    <div>
+      <h2>Core operations</h2>
+      <div class="formula">
+        <span class="cm">// LIFO — one end only</span><br>
+        <span class="kw">push</span>(x)&nbsp;<span class="cm">// add x on top — O(1)</span><br>
+        <span class="kw">pop</span>()&nbsp;&nbsp;&nbsp;<span class="cm">// remove top — O(1)</span><br>
+        <span class="kw">peek</span>()&nbsp;&nbsp;<span class="cm">// read top — O(1)</span><br>
+        <span class="kw">empty</span>()&nbsp;<span class="cm">// is it empty? — O(1)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight purple"><strong>Why Stacks?</strong> Anytime you need to reverse order or remember "where you were", a stack fits: function call frames, undo/redo, expression evaluation, backtracking, DFS, and the browser back button.</div>
+
+  <div class="section-label">Types &amp; Implementations</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">▭</div><div class="tc-name">Array-based</div><div class="tc-def">Backed by a dynamic array; <code>top</code> is an index. Fast, cache-friendly, may resize.</div><div class="tc-use">Use: default choice, std::stack over vector/deque.</div></div>
+    <div class="type-card"><div class="tc-icon">🔗</div><div class="tc-name">Linked-list based</div><div class="tc-def">Push/pop at the head of a singly linked list. No resizing, extra pointer per node.</div><div class="tc-use">Use: unknown size, no reallocation cost.</div></div>
+    <div class="type-card"><div class="tc-icon">⛰</div><div class="tc-name">Min / Max Stack</div><div class="tc-def">Augmented with an auxiliary stack tracking the running min/max in O(1).</div><div class="tc-use">Use: "get minimum in O(1)" interview problems.</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Top</div><div class="ic-desc">The most recently pushed element; the only one directly accessible.</div></div>
+    <div class="info-card"><div class="ic-title">Push</div><div class="ic-desc">Add an element on top of the stack. O(1).</div></div>
+    <div class="info-card"><div class="ic-title">Pop</div><div class="ic-desc">Remove and return the top element. O(1).</div></div>
+    <div class="info-card"><div class="ic-title">Peek / Top</div><div class="ic-desc">Read the top element without removing it.</div></div>
+    <div class="info-card"><div class="ic-title">Overflow</div><div class="ic-desc">Pushing onto a full fixed-capacity stack.</div></div>
+    <div class="info-card"><div class="ic-title">Underflow</div><div class="ic-desc">Popping from an empty stack — always guard against it.</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Push</div><div class="big">O(1)</div><p>Add to top, amortized for dynamic array.</p></div>
+    <div class="cx-card"><div class="lbl">Pop</div><div class="big">O(1)</div><p>Remove from top.</p></div>
+    <div class="cx-card"><div class="lbl">Peek</div><div class="big">O(1)</div><p>Read the top element.</p></div>
+    <div class="cx-card"><div class="lbl">Search</div><div class="big">O(n)</div><p>Must pop through to find an element.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n)</div><p>n elements stored.</p></div>
+    <div class="cx-card"><div class="lbl">Min/Max Stack</div><div class="big">O(1)</div><p>With an auxiliary stack.</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>All core operations are O(1).</li>
+      <li>Simple, predictable LIFO semantics.</li>
+      <li>Perfect for reversal, backtracking, and recursion simulation.</li>
+      <li>Minimal memory overhead (array-based).</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>No random access — only the top is reachable.</li>
+      <li>Searching requires popping (destroys order).</li>
+      <li>Fixed-capacity variants can overflow.</li>
+      <li>Not suitable for FIFO or middle access needs.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>stack_stl.cpp · std::stack &amp; manual stack</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    stack&lt;<span class="kw">int</span>&gt; st;
+    st.<span class="fn">push</span>(<span class="nm">10</span>);       <span class="cm">// [10]</span>
+    st.<span class="fn">push</span>(<span class="nm">20</span>);       <span class="cm">// [10,20]</span>
+    st.<span class="fn">push</span>(<span class="nm">30</span>);       <span class="cm">// [10,20,30] top=30</span>
+    cout &lt;&lt; st.<span class="fn">top</span>() &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 30 — peek O(1)</span>
+    st.<span class="fn">pop</span>();            <span class="cm">// removes 30</span>
+    cout &lt;&lt; st.<span class="fn">size</span>() &lt;&lt; <span class="st">" "</span> &lt;&lt; st.<span class="fn">empty</span>();
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>applications.cpp · Balanced parens &amp; NGE</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="cm">// Valid parentheses — O(n)</span>
+<span class="kw">bool</span> <span class="fn">isValid</span>(string s) {
+    stack&lt;<span class="kw">char</span>&gt; st;
+    <span class="kw">for</span> (<span class="kw">char</span> c : s) {
+        <span class="kw">if</span> (c==<span class="st">'('</span>||c==<span class="st">'['</span>||c==<span class="st">'{'</span>) st.<span class="fn">push</span>(c);
+        <span class="kw">else</span> {
+            <span class="kw">if</span> (st.<span class="fn">empty</span>()) <span class="kw">return</span> <span class="kw">false</span>;
+            <span class="kw">char</span> t = st.<span class="fn">top</span>(); st.<span class="fn">pop</span>();
+            <span class="kw">if</span> ((c==<span class="st">')'</span>&amp;&amp;t!=<span class="st">'('</span>)||(c==<span class="st">']'</span>&amp;&amp;t!=<span class="st">'['</span>)||(c==<span class="st">'}'</span>&amp;&amp;t!=<span class="st">'{'</span>)) <span class="kw">return</span> <span class="kw">false</span>;
+        }
+    }
+    <span class="kw">return</span> st.<span class="fn">empty</span>();
+}
+
+<span class="cm">// Next Greater Element — monotonic stack O(n)</span>
+vector&lt;<span class="kw">int</span>&gt; <span class="fn">nge</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a) {
+    stack&lt;<span class="kw">int</span>&gt; st; vector&lt;<span class="kw">int</span>&gt; res(a.size(), -<span class="nm">1</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> i=<span class="nm">0</span>; i&lt;a.size(); i++) {
+        <span class="kw">while</span> (!st.<span class="fn">empty</span>() &amp;&amp; a[st.<span class="fn">top</span>()] &lt; a[i]) { res[st.<span class="fn">top</span>()]=a[i]; st.<span class="fn">pop</span>(); }
+        st.<span class="fn">push</span>(i);
+    }
+    <span class="kw">return</span> res;
+}</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive Stack Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="push">Push</button>
+    <button class="tab" data-op="pop">Pop</button>
+    <button class="tab" data-op="peek">Peek</button>
+    <button class="tab" data-op="search">Search</button>
+    <button class="tab" data-op="reverse">Reverse (via stack)</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive Stack Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Element</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Top</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Pushing</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Popping</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Peek/Target</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="stack-viz" id="stackViz"></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">Top element</div><div class="val" id="opTop">—</div></div>
+        <div class="op-card"><div class="lbl">Operations</div><div class="val" id="opCount">0</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Pushes</div><div class="val" id="sPush">0</div><div class="sub">added</div></div>
+      <div class="stat-box red"><div class="lbl">Pops</div><div class="val" id="sPop">0</div><div class="sub">removed</div></div>
+      <div class="stat-box green"><div class="lbl">Size</div><div class="val" id="sLen">0</div><div class="sub">elements</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — build your own operation</div>
+      <label style="font-size:12px;color:var(--muted)">Stack (bottom→top): <input type="text" class="num-input" id="listInput" value="10,20,30" style="width:150px"></label>
+      <label style="font-size:12px;color:var(--muted)">Value: <input type="number" class="num-input" id="argInput" value="40"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>Top</th><th>Action</th><th>Stack State</th><th>Ops</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>Monotonic stack.</strong> Keep the stack increasing or decreasing to answer next-greater/smaller, largest rectangle in histogram, stock span, and trapping rain water — each element pushed and popped once, O(n) total.</div>
+  <div class="insight"><strong>Two stacks = a queue.</strong> Push onto "in"; when you need to dequeue and "out" is empty, pour everything from "in" into "out" (reversing order). Amortized O(1) per operation.</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Push</td><td class="qcol">O(1)</td><td>O(1)</td><td>Amortized for dynamic array</td></tr>
+      <tr><td>Pop</td><td class="qcol">O(1)</td><td>O(1)</td><td>Guard against underflow</td></tr>
+      <tr><td>Peek</td><td class="qcol">O(1)</td><td>O(1)</td><td>Read top only</td></tr>
+      <tr><td>Search</td><td>O(n)</td><td>O(1)</td><td>Destroys order unless copied</td></tr>
+      <tr><td>Min/Max in O(1)</td><td class="scol">O(1)</td><td>O(n)</td><td>Auxiliary min/max stack</td></tr>
+      <tr><td>Monotonic stack</td><td>O(n)</td><td>O(n)</td><td>Each element pushed/popped once</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>Stack Basics</h4><p>push/pop/peek, LIFO intuition, array vs linked-list backing, overflow/underflow.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>Classic Applications</h4><p>Balanced parentheses, reverse a string, evaluate postfix, infix→postfix.</p></div><span class="rm-time">~3 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>Monotonic Stack</h4><p>Next greater/smaller, largest rectangle, stock span, trapping rain water.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Advanced</h4><p>Min stack, two-stack queue, backtracking &amp; DFS simulation, expression trees.</p></div><span class="rm-time">~3 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Valid Parentheses</div><div class="ic-a">Push openers, pop and match on closers. Empty stack at the end means balanced.</div><div class="ic-tag">Matching</div></div>
+    <div class="int-card"><div class="ic-q">Min Stack</div><div class="ic-a">Auxiliary stack storing the running minimum, pushed/popped in lockstep. O(1) getMin.</div><div class="ic-tag">Augmented</div></div>
+    <div class="int-card"><div class="ic-q">Largest Rectangle in Histogram</div><div class="ic-a">Monotonic increasing stack of indices; pop to compute area with width = i - stack.top() - 1.</div><div class="ic-tag">Monotonic</div></div>
+    <div class="int-card"><div class="ic-q">Evaluate Reverse Polish Notation</div><div class="ic-a">Push numbers, on operator pop two and push the result. Single pass O(n).</div><div class="ic-tag">Evaluation</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Valid Parentheses</span><span class="ptag">Matching</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Min Stack</span><span class="ptag">Augmented</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Implement Queue using Stacks</span><span class="ptag">Two Stacks</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Daily Temperatures</span><span class="ptag">Monotonic</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Evaluate RPN</span><span class="ptag">Evaluation</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Asteroid Collision</span><span class="ptag">Simulation</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Largest Rectangle in Histogram</span><span class="ptag">Monotonic</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Trapping Rain Water</span><span class="ptag">Monotonic</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">📚</span><span><strong style="color:var(--text)">LIFO:</strong> last in, first out. One end (the top) does all the work, so push/pop/peek are O(1).</span></div>
+    <div class="take"><span class="tk-ic">🧮</span><span><strong style="color:var(--text)">Expressions &amp; matching:</strong> parentheses, postfix evaluation, and infix conversion are textbook stack jobs.</span></div>
+    <div class="take"><span class="tk-ic">📈</span><span><strong style="color:var(--text)">Monotonic stack:</strong> the highest-value pattern — next greater/smaller, histograms, rain water, all O(n).</span></div>
+    <div class="take"><span class="tk-ic">🔁</span><span><strong style="color:var(--text)">Recursion = stack:</strong> the call stack IS a stack. Any recursion can be rewritten iteratively with an explicit stack.</span></div>
+  </div>
+
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={stack:[10,20,30],op:'push',arg:40,steps:[],idx:-1,playing:false,timer:null};
+const els={viz:document.getElementById('stackViz'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opTop:document.getElementById('opTop'),opCount:document.getElementById('opCount'),sSteps:document.getElementById('sSteps'),sPush:document.getElementById('sPush'),sPop:document.getElementById('sPop'),sLen:document.getElementById('sLen'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {push:'Push',pop:'Pop',peek:'Peek',search:'Search',reverse:'Reverse'}[op]||op;}
+
+function gen(){
+  const a=[...V.stack],op=V.op,arg=V.arg,steps=[];let push=0,pop=0;
+  const snap=(e)=>({stack:[...a],push,pop,...e});
+  steps.push(snap({log:`Start <span class="tea">${opLabel(op)}</span>. Stack (bottom→top): [${a.join(', ')}].`,phase:'idle'}));
+  if(op==='push'){
+    steps.push(snap({log:`Prepare to push <span class="amb">${arg}</span> onto the top.`,phase:'visiting'}));
+    push++;a.push(arg);
+    steps.push(snap({pushing:a.length-1,log:`<span class="pos">Pushed ${arg}.</span> New top = ${arg}. O(1).`,phase:'done',done:true}));
+  } else if(op==='pop'){
+    if(a.length===0){steps.push(snap({log:`<span class="neg">Underflow!</span> Cannot pop an empty stack.`,phase:'warning',done:true}));}
+    else{const t=a[a.length-1];steps.push(snap({popping:a.length-1,log:`Remove the top element <span class="neg">${t}</span>.`,phase:'visiting'}));pop++;a.pop();steps.push(snap({log:`<span class="pos">Popped ${t}.</span> New top = ${a.length?a[a.length-1]:'none'}. O(1).`,phase:'done',done:true}));}
+  } else if(op==='peek'){
+    if(a.length===0){steps.push(snap({log:`Stack empty — nothing to peek.`,phase:'warning',done:true}));}
+    else{steps.push(snap({peek:a.length-1,log:`<span class="tea">Peek</span>: top element is <span class="hi">${a[a.length-1]}</span>. Not removed. O(1).`,phase:'done',done:true}));}
+  } else if(op==='search'){
+    let found=-1;
+    for(let i=a.length-1;i>=0;i--){steps.push(snap({cur:i,log:`Check position ${i}: ${a[i]} ${a[i]===arg?'== ':'≠ '}${arg}.`,phase:'traversing'}));if(a[i]===arg){found=i;steps.push(snap({peek:i,log:`<span class="pos">Found ${arg}</span> at depth ${a.length-1-i} from top.`,phase:'done',done:true}));break;}}
+    if(found<0)steps.push(snap({log:`<span class="neg">${arg} not in stack.</span>`,phase:'warning',done:true}));
+  } else if(op==='reverse'){
+    steps.push(snap({log:`Pop all elements into a temp stack — this reverses their order.`,phase:'visiting'}));
+    const rev=[...a].reverse();a.length=0;
+    for(let i=0;i<rev.length;i++){push++;a.push(rev[i]);steps.push(snap({pushing:a.length-1,log:`Re-push <span class="amb">${rev[i]}</span>.`,phase:'processing'}));}
+    steps.push(snap({log:`<span class="pos">Reversed</span> to [${a.join(', ')}].`,phase:'done',done:true}));
+  }
+  return steps;
+}
+
+function render(){
+  const s=V.steps[V.idx];if(!s)return;const a=s.stack;
+  let html='';
+  if(a.length===0)html='<div class="stack-empty">empty stack</div>';
+  else for(let i=0;i<a.length;i++){let cls='stack-cell';if(i===a.length-1)cls+=' top';if(s.pushing===i)cls+=' pushing';if(s.popping===i)cls+=' popping';if(s.peek===i)cls+=' peek';if(s.cur===i)cls+=' peek';const tag=i===a.length-1?'<span class="top-tag">← top</span>':'';html+=`<div class="${cls}">${a[i]}${tag}</div>`;}
+  html+='<div class="stack-base"></div>';
+  els.viz.innerHTML=html;
+  els.phase.className='phase-badge '+(s.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Searching',visiting:'Working',processing:'Processing',done:'Done',warning:'Attention'}[s.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);
+  els.opTop.textContent=a.length?a[a.length-1]:'—';
+  els.opCount.textContent=s.push+s.pop;
+  els.sSteps.textContent=V.idx;els.sPush.textContent=s.push;els.sPop.textContent=s.pop;els.sLen.textContent=a.length;
+  els.log.innerHTML=s.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';
+  els.stepLabel.textContent=`Step ${V.idx} of ${total}`;
+  els.pill.style.display=s.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const st=V.steps[i];const plain=st.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${st.stack.length?st.stack[st.stack.length-1]:'—'}</td><td>${plain.slice(0,42)}</td><td>[${st.stack.join(', ')}]</td><td>${st.push+st.pop}</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  let html='';const a=V.stack;
+  if(a.length===0)html='<div class="stack-empty">empty stack</div>';
+  else for(let i=0;i<a.length;i++){const tag=i===a.length-1?'<span class="top-tag">← top</span>':'';html+=`<div class="stack-cell${i===a.length-1?' top':''}">${a[i]}${tag}</div>`;}
+  html+='<div class="stack-base"></div>';els.viz.innerHTML=html;
+  els.sLen.textContent=a.length;els.sSteps.textContent=0;els.sPush.textContent=0;els.sPop.textContent=0;
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';
+  els.phase.className='phase-badge idle';els.phase.textContent='Idle';els.opName.textContent=opLabel(V.op);els.opTop.textContent=a.length?a[a.length-1]:'—';els.opCount.textContent=0;
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('listInput').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));if(raw.length>10){alert('Max 10 elements.');return;}V.stack=raw;V.arg=parseInt(document.getElementById('argInput').value)||0;reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const len=3+Math.floor(Math.random()*3),a=[];for(let i=0;i<len;i++)a.push(Math.floor(Math.random()*90)+5);document.getElementById('listInput').value=a.join(',');V.stack=a;V.arg=a[Math.floor(Math.random()*a.length)];document.getElementById('argInput').value=V.arg;reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;V.arg=parseInt(document.getElementById('argInput').value)||0;reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

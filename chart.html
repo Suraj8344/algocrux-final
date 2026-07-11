@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Patterns — Mind Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --surface3:#2a2e42;
+    --border:#2e3248; --border2:#3d4266;
+    --text:#e8eaf6; --muted:#8b90b8; --muted2:#5c6189;
+    --accent:#6c8fff;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,sans-serif;
+    --mono:'Fira Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+  header{border-bottom:1px solid var(--border);padding:1rem 1.75rem;background:var(--surface);position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .h-left h1{font-family:var(--display);font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+  .h-left p{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .h-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .search{position:relative;display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:.45rem .75rem;width:230px;transition:border-color .2s}
+  .search:focus-within{border-color:var(--accent)}
+  .search input{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%}
+  .search input::placeholder{color:var(--muted2)}
+  .search svg{color:var(--muted2);flex-shrink:0}
+  .zoom{display:flex;gap:4px}
+  .zbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+  .zbtn:hover{background:var(--border);border-color:var(--muted)}
+  .zbtn.wide{width:auto;padding:0 12px;font-size:12.5px;font-family:var(--sans)}
+
+  .legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);align-items:center;padding:.55rem 1.75rem;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .ld{width:9px;height:9px;border-radius:50%}
+  .ld.live{background:#4ade80}.ld.dup{background:#fbbf24}.ld.soon{background:#5c6189}
+  .legend .hint{margin-left:auto;color:var(--muted2);font-family:var(--mono);font-size:10.5px}
+
+  .canvas{overflow:auto;height:calc(100vh - 116px);cursor:grab;
+    background-image:radial-gradient(rgba(61,66,102,.35) 1px, transparent 1px);
+    background-size:22px 22px;
+    background-color:var(--bg)}
+  .canvas.grabbing{cursor:grabbing}
+  #mapSvg{display:block}
+
+  .pname{font-family:var(--display);font-weight:700;font-size:15px}
+  .sname{font-family:var(--sans);font-weight:700;font-size:12.5px;fill:var(--text)}
+  .lname{font-family:var(--sans);font-weight:400;font-size:12.5px;fill:var(--muted);transition:fill .15s}
+  .rootname{font-family:var(--display);font-weight:700;font-size:15px;fill:var(--text)}
+  .bcount{font-family:var(--mono);font-weight:600;font-size:10px;fill:#0f1117}
+  .soontag{font-family:var(--mono);font-size:9.5px;fill:var(--muted2)}
+  .duptag{font-family:var(--mono);font-size:9.5px;fill:#fbbf24}
+
+  .leaf-hit{cursor:pointer}
+  .leaf-hit:hover .lname{fill:#fff}
+  .leaf-hit:hover .leaf-ul{opacity:1}
+  .leaf-ul{opacity:0;transition:opacity .15s}
+  .dim{opacity:.13;transition:opacity .2s}
+  .leaf-hit.locked .lname{fill:var(--muted2)}
+  .locktag{font-family:var(--mono);font-size:9.5px;fill:var(--muted2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <h1>DSA Patterns</h1>
+    <p>Every branch links to its question page</p>
+  </div>
+  <div class="h-tools">
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search" placeholder="Search a question…">
+    </div>
+    <div class="zoom">
+      <button class="zbtn" id="zout" title="Zoom out">−</button>
+      <button class="zbtn wide" id="zfit" title="Reset">Fit</button>
+      <button class="zbtn" id="zin" title="Zoom in">+</button>
+    </div>
+  </div>
+</header>
+
+<div class="legend">
+  <span><span class="ld live"></span>Live link</span>
+  <span><span class="ld dup"></span>Duplicate topic</span>
+  <span><span class="ld soon"></span>Coming soon</span>
+  <span>🔒 Premium — sign in / upgrade to open</span>
+  <span class="hint">drag to pan · scroll to move</span>
+</div>
+
+<div class="canvas" id="canvas">
+  <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<script>
+/* Flag fixes baked in: spaced folders -> %20, kmp (1).html -> kmp.html,
+   missing pages -> soon (no link), cross-folder duplicate topics -> dup tag. */
+const COLORS = ["#a78bfa","#ec4899","#6c8fff","#2dd4bf","#fb923c","#fbbf24",
+  "#f87171","#c084fc","#34d399","#a3936b","#e05a76","#d946ef","#f472b6",
+  "#60a5fa","#94a3b8","#2dd4bf"];
+
+const PATTERNS = [
+  { n:"Array", c:[
+    { n:"Two Pointer", c:[
+      { n:"Opposite ends (left + right)", h:"questions/array/sum_3.html" },
+      { n:"Same direction (fast & slow)", h:"questions/array/fastslowpointers.html" },
+      { n:"Partition / Dutch flag", h:"questions/array/dutch-national-flag.html" },
+    ]},
+    { n:"Sliding Window", c:[
+      { n:"Fixed Size", h:"questions/array/sliding-window-maximum.html" },
+      { n:"Variable Size", h:"questions/array/variableslidingwindow.html", b:2 },
+    ]},
+    { n:"Prefix Based", c:[
+      { n:"Prefix Sum", h:"questions/array/prefixsum.html" },
+      { n:"Prefix XOR", h:"questions/array/prefixxor.html" },
+      { n:"2D Prefix", h:"questions/array/prefix2d.html" },
+    ]},
+    { n:"Kadane's / Subarray", c:[
+      { n:"Max subarray sum (Kadane's)", h:"questions/array/kadanes-algorithm.html" },
+      { n:"Max product subarray", h:"questions/array/maxproductsubarray.html" },
+      { n:"Subarray with given XOR / sum", h:"questions/array/subarraygivenxor.html" },
+    ]},
+    { n:"Binary Search", c:[
+      { n:"on index", h:"questions/array/Rotatedsortedarray.html" },
+      { n:"on answer", h:"questions/array/split-array-largest-sum.html" },
+    ]},
+  ]},
+  { n:"String", c:[
+    { n:"Sliding Window", c:[
+      { n:"Longest substring w/o repeat", h:"questions/strings/variableslidingwindow.html" },
+      { n:"Minimum window substring", h:"questions/strings/minimumwindowsubstring.html" },
+      { n:"Anagram / permutation", h:"questions/strings/permutationinstring.html" },
+    ]},
+    { n:"Two Pointers", c:[
+      { n:"Palindrome check", h:"questions/strings/palindromecheck.html" },
+      { n:"Reverse words / characters", h:"questions/strings/reverse-words-in-string.html" },
+      { n:"String compression", h:"questions/strings/string-compression-443.html" },
+    ]},
+    { n:"Pattern Matching", c:[
+      { n:"KMP (failure function)", h:"questions/strings/kmp.html" },
+      { n:"Rabin-Karp (rolling hash)", h:"questions/strings/rabinkarp.html" },
+      { n:"Z-algorithm", h:"questions/strings/zalgorithm.html" },
+    ]},
+  ]},
+  { n:"Hash map", c:[
+    { n:"Frequency Based", h:"questions/hashmap/top-k-frequent-347.html" },
+    { n:"Lookup Based", h:"questions/hashmap/twosum.html" },
+    { n:"Set Based", h:"questions/hashmap/longestconsecutive.html", d:1 },
+    { n:"Index Mapping", h:"questions/hashmap/firstuniquecharacter.html" },
+    { n:"Grouping Pattern", h:"questions/strings/group-anagrams-49.html" },
+  ]},
+  { n:"Stack", c:[
+    { n:"Monotonic Stack", c:[
+      { n:"Increasing", soon:1 },
+      { n:"Decreasing", soon:1 },
+    ]},
+    { n:"Nearest Element", c:[
+      { n:"Next Greater", h:"questions/stack/next-greater-element.html" },
+      { n:"Next Smaller", h:"questions/stack/next-smaller-element.html", d:1 },
+      { n:"Previous Variants", h:"questions/stack/previous-greater-element.html" },
+    ]},
+    { n:"Range / Span", h:"questions/stack/stock-span.html" },
+    { n:"min/Max Stack", h:"questions/stack/min-max-stack.html" },
+    { n:"Expression Handling", h:"questions/stack/evaluate-rpn.html" },
+    { n:"Histogram Pattern", h:"questions/stack/largest-rectangle-histogram.html" },
+  ]},
+  { n:"Queue / Deque", c:[
+    { n:"FIFO Processing", h:"questions/queue-dequeue/bfs-queue-traversal.html" },
+    { n:"Level-wise Processing", h:"questions/queue-dequeue/level-order-traversal.html" },
+    { n:"Circular Queue Pattern", h:"questions/queue-dequeue/circular-queue.html" },
+    { n:"Deque Based", h:"questions/queue-dequeue/deque-based.html" },
+  ]},
+  { n:"Linked List", c:[
+    { n:"Pointer Techniques", c:[
+      { n:"Fast-Slow", soon:1 },
+      { n:"Cycle Detection", h:"questions/list/floyd-cycle-detection.html" },
+      { n:"Finding Middle", h:"questions/list/middle-of-linked-list.html" },
+    ]},
+    { n:"Reversal", c:[
+      { n:"Full Reverse", h:"questions/list/reverse-linked-list.html" },
+      { n:"Partial (k-group)", h:"questions/list/reverse-k-group.html" },
+    ]},
+    { n:"Merge Lists", h:"questions/list/merge-two-sorted-lists.html" },
+  ]},
+  { n:"Trees", c:[
+    { n:"Traversal", c:[
+      { n:"DFS (Pre / In / Post)", h:"questions/tree/tree-dfs-traversals.html" },
+      { n:"BFS (Level / zigzag / right)", h:"questions/tree/tree-bfs-variants.html" },
+    ]},
+    { n:"Recursion Patterns", c:[
+      { n:"Top Down approach", h:"questions/tree/tree-recursion-top-down.html" },
+      { n:"Bottom Up approach", h:"questions/tree/tree-recursion-bottom-up.html" },
+    ]},
+    { n:"Path Based", c:[
+      { n:"Max path sum", h:"questions/tree/tree-max-path-sum.html" },
+      { n:"Diameter / Height / depth", h:"questions/tree/tree-diameter-height-depth.html" },
+    ]},
+    { n:"BST (Binary Search Tree)", soon:1 },
+  ]},
+  { n:"Recursion", c:[
+    { n:"Backtracking", c:[
+      { n:"Exploration", b:6, c:[
+        { n:"Decision Tree", soon:1 },
+        { n:"Choose-Explore-Unchoose", h:"questions/recursion/recursion-01-backtracking-template.html" },
+        { n:"Subsets (power set)", h:"questions/recursion/recursion-02-subsets-power-set.html" },
+        { n:"Permutations / Combinations", h:"questions/recursion/recursion-03-permutations.html" },
+        { n:"Word search on grid", h:"questions/recursion/recursion-05-word-search.html" },
+        { n:"Palindrome partitioning", h:"questions/recursion/recursion-06-palindrome-partitioning.html" },
+      ]},
+      { n:"Pruning / State Tracking", h:"questions/recursion/recursion-09-n-queens.html" },
+    ]},
+    { n:"Divide & Conquer", c:[
+      { n:"Merge sort pattern", h:"algorithms/mergesort.html" },
+      { n:"Quick select (Kth largest)", h:"questions/recursion/recursion-07-quick-select.html" },
+      { n:"Count inversions", h:"questions/recursion/recursion-08-count-inversions.html" },
+    ]},
+  ]},
+  { n:"Heap", c:[
+    { n:"Top K / Kth / k closest", h:"questions/heap/heap-top-k-kth-closest.html" },
+    { n:"Greedy + Heap", c:[
+      { n:"Task scheduler", h:"questions/heap/heap-task-scheduler.html" },
+      { n:"Meeting rooms", h:"questions/heap/heap-meeting-rooms.html" },
+      { n:"Reorganize string", h:"questions/heap/heap-reorganize-string.html" },
+      { n:"Huffman encoding", h:"questions/heap/heap-huffman-encoding.html" },
+    ]},
+    { n:"K-way Merge", h:"questions/heap/heap-k-way-merge.html" },
+  ]},
+  { n:"Graphs", c:[
+    { n:"Traversal", c:[
+      { n:"BFS — Rotting Oranges", h:"questions/graphs/graph-01-bfs-rotting-oranges.html" },
+      { n:"DFS — Number of Islands", h:"questions/graphs/graph-02-dfs-number-of-islands.html" },
+    ]},
+    { n:"Cycle Detection", c:[
+      { n:"Directed", h:"questions/graphs/graph-03-cycle-detection-directed.html" },
+      { n:"Undirected", h:"questions/graphs/graph-04-cycle-detection-undirected.html" },
+    ]},
+    { n:"Topological Sort", c:[
+      { n:"Kahn's", h:"questions/graphs/graph-05-topological-sort-kahn.html" },
+      { n:"DFS", h:"questions/graphs/graph-06-topological-sort-dfs.html" },
+    ]},
+    { n:"Shortest Path", c:[
+      { n:"Dijkstra — Network Delay", h:"questions/graphs/graph-07-dijkstra-network-delay.html" },
+      { n:"Bellman-Ford", h:"questions/graphs/graph-08-bellman-ford.html" },
+      { n:"Floyd-Warshall", h:"questions/graphs/graph-09-floyd-warshall.html" },
+    ]},
+    { n:"Spanning Tree", c:[
+      { n:"Kruskal's MST", h:"questions/graphs/graph-10-kruskal-mst.html" },
+      { n:"Prim's MST", h:"questions/graphs/graph-11-prim-mst.html" },
+    ]},
+    { n:"Union-Find (DSU)", h:"questions/graphs/graph-12-union-find-dsu.html" },
+    { n:"Bipartite / Multi-source / 0-1 BFS", h:"questions/graphs/graph-13-bipartite-check.html" },
+  ]},
+  { n:"Trie", c:[
+    { n:"Insert & Search", h:"questions/trie/trie-insert-search.html" },
+    { n:"Prefix Match", h:"questions/trie/trie-prefix-match.html" },
+    { n:"Bitwise Trie", h:"questions/trie/trie-bitwise.html" },
+  ]},
+  { n:"Dynamic Programming", c:[
+    { n:"Core", c:[
+      { n:"1D", h:"questions/dp/dp-1d.html" },
+      { n:"2D", h:"questions/dp/dp-2d.html" },
+    ]},
+    { n:"Transition Type", c:[
+      { n:"Linear DP", h:"questions/dp/dp-linear.html" },
+      { n:"Grid DP", h:"questions/dp/dp-grid.html" },
+      { n:"Decision DP", h:"questions/dp/dp-decision.html" },
+    ]},
+    { n:"Pattern Types", c:[
+      { n:"Knapsack", h:"questions/dp/dp-knapsack.html" },
+      { n:"Sequence DP", h:"questions/dp/dp-sequence.html" },
+      { n:"Partition DP", h:"questions/dp/dp-partition.html" },
+      { n:"Interval DP", h:"questions/dp/dp-interval.html" },
+    ]},
+    { n:"Advanced", c:[
+      { n:"Bitmask DP", h:"questions/dp/dp-bitmask.html" },
+      { n:"Digit DP", h:"questions/dp/dp-digit.html" },
+      { n:"DP on Trees", h:"questions/dp/dp-trees.html" },
+    ]},
+    { n:"Optimization", c:[
+      { n:"Memoization", h:"questions/dp/dp-memo-vs-tab.html" },
+      { n:"Tabulation", h:"questions/dp/dp-memo-vs-tab.html", d:1 },
+    ]},
+  ]},
+  { n:"Greedy", c:[
+    { n:"Interval Greedy", c:[
+      { n:"Activity Selection", h:"questions/greedy/activity-selection.html" },
+      { n:"Non-overlapping Intervals", h:"questions/greedy/non-overlapping-intervals.html" },
+      { n:"Minimum Removals", soon:1 },
+    ]},
+    { n:"Scheduling Greedy", c:[
+      { n:"Deadline Based Scheduling", h:"questions/greedy/deadline-scheduling.html" },
+      { n:"Profit Based Selection", soon:1 },
+    ]},
+    { n:"Resource Allocation", c:[
+      { n:"Minimum Platforms / Rooms", h:"questions/greedy/minimum-platforms.html" },
+      { n:"Meeting Rooms", h:"questions/heap/heap-meeting-rooms.html", d:1 },
+    ]},
+    { n:"Jump Game Pattern", h:"questions/greedy/jump-game.html" },
+    { n:"Huffman / Merge Cost", h:"questions/greedy/huffman-merge-cost.html" },
+  ]},
+  { n:"Bit Manipulation", c:[
+    { n:"Core", c:[
+      { n:"XOR Pattern", h:"questions/bit-manipulation/xor-pattern.html" },
+      { n:"Bit Masking", h:"questions/bit-manipulation/bit-masking.html" },
+    ]},
+    { n:"Usage", c:[
+      { n:"Subset via Bits", h:"questions/bit-manipulation/subset-via-bits.html" },
+      { n:"Bit Checks", h:"questions/bit-manipulation/bit-checks.html" },
+      { n:"Prefix XOR", h:"questions/bit-manipulation/prefix-xor.html", d:1 },
+    ]},
+  ]},
+  { n:"Sorting Algorithms", c:[
+    { n:"Bubble Sort", h:"questions/sorting/bubble-sort.html" },
+    { n:"Selection Sort", h:"questions/sorting/selection-sort.html" },
+    { n:"Insertion Sort", h:"questions/sorting/insertion-sort.html" },
+    { n:"Merge Sort", h:"algorithms/mergesort.html", d:1 },
+    { n:"Quick Sort", h:"questions/sorting/quick-sort.html" },
+    { n:"Heap Sort", h:"questions/sorting/heap-sort.html" },
+    { n:"Counting Sort", h:"questions/sorting/counting-sort.html" },
+    { n:"Radix Sort", h:"questions/sorting/radix-sort.html" },
+    { n:"Bucket Sort", h:"questions/sorting/bucket-sort.html" },
+  ]},
+  { n:"Range Structures", c:[
+    { n:"Segment Tree", c:[
+      { n:"Range Query", soon:1 },
+      { n:"Lazy Propagation", soon:1 },
+    ]},
+    { n:"Fenwick Tree", c:[
+      { n:"Prefix Query", soon:1 },
+    ]},
+  ]},
+];
+
+/* ---------- layout ---------- */
+const COLX = [30, 215, 460, 725, 985];
+const ROW_H = 26, TOP = 36;
+let yCursor = TOP;
+
+function hasKids(n){ return n.c && n.c.length; }
+function idFromHref(h){
+  if(!h) return '';
+  const file = h.split('/').pop() || '';
+  return decodeURIComponent(file).replace(/\.html?$/i,'');
+}
+function layout(n, depth){
+  n._x = COLX[Math.min(depth, COLX.length-1)];
+  if(hasKids(n)){
+    n.c.forEach(ch => layout(ch, depth+1));
+    n._y = (n.c[0]._y + n.c[n.c.length-1]._y)/2;
+  } else {
+    n._y = yCursor; yCursor += ROW_H;
+  }
+}
+const root = { n:"DSA Patterns", c:PATTERNS };
+PATTERNS.forEach((p,i)=>p._color = COLORS[i % COLORS.length]);
+layout(root, 0);
+const VBH = yCursor + 30;
+const VBW = 1380;
+
+/* ---------- render ---------- */
+const NS="http://www.w3.org/2000/svg";
+const svg = document.getElementById('mapSvg');
+svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
+let scale = 1;
+function applyScale(){ svg.setAttribute('width', VBW*scale); svg.setAttribute('height', VBH*scale); }
+
+const curveLayer = document.createElementNS(NS,'g');
+const nodeLayer  = document.createElementNS(NS,'g');
+svg.appendChild(curveLayer); svg.appendChild(nodeLayer);
+
+function estW(txt, role){
+  const cw = role==='pattern'?8.8 : role==='sub'?7.0 : 6.7;
+  return txt.length*cw;
+}
+function drawCurve(x1,y1,x2,y2,color,w){
+  const dx = Math.max(26,(x2-x1)*0.5);
+  const p=document.createElementNS(NS,'path');
+  p.setAttribute('d',`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`);
+  p.setAttribute('fill','none');
+  p.setAttribute('stroke',color);
+  p.setAttribute('stroke-width',w);
+  p.setAttribute('stroke-linecap','round');
+  p.setAttribute('opacity','.9');
+  curveLayer.appendChild(p);
+}
+function txt(x,y,cls,content,anchor,fill){
+  const t=document.createElementNS(NS,'text');
+  t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('class',cls);
+  if(anchor) t.setAttribute('text-anchor',anchor);
+  if(fill) t.setAttribute('fill',fill);
+  t.setAttribute('dominant-baseline','middle');
+  t.textContent=content;
+  return t;
+}
+function badge(x,y,count,color){
+  const g=document.createElementNS(NS,'g');
+  const w=13+(''+count).length*6;
+  const r=document.createElementNS(NS,'rect');
+  r.setAttribute('x',x); r.setAttribute('y',y-8); r.setAttribute('width',w); r.setAttribute('height',16);
+  r.setAttribute('rx',8); r.setAttribute('fill',color);
+  g.appendChild(r); g.appendChild(txt(x+w/2,y+1,'bcount',count,'middle'));
+  return {g,w};
+}
+function dot(x,y,color){
+  const c=document.createElementNS(NS,'circle');
+  c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',3.2); c.setAttribute('fill',color);
+  return c;
+}
+
+/* root pill */
+(function(){
+  const rw=156, rh=44, rx=18, ry=root._y-rh/2;
+  const r=document.createElementNS(NS,'rect');
+  r.setAttribute('x',rx); r.setAttribute('y',ry); r.setAttribute('width',rw); r.setAttribute('height',rh);
+  r.setAttribute('rx',12); r.setAttribute('fill','var(--surface)'); r.setAttribute('stroke','var(--border2)'); r.setAttribute('stroke-width','1.5');
+  nodeLayer.appendChild(r);
+  nodeLayer.appendChild(txt(rx+rw/2, root._y, 'rootname','DSA Patterns','middle'));
+  root._rx = rx+rw;
+})();
+
+function render(node, depth, parentRX, parentY, color, strokeW){
+  drawCurve(parentRX, parentY, node._x-8, node._y, color, strokeW);
+  const kids = hasKids(node);
+  let outX;
+  if(depth===1){
+    nodeLayer.appendChild(txt(node._x, node._y, 'pname', node.n, 'start', color));
+    outX = node._x + estW(node.n,'pattern') + 10;
+  } else if(kids){
+    nodeLayer.appendChild(txt(node._x, node._y, 'sname', node.n, 'start'));
+    outX = node._x + estW(node.n,'sub') + 9;
+  } else {
+    const soon = node.soon, dup = node.d;
+    const dcolor = soon ? '#5c6189' : dup ? '#fbbf24' : color;
+    if(soon){
+      const g=document.createElementNS(NS,'g'); g.setAttribute('opacity','.55');
+      g.appendChild(dot(node._x,node._y,dcolor));
+      g.appendChild(txt(node._x+12,node._y,'lname',node.n,'start'));
+      g.appendChild(txt(node._x+16+estW(node.n,'leaf'),node._y,'soontag','soon','start'));
+      nodeLayer.appendChild(g);
+    } else {
+      const a=document.createElementNS(NS,'a');
+      a.setAttribute('href',node.h); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener');
+      a.setAttribute('class','leaf-hit'); a.setAttribute('data-name',node.n.toLowerCase());
+      a.setAttribute('data-id', idFromHref(node.h));
+      const nameW=estW(node.n,'leaf');
+      const hit=document.createElementNS(NS,'rect');
+      hit.setAttribute('x',node._x-4); hit.setAttribute('y',node._y-10);
+      hit.setAttribute('width',nameW+(dup?46:22)); hit.setAttribute('height',20); hit.setAttribute('fill','transparent');
+      a.appendChild(hit);
+      a.appendChild(dot(node._x,node._y,dcolor));
+      a.appendChild(txt(node._x+12,node._y,'lname',node.n,'start'));
+      const ul=document.createElementNS(NS,'rect');
+      ul.setAttribute('x',node._x+12); ul.setAttribute('y',node._y+8); ul.setAttribute('width',nameW); ul.setAttribute('height',1.3);
+      ul.setAttribute('fill',color); ul.setAttribute('class','leaf-ul');
+      a.appendChild(ul);
+      if(dup) a.appendChild(txt(node._x+17+nameW,node._y,'duptag','dup','start'));
+      const ti=document.createElementNS(NS,'title'); ti.textContent=decodeURIComponent(node.h); a.appendChild(ti);
+      nodeLayer.appendChild(a);
+    }
+    return;
+  }
+  if(node.b){ const bd=badge(outX,node._y,node.b,color); nodeLayer.appendChild(bd.g); outX+=bd.w+6; }
+  const nextW = depth===1 ? 2.2 : depth===2 ? 1.9 : 1.6;
+  node.c.forEach(ch => render(ch, depth+1, outX, node._y, color, nextW));
+}
+
+PATTERNS.forEach(p => render(p, 1, root._rx, root._y, p._color, 2.6));
+applyScale();
+
+/* zoom */
+document.getElementById('zin').onclick =()=>{ scale=Math.min(2,scale+0.15); applyScale(); };
+document.getElementById('zout').onclick=()=>{ scale=Math.max(0.4,scale-0.15); applyScale(); };
+document.getElementById('zfit').onclick=()=>{ scale=1; applyScale(); document.getElementById('canvas').scrollTo({top:0,left:0,behavior:'smooth'}); };
+
+/* drag to pan */
+const canvas=document.getElementById('canvas');
+let down=false,sx,sy,sl,st;
+canvas.addEventListener('mousedown',e=>{ if(e.target.closest('a'))return; down=true; canvas.classList.add('grabbing'); sx=e.clientX; sy=e.clientY; sl=canvas.scrollLeft; st=canvas.scrollTop; });
+window.addEventListener('mouseup',()=>{ down=false; canvas.classList.remove('grabbing'); });
+window.addEventListener('mousemove',e=>{ if(!down)return; canvas.scrollLeft=sl-(e.clientX-sx); canvas.scrollTop=st-(e.clientY-sy); });
+
+/* search highlight */
+const search=document.getElementById('search');
+search.addEventListener('input',()=>{
+  const q=search.value.trim().toLowerCase();
+  svg.querySelectorAll('.leaf-hit').forEach(a=>{
+    const n=a.getAttribute('data-name')||'';
+    if(!q){ a.classList.remove('dim'); return; }
+    a.classList.toggle('dim', !n.includes(q));
+  });
+});
+
+/* ---------- premium gating (UX layer) ----------
+   The real access-control check lives in premium-guard.js on each
+   question page itself (so it can't be bypassed by a direct/typed URL).
+   This layer just gives an honest preview here on the map: it marks
+   non-free nodes as locked and, on click, sends the visitor straight to
+   sign-in / pricing instead of letting the tab open and then bounce —
+   so a non-premium user never even sees a flash of the question page. */
+</script>
+
+<script type="module">
+  import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Same free list as index.html's algo gallery / premium-guard.js — keep in sync.
+  const FREE_IDS = new Set(['kadanes-algorithm', 'bubble-sort', 'next-permutation']);
+  let isSubscribed = false;
+  let isSignedIn = false;
+
+  function applyLocks() {
+    document.querySelectorAll('.leaf-hit').forEach(a => {
+      const id = a.getAttribute('data-id') || '';
+      const locked = !FREE_IDS.has(id) && !isSubscribed;
+      a.classList.toggle('locked', locked);
+    });
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    isSignedIn = !!user;
+    if (!user) { isSubscribed = false; applyLocks(); return; }
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const data = snap.exists() ? snap.data() : null;
+      isSubscribed = !!(data && data.subscriptionActive && data.subscriptionExpiry > Date.now());
+    } catch (e) {
+      console.error('chart.html: subscription check failed', e);
+      isSubscribed = false;
+    }
+    applyLocks();
+  });
+
+  // Intercept clicks on locked nodes so a non-premium visitor is sent to
+  // sign-in / pricing directly, instead of opening the question tab first.
+  document.getElementById('mapSvg').addEventListener('click', (e) => {
+    const a = e.target.closest('.leaf-hit');
+    if (!a || !a.classList.contains('locked')) return;
+    e.preventDefault();
+    window.location.href = isSignedIn ? 'pricing.html' : 'login.html';
+  });
+</script>
+</body>
+</html>

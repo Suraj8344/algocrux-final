@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - AlgoCrux</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --red:#f87171; --red-bg:#2a1111;
+    --green:#4ade80; --green-bg:#0d2318;
+    --display:'Space Grotesk',sans-serif;
+    --sans:'Inter',system-ui,sans-serif;
+    --mono:'Fira Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.6; min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:2rem;
+  }
+  .login-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:2.5rem; width:100%; max-width:420px; position:relative;
+    box-shadow:0 24px 60px -16px rgba(0,0,0,.6);
+  }
+  .login-card::before{
+    content:''; position:absolute; inset:0; border-radius:20px;
+    background:radial-gradient(400px circle at 50% 0%, rgba(108,143,255,.08), transparent 60%);
+    pointer-events:none;
+  }
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.15rem; margin-bottom:2rem; justify-content:center}
+  .brand .mark{
+    width:30px; height:30px; position:relative; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    border-radius:8px; transform:rotate(12deg);
+    box-shadow:0 4px 16px rgba(108,143,255,.35);
+  }
+  .brand .mark::after{
+    content:''; position:absolute; inset:5px; border-radius:4px;
+    background:var(--surface); transform:rotate(-12deg) scale(.85);
+  }
+  h2{font-family:var(--display); font-size:1.5rem; text-align:center; margin-bottom:.5rem}
+  .sub{color:var(--muted); text-align:center; font-size:14px; margin-bottom:2rem}
+  .form-group{margin-bottom:1.25rem}
+  label{display:block; font-size:13px; color:var(--muted); margin-bottom:.4rem; font-weight:500}
+  input{
+    width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+    padding:.85rem 1rem; color:var(--text); font-family:var(--sans); font-size:14px;
+    outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus{border-color:var(--accent-dim); box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  input::placeholder{color:var(--muted2)}
+  .btn{
+    width:100%; font-family:var(--sans); font-weight:600; font-size:14px;
+    padding:.85rem 1.5rem; border-radius:10px; border:1px solid transparent;
+    cursor:pointer; transition:transform .15s, box-shadow .15s;
+    display:flex; align-items:center; justify-content:center; gap:8px; margin-top:.5rem;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff;
+    box-shadow:0 6px 24px rgba(108,143,255,.3);
+  }
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px rgba(108,143,255,.45)}
+  .btn:disabled{opacity:.5; cursor:not-allowed; transform:none!important}
+  .divider{display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--muted2); font-size:12px}
+  .divider::before,.divider::after{content:''; flex:1; height:1px; background:var(--border)}
+  .google-btn{
+    background:var(--surface2); border-color:var(--border2); color:var(--text);
+  }
+  .google-btn:hover{border-color:var(--accent)}
+  .footer{text-align:center; margin-top:1.5rem; font-size:13px; color:var(--muted)}
+  .footer a{color:var(--accent); text-decoration:none; font-weight:600}
+  .footer a:hover{text-decoration:underline}
+  .error-msg{
+    background:var(--red-bg); border:1px solid #3d2222; color:var(--red);
+    padding:.75rem 1rem; border-radius:8px; font-size:13px; margin-bottom:1rem;
+    display:none; align-items:center; gap:8px;
+  }
+  .success-msg{
+    background:var(--green-bg); border:1px solid #1a6b3a; color:var(--green);
+    padding:.75rem 1rem; border-radius:8px; font-size:13px; margin-bottom:1rem;
+    display:none; align-items:center; gap:8px;
+  }
+  .spinner{
+    width:16px; height:16px; border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .back-link{
+    position:absolute; top:1.5rem; left:1.5rem; color:var(--muted); font-size:13px;
+    display:flex; align-items:center; gap:6px; text-decoration:none;
+  }
+  .back-link:hover{color:var(--text)}
+  .show{display:flex!important}
+  .code-input{
+    text-align:center; font-family:var(--mono); font-size:24px; letter-spacing:8px;
+    padding:.85rem .5rem;
+  }
+  .verify-icon{
+    width:48px; height:48px; border-radius:12px; margin:0 auto 1rem;
+    background:var(--accent-bg); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .link-btn{
+    background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer;
+    width:100%; text-align:center; margin-top:1rem; text-decoration:underline;
+  }
+  .link-btn:hover{color:var(--text)}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch.png">
+</head>
+<body>
+
+<a href="index.html" class="back-link">&#x2190; Back to AlgoCrux</a>
+
+<div class="login-card">
+  <div class="brand"><span class="mark"></span>AlgoCrux</div>
+  <h2>Welcome back</h2>
+  <p class="sub">Sign in to track your algorithm progress</p>
+
+  <div id="errorMsg" class="error-msg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText"></span>
+  </div>
+
+  <div id="successMsg" class="success-msg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="successText"></span>
+  </div>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn btn-primary" id="loginBtn">
+      <span>Sign In</span>
+    </button>
+  </form>
+
+  <div class="divider">or</div>
+
+  <button class="btn google-btn" id="googleBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    <span>Sign in with Google</span>
+  </button>
+
+  <div class="footer">
+    Don't have an account? <a href="register.html">Create one</a>
+  </div>
+</div>
+
+<div class="login-card" id="verifyCard" style="display:none">
+  <div class="brand"><span class="mark"></span>AlgoCrux</div>
+  <div class="verify-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+  </div>
+  <h2>Verify your email</h2>
+  <p class="sub">We sent a verification link to <b id="verifyEmailAddr" style="color:var(--text)"></b>. Click it, then come back here.</p>
+
+  <div id="verifyErrorMsg" class="error-msg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="verifyErrorText"></span>
+  </div>
+
+  <button class="btn btn-primary" id="verifyContinueBtn">
+    <span>I've verified my email</span>
+  </button>
+  <button type="button" class="link-btn" id="verifyResendBtn">Resend verification email</button>
+  <button type="button" class="link-btn" id="verifySignOutBtn">Sign out and use a different account</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+  authDomain: "algocrux8344.firebaseapp.com",
+  projectId: "algocrux8344",
+  storageBucket: "algocrux8344.firebasestorage.app",
+  messagingSenderId: "915570389436",
+  appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+  measurementId: "G-FFQ8CW124S"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const loginCard = document.querySelector('.login-card'); // the original email/password card
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const googleBtn = document.getElementById('googleBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const errorText = document.getElementById('errorText');
+  const successMsg = document.getElementById('successMsg');
+  const successText = document.getElementById('successText');
+
+  const verifyCard = document.getElementById('verifyCard');
+  const verifyEmailAddr = document.getElementById('verifyEmailAddr');
+  const verifyErrorMsg = document.getElementById('verifyErrorMsg');
+  const verifyErrorText = document.getElementById('verifyErrorText');
+  const verifyContinueBtn = document.getElementById('verifyContinueBtn');
+  const verifyResendBtn = document.getElementById('verifyResendBtn');
+  const verifySignOutBtn = document.getElementById('verifySignOutBtn');
+
+  // Exactly one of the two cards is visible at a time.
+  function showOnly(cardEl) {
+    [loginCard, verifyCard].forEach(c => { c.style.display = (c === cardEl) ? 'block' : 'none'; });
+  }
+
+  function showVerifyScreen(user) {
+    showOnly(verifyCard);
+    verifyEmailAddr.textContent = user.email;
+    verifyErrorMsg.classList.remove('show');
+  }
+
+  // Called after ANY successful sign-in (password or Google), and also on
+  // page load if a Firebase session already exists. Google accounts are
+  // always pre-verified, so this only actually blocks unverified password
+  // accounts — the fix for "anyone can sign up with someone else's email".
+  async function handlePostAuth(user) {
+    if (!user.emailVerified) {
+      showVerifyScreen(user);
+      return;
+    }
+    window.location.href = 'dashboard.html';
+  }
+
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorMsg.classList.add('show');
+    successMsg.classList.remove('show');
+  }
+  function showSuccess(msg) {
+    successText.textContent = msg;
+    successMsg.classList.add('show');
+    errorMsg.classList.remove('show');
+  }
+  function setLoading(loading) {
+    loginBtn.disabled = loading;
+    googleBtn.disabled = loading;
+    if (loading) {
+      loginBtn.innerHTML = '<div class="spinner"></div><span>Signing in...</span>';
+    } else {
+      loginBtn.innerHTML = '<span>Sign In</span>';
+    }
+  }
+
+  // Check if already logged in
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      handlePostAuth(user);
+    }
+  });
+
+  // Handle the case where Google sign-in fell back to a redirect flow
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+      showSuccess('Login successful! Checking your account...');
+      handlePostAuth(result.user);
+    }
+  }).catch((err) => {
+    console.error('Redirect sign-in error:', err);
+    if (err && err.code) showError('Google sign-in failed: ' + err.code);
+  });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    errorMsg.classList.remove('show');
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      showSuccess('Login successful! Checking your account...');
+      await handlePostAuth(cred.user);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      let msg = 'Login failed. Please try again.';
+      if (err.code === 'auth/user-not-found') msg = 'No account found with this email.';
+      if (err.code === 'auth/wrong-password') msg = 'Incorrect password.';
+      if (err.code === 'auth/invalid-email') msg = 'Invalid email address.';
+      if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try later.';
+      showError(msg);
+    }
+  });
+
+  googleBtn.addEventListener('click', async () => {
+    setLoading(true);
+    errorMsg.classList.remove('show');
+    try {
+      const cred = await signInWithPopup(auth, provider);
+      showSuccess('Login successful! Checking your account...');
+      await handlePostAuth(cred.user);
+      setLoading(false);
+    } catch (err) {
+      console.error('Google sign-in error:', err.code, err.message);
+      // Popups can be blocked by the browser or fail on some mobile browsers.
+      // Fall back to a full-page redirect flow instead of just failing silently.
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(auth, provider);
+          return; // page will navigate away
+        } catch (redirectErr) {
+          setLoading(false);
+          showError('Google sign-in failed: ' + (redirectErr.code || redirectErr.message));
+          return;
+        }
+      }
+      setLoading(false);
+      let msg = 'Google sign-in failed: ' + (err.code || err.message);
+      if (err.code === 'auth/unauthorized-domain') {
+        msg = 'This domain is not authorized for Google sign-in. Add it under Firebase Console \u2192 Authentication \u2192 Settings \u2192 Authorized domains.';
+      }
+      showError(msg);
+    }
+  });
+
+  verifyContinueBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) { showOnly(loginCard); return; }
+    verifyContinueBtn.disabled = true;
+    verifyContinueBtn.innerHTML = '<div class="spinner"></div><span>Checking...</span>';
+    try {
+      await user.reload();
+      if (auth.currentUser.emailVerified) {
+        await handlePostAuth(auth.currentUser);
+      } else {
+        verifyErrorText.textContent = 'Still not verified. Check your inbox (and spam folder) for the link.';
+        verifyErrorMsg.classList.add('show');
+      }
+    } catch (e) {
+      verifyErrorText.textContent = 'Could not check verification status. Try again.';
+      verifyErrorMsg.classList.add('show');
+    } finally {
+      verifyContinueBtn.disabled = false;
+      verifyContinueBtn.innerHTML = "<span>I've verified my email</span>";
+    }
+  });
+
+  let resendCooldown = false;
+  verifyResendBtn.addEventListener('click', async () => {
+    if (resendCooldown || !auth.currentUser) return;
+    resendCooldown = true;
+    verifyResendBtn.textContent = 'Sending...';
+    try {
+      await sendEmailVerification(auth.currentUser);
+      verifyResendBtn.textContent = 'Sent! You can resend in 30s';
+    } catch (e) {
+      verifyResendBtn.textContent = 'Could not resend — try again shortly';
+      resendCooldown = false;
+      return;
+    }
+    setTimeout(() => {
+      resendCooldown = false;
+      verifyResendBtn.textContent = 'Resend verification email';
+    }, 30000);
+  });
+
+  verifySignOutBtn.addEventListener('click', async () => {
+    await signOut(auth);
+    showOnly(loginCard);
+    setLoading(false);
+  });
+</script>
+</body>
+</html>

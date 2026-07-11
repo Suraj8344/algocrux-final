@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deques — Complete DSA Deque Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.deque-viz{display:flex;align-items:center;gap:8px;min-height:150px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.5rem 1.25rem;margin-bottom:1rem;overflow-x:auto;justify-content:center}
+.dq-end{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.dq-end .lbl{font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase}
+.dq-end .ar{font-size:20px;color:#5c6189}
+.dq-cells{display:flex;gap:6px;align-items:center}
+.dq-cell{min-width:48px;height:48px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:var(--text);transition:all .25s;padding:0 6px}
+.dq-cell .dv{font-size:15px}.dq-cell .dt{font-size:9px;color:#5c6189;font-weight:600}
+.dq-cell.headc{border-color:var(--teal);color:var(--teal)}
+.dq-cell.tailc{border-color:var(--accent);color:var(--accent)}
+.dq-cell.add{border-color:var(--green);color:var(--green);animation:dqp .35s cubic-bezier(.22,1,.36,1)}
+.dq-cell.rem{border-color:var(--red);color:var(--red);animation:dqo .35s cubic-bezier(.22,1,.36,1)}
+.dq-cell.peek{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 2px rgba(251,191,36,.25)}
+@keyframes dqp{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes dqo{from{transform:scale(1);opacity:1}to{transform:scale(.5);opacity:.3}}
+.dq-empty{color:#5c6189;font-family:var(--mono);font-size:12px;padding:1.5rem}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.red .val{color:var(--red)}.stat-box.acc .val{color:var(--accent)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.num-input{width:80px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}.num-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="badges"><span class="badge b-ds">Data Structure</span><span class="badge b-cpp">Deque</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span></div>
+  <h1>Deques — Complete DSA Deque Theory</h1>
+  <p>Interactive visualization of the double-ended queue: insert/remove at both ends, monotonic-deque patterns, and interview problems.</p>
+</header>
+<main>
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → operations → the interactive visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div><h2>What is a Deque?</h2>
+      <p>A <strong style="color:var(--teal)">Deque</strong> (double-ended queue, pronounced "deck") allows insertion and deletion at <strong style="color:var(--amber)">both ends</strong> — front and rear — in O(1). It generalizes both the stack and the queue.</p>
+      <p>Backed by a doubly linked list or a circular dynamic array (like C++ <code>std::deque</code>), giving O(1) at the ends and O(1) indexed access in the STL version.</p>
+    </div>
+    <div><h2>Core operations</h2>
+      <div class="formula">
+        <span class="kw">pushFront</span>(x) / <span class="kw">pushBack</span>(x)<br>
+        <span class="kw">popFront</span>()&nbsp;&nbsp;/ <span class="kw">popBack</span>()<br>
+        <span class="kw">front</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ <span class="kw">back</span>()<br>
+        <span class="cm">// all O(1)</span>
+      </div>
+    </div>
+  </div>
+  <div class="insight purple"><strong>Why Deques?</strong> A deque is a stack and a queue at once. It powers the sliding-window-maximum pattern, undo/redo with bounded history, palindrome checks, and work-stealing schedulers.</div>
+
+  <div class="section-label">Deque as stack &amp; queue</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">📚</div><div class="tc-name">As a Stack</div><div class="tc-def">Use only <code>pushBack</code>/<code>popBack</code> (or only the front) → pure LIFO.</div><div class="tc-use">Use: when you may later need the other end too.</div></div>
+    <div class="type-card"><div class="tc-icon">🎟️</div><div class="tc-name">As a Queue</div><div class="tc-def">Push at back, pop at front → pure FIFO.</div><div class="tc-use">Use: BFS, buffering.</div></div>
+    <div class="type-card"><div class="tc-icon">📈</div><div class="tc-name">Monotonic Deque</div><div class="tc-def">Maintain increasing/decreasing order by popping from the back before pushing.</div><div class="tc-use">Use: sliding window max/min in O(n).</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Front / Head</div><div class="ic-desc">The left end. pushFront/popFront/front operate here.</div></div>
+    <div class="info-card"><div class="ic-title">Back / Rear / Tail</div><div class="ic-desc">The right end. pushBack/popBack/back operate here.</div></div>
+    <div class="info-card"><div class="ic-title">Double-ended</div><div class="ic-desc">Both ends support O(1) insert and remove.</div></div>
+    <div class="info-card"><div class="ic-title">Monotonic</div><div class="ic-desc">A deque kept sorted so the extreme element is always at one end.</div></div>
+    <div class="info-card"><div class="ic-title">Circular buffer</div><div class="ic-desc">Array-backed deque wrapping both indices with modulo.</div></div>
+    <div class="info-card"><div class="ic-title">Random access</div><div class="ic-desc">std::deque supports O(1) <code>d[i]</code>, unlike list-backed deques.</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Push front/back</div><div class="big">O(1)</div><p>Insert at either end.</p></div>
+    <div class="cx-card"><div class="lbl">Pop front/back</div><div class="big">O(1)</div><p>Remove at either end.</p></div>
+    <div class="cx-card"><div class="lbl">Peek front/back</div><div class="big">O(1)</div><p>Read either end.</p></div>
+    <div class="cx-card"><div class="lbl">Index access</div><div class="big">O(1)†</div><p>std::deque only; list-backed is O(n).</p></div>
+    <div class="cx-card"><div class="lbl">Search</div><div class="big">O(n)</div><p>Linear scan.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n)</div><p>n elements.</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>O(1) insert/remove at both ends.</li>
+      <li>Serves as both a stack and a queue.</li>
+      <li>std::deque adds O(1) random access.</li>
+      <li>Backbone of the sliding-window-maximum pattern.</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>More overhead than a plain queue/stack.</li>
+      <li>std::deque memory is chunked, not fully contiguous.</li>
+      <li>Middle insertion/deletion is still O(n).</li>
+      <li>Iterator invalidation rules are subtle.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>deque_stl.cpp · std::deque</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    deque&lt;<span class="kw">int</span>&gt; dq = {<span class="nm">20</span>, <span class="nm">30</span>};
+    dq.<span class="fn">push_front</span>(<span class="nm">10</span>);   <span class="cm">// [10,20,30]</span>
+    dq.<span class="fn">push_back</span>(<span class="nm">40</span>);    <span class="cm">// [10,20,30,40]</span>
+    dq.<span class="fn">pop_front</span>();      <span class="cm">// [20,30,40]</span>
+    dq.<span class="fn">pop_back</span>();       <span class="cm">// [20,30]</span>
+    cout &lt;&lt; dq.<span class="fn">front</span>() &lt;&lt; <span class="st">" "</span> &lt;&lt; dq.<span class="fn">back</span>() &lt;&lt; <span class="st">" "</span> &lt;&lt; dq[<span class="nm">0</span>];
+    <span class="kw">return</span> <span class="nm">0</span>;  <span class="cm">// 20 30 20 — all O(1)</span>
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>sliding_window_max.cpp · Monotonic deque</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="cm">// Sliding Window Maximum — O(n)</span>
+vector&lt;<span class="kw">int</span>&gt; <span class="fn">maxSlidingWindow</span>(vector&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> k) {
+    deque&lt;<span class="kw">int</span>&gt; dq;   <span class="cm">// stores indices, values decreasing</span>
+    vector&lt;<span class="kw">int</span>&gt; res;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; a.size(); i++) {
+        <span class="kw">while</span> (!dq.empty() &amp;&amp; dq.front() &lt;= i - k) dq.pop_front(); <span class="cm">// stale</span>
+        <span class="kw">while</span> (!dq.empty() &amp;&amp; a[dq.back()] &lt; a[i]) dq.pop_back();  <span class="cm">// smaller</span>
+        dq.push_back(i);
+        <span class="kw">if</span> (i &gt;= k - <span class="nm">1</span>) res.push_back(a[dq.front()]); <span class="cm">// front = max</span>
+    }
+    <span class="kw">return</span> res;
+}</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive Deque Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="pushFront">Push Front</button>
+    <button class="tab" data-op="pushBack">Push Back</button>
+    <button class="tab" data-op="popFront">Pop Front</button>
+    <button class="tab" data-op="popBack">Pop Back</button>
+    <button class="tab" data-op="palindrome">Palindrome Check</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive Deque Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Element</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Front</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Back</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Added</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Removed</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="deque-viz" id="dequeViz"></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">Front</div><div class="val" id="opFront">—</div></div>
+        <div class="op-card"><div class="lbl">Back</div><div class="val" id="opBack">—</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Adds</div><div class="val" id="sAdd">0</div><div class="sub">inserts</div></div>
+      <div class="stat-box red"><div class="lbl">Removes</div><div class="val" id="sRem">0</div><div class="sub">deletes</div></div>
+      <div class="stat-box green"><div class="lbl">Size</div><div class="val" id="sLen">0</div><div class="sub">elements</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — build your own operation</div>
+      <label style="font-size:12px;color:var(--muted)">Deque (front→back): <input type="text" class="num-input" id="listInput" value="10,20,30" style="width:150px"></label>
+      <label style="font-size:12px;color:var(--muted)">Value: <input type="number" class="num-input" id="argInput" value="5"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>Front</th><th>Back</th><th>Action</th><th>Deque State</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>Sliding window maximum.</strong> Keep indices in a deque with values in decreasing order. Pop the back while it's smaller than the incoming value, pop the front when it slides out of the window. The front is always the window max — O(n) total.</div>
+  <div class="insight"><strong>Palindrome check.</strong> Compare <code>front()</code> and <code>back()</code>, pop both inward. If they ever differ, it's not a palindrome. O(n)/O(1).</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Push front/back</td><td class="qcol">O(1)</td><td>O(1)</td><td>Either end</td></tr>
+      <tr><td>Pop front/back</td><td class="qcol">O(1)</td><td>O(1)</td><td>Either end</td></tr>
+      <tr><td>Peek front/back</td><td class="qcol">O(1)</td><td>O(1)</td><td>Read ends</td></tr>
+      <tr><td>Index access (STL)</td><td class="scol">O(1)</td><td>O(1)</td><td>std::deque d[i]</td></tr>
+      <tr><td>Sliding window max</td><td>O(n)</td><td>O(k)</td><td>Monotonic deque</td></tr>
+      <tr><td>Palindrome check</td><td>O(n)</td><td>O(1)</td><td>Compare both ends inward</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>Deque Basics</h4><p>pushFront/Back, popFront/Back, using a deque as a stack and as a queue.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>std::deque API</h4><p>Random access, iterators, chunked memory model, when to prefer over vector/list.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>Monotonic Deque</h4><p>Sliding window maximum/minimum, first negative in window, constrained subarray sums.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Advanced</h4><p>0-1 BFS with a deque, work-stealing schedulers, bounded undo/redo history.</p></div><span class="rm-time">~3 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Sliding Window Maximum</div><div class="ic-a">Monotonic decreasing deque of indices; front is the max. Pop stale front, pop smaller back. O(n).</div><div class="ic-tag">Monotonic</div></div>
+    <div class="int-card"><div class="ic-q">Design Circular Deque</div><div class="ic-a">Fixed array with head/tail indices wrapping via modulo. O(1) both ends.</div><div class="ic-tag">Ring Buffer</div></div>
+    <div class="int-card"><div class="ic-q">First Negative in Every Window</div><div class="ic-a">Deque of indices of negative numbers; front is the first negative still in window.</div><div class="ic-tag">Deque</div></div>
+    <div class="int-card"><div class="ic-q">0-1 BFS</div><div class="ic-a">Push zero-weight edges to the front, one-weight to the back. Shortest path on 0/1 graphs in O(V+E).</div><div class="ic-tag">Graph</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Design Circular Deque</span><span class="ptag">Ring Buffer</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">First Negative in Window</span><span class="ptag">Deque</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Number of Sub-arrays with Bounded Max</span><span class="ptag">Window</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Sliding Window Maximum</span><span class="ptag">Monotonic</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Shortest Subarray with Sum ≥ K</span><span class="ptag">Monotonic</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Constrained Subsequence Sum</span><span class="ptag">DP + Deque</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">↔️</span><span><strong style="color:var(--text)">Both ends, O(1):</strong> a deque is stack + queue combined — push/pop/peek at front and back all constant time.</span></div>
+    <div class="take"><span class="tk-ic">📈</span><span><strong style="color:var(--text)">Monotonic deque:</strong> the signature use — sliding window max/min in O(n) by keeping values ordered.</span></div>
+    <div class="take"><span class="tk-ic">🎯</span><span><strong style="color:var(--text)">std::deque:</strong> the STL version adds O(1) random access via chunked storage, unlike list-backed deques.</span></div>
+    <div class="take"><span class="tk-ic">🧭</span><span><strong style="color:var(--text)">0-1 BFS:</strong> push front for 0-weight, back for 1-weight edges — Dijkstra-quality paths without a heap.</span></div>
+  </div>
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={dq:[10,20,30],op:'pushFront',arg:5,steps:[],idx:-1,playing:false,timer:null};
+const els={viz:document.getElementById('dequeViz'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opFront:document.getElementById('opFront'),opBack:document.getElementById('opBack'),sSteps:document.getElementById('sSteps'),sAdd:document.getElementById('sAdd'),sRem:document.getElementById('sRem'),sLen:document.getElementById('sLen'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {pushFront:'Push Front',pushBack:'Push Back',popFront:'Pop Front',popBack:'Pop Back',palindrome:'Palindrome Check'}[op]||op;}
+
+function gen(){
+  const a=[...V.dq],op=V.op,arg=V.arg,steps=[];let add=0,rem=0;
+  const snap=(e)=>({dq:[...a],add,rem,...e});
+  steps.push(snap({log:`Start <span class="tea">${opLabel(op)}</span>. Deque (front→back): [${a.join(', ')}].`,phase:'idle'}));
+  if(op==='pushFront'){add++;a.unshift(arg);steps.push(snap({addIdx:0,log:`<span class="pos">Push ${arg} at front.</span> New front = ${arg}. O(1).`,phase:'done',done:true}));}
+  else if(op==='pushBack'){add++;a.push(arg);steps.push(snap({addIdx:a.length-1,log:`<span class="pos">Push ${arg} at back.</span> New back = ${arg}. O(1).`,phase:'done',done:true}));}
+  else if(op==='popFront'){if(!a.length){steps.push(snap({log:`<span class="neg">Empty!</span>`,phase:'warning',done:true}));}else{const f=a[0];steps.push(snap({remIdx:0,log:`Remove front <span class="neg">${f}</span>.`,phase:'visiting'}));rem++;a.shift();steps.push(snap({log:`<span class="pos">Popped front ${f}.</span> O(1).`,phase:'done',done:true}));}}
+  else if(op==='popBack'){if(!a.length){steps.push(snap({log:`<span class="neg">Empty!</span>`,phase:'warning',done:true}));}else{const b=a[a.length-1];steps.push(snap({remIdx:a.length-1,log:`Remove back <span class="neg">${b}</span>.`,phase:'visiting'}));rem++;a.pop();steps.push(snap({log:`<span class="pos">Popped back ${b}.</span> O(1).`,phase:'done',done:true}));}}
+  else if(op==='palindrome'){
+    let lo=0,hi=a.length-1,ok=true;
+    while(lo<hi){steps.push(snap({peekA:lo,peekB:hi,log:`Compare front ${a[lo]} with back ${a[hi]}.`,phase:'traversing'}));if(a[lo]!==a[hi]){ok=false;steps.push(snap({peekA:lo,peekB:hi,log:`<span class="neg">${a[lo]} ≠ ${a[hi]} — not a palindrome.</span>`,phase:'warning',done:true}));break;}lo++;hi--;}
+    if(ok)steps.push(snap({log:`Ends matched all the way in. <span class="pos">It's a palindrome!</span>`,phase:'done',done:true}));
+  }
+  return steps;
+}
+function render(){
+  const s=V.steps[V.idx];if(!s)return;const a=s.dq;
+  let cells='';
+  if(!a.length)cells='<div class="dq-empty">empty deque</div>';
+  else for(let i=0;i<a.length;i++){let cls='dq-cell';if(i===0)cls+=' headc';if(i===a.length-1&&a.length>1)cls+=' tailc';if(s.addIdx===i)cls+=' add';if(s.remIdx===i)cls+=' rem';if(s.peekA===i||s.peekB===i)cls+=' peek';const tag=i===0?'front':(i===a.length-1?'back':'');cells+=`<div class="${cls}"><span class="dv">${a[i]}</span><span class="dt">${tag}</span></div>`;}
+  els.viz.innerHTML=`<div class="dq-end"><span class="ar">⇄</span><span class="lbl">front</span></div><div class="dq-cells">${cells}</div><div class="dq-end"><span class="ar">⇄</span><span class="lbl">back</span></div>`;
+  els.phase.className='phase-badge '+(s.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Comparing',visiting:'Working',done:'Done',warning:'Attention'}[s.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);els.opFront.textContent=a.length?a[0]:'—';els.opBack.textContent=a.length?a[a.length-1]:'—';
+  els.sSteps.textContent=V.idx;els.sAdd.textContent=s.add;els.sRem.textContent=s.rem;els.sLen.textContent=a.length;
+  els.log.innerHTML=s.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';els.stepLabel.textContent=`Step ${V.idx} of ${total}`;els.pill.style.display=s.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const st=V.steps[i];const plain=st.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${st.dq.length?st.dq[0]:'—'}</td><td>${st.dq.length?st.dq[st.dq.length-1]:'—'}</td><td>${plain.slice(0,40)}</td><td>[${st.dq.join(', ')}]</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  const a=V.dq;let cells='';
+  if(!a.length)cells='<div class="dq-empty">empty deque</div>';
+  else for(let i=0;i<a.length;i++){const tag=i===0?'front':(i===a.length-1?'back':'');cells+=`<div class="dq-cell${i===0?' headc':''}${i===a.length-1&&a.length>1?' tailc':''}"><span class="dv">${a[i]}</span><span class="dt">${tag}</span></div>`;}
+  els.viz.innerHTML=`<div class="dq-end"><span class="ar">⇄</span><span class="lbl">front</span></div><div class="dq-cells">${cells}</div><div class="dq-end"><span class="ar">⇄</span><span class="lbl">back</span></div>`;
+  els.sLen.textContent=a.length;els.sSteps.textContent=0;els.sAdd.textContent=0;els.sRem.textContent=0;
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';els.phase.className='phase-badge idle';els.phase.textContent='Idle';
+  els.opName.textContent=opLabel(V.op);els.opFront.textContent=a.length?a[0]:'—';els.opBack.textContent=a.length?a[a.length-1]:'—';
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('listInput').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));if(raw.length>10){alert('Max 10 elements.');return;}V.dq=raw;V.arg=parseInt(document.getElementById('argInput').value)||0;reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const len=4+Math.floor(Math.random()*3),a=[];for(let i=0;i<len;i++)a.push(Math.floor(Math.random()*90)+5);document.getElementById('listInput').value=a.join(',');V.dq=a;V.arg=Math.floor(Math.random()*90)+5;document.getElementById('argInput').value=V.arg;reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;if(V.op==='palindrome'){V.dq=[1,2,3,2,1];document.getElementById('listInput').value='1,2,3,2,1';}V.arg=parseInt(document.getElementById('argInput').value)||0;reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

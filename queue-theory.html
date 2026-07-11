@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queues — Complete DSA Queue Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}.formula .kw{color:var(--purple)}.formula .nm{color:var(--amber)}.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}
+.insight.amber{background:var(--amber-bg);border-color:#4a3a00}.insight.amber strong{color:var(--amber)}
+.insight.purple{background:var(--purple-bg);border-color:#3a1a52}.insight.purple strong{color:var(--purple)}
+.insight.red{background:var(--red-bg);border-color:#5a2020}.insight.red strong{color:var(--red)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}
+.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem}.pane.good h3{color:var(--green)}.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}.cmp-table td.qcol{color:var(--teal);font-weight:600}.cmp-table td.scol{color:var(--purple);font-weight:600}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.queue-viz{display:flex;align-items:center;gap:8px;min-height:150px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.5rem 1.25rem;margin-bottom:1rem;overflow-x:auto;position:relative}
+.q-ends{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
+.q-ends .lbl{font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.q-arrow{font-size:18px;color:#5c6189}
+.q-cells{display:flex;gap:6px;align-items:center}
+.q-cell{min-width:48px;height:48px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:var(--text);transition:all .25s;padding:0 6px}
+.q-cell .qv{font-size:15px}.q-cell .qtag{font-size:9px;color:#5c6189;font-weight:600}
+.q-cell.front{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 2px rgba(45,212,191,.25)}
+.q-cell.rear{border-color:var(--accent);color:var(--accent)}
+.q-cell.enq{border-color:var(--green);color:var(--green);animation:enqIn .35s cubic-bezier(.22,1,.36,1)}
+.q-cell.deq{border-color:var(--red);color:var(--red);animation:deqOut .35s cubic-bezier(.22,1,.36,1)}
+@keyframes enqIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes deqOut{from{transform:translateX(0);opacity:1}to{transform:translateX(-24px);opacity:.3}}
+.q-empty{color:#5c6189;font-family:var(--mono);font-size:12px;padding:1.5rem}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}
+.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}.stat-box.amber .val{color:var(--amber)}.stat-box.green .val{color:var(--green)}.stat-box.red .val{color:var(--red)}.stat-box.acc .val{color:var(--accent)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}.log-box .pos{color:var(--green);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}.log-box .acc{color:var(--accent);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .tea{color:var(--teal);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.num-input{width:80px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}.num-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.btn.primary:hover{background:#0f3330}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}.st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.rm-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start}
+.rm-item .rm-num{width:26px;height:26px;border-radius:50%;background:var(--teal-bg);border:1px solid #0e3d38;color:var(--teal);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-item .rm-body h4{font-size:13px;font-weight:700;margin-bottom:2px}.rm-item .rm-body p{font-size:12px;color:var(--muted);line-height:1.6}.rm-item .rm-time{margin-left:auto;font-size:11px;color:var(--amber);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:8px;background:var(--teal-bg);color:var(--teal)}
+.prob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:2rem}@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.prob-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px}
+.prob-item .pd{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0}.pd.easy{background:var(--green-bg);color:var(--green)}.pd.med{background:var(--amber-bg);color:var(--amber)}.pd.hard{background:var(--red-bg);color:var(--red)}
+.prob-item .pt{color:var(--text)}.prob-item .ptag{margin-left:auto;font-size:11px;color:var(--muted)}
+.takeaway-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}.take{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:12px;font-size:13px;color:var(--muted);line-height:1.7}.take .tk-ic{font-size:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="badges"><span class="badge b-ds">Data Structure</span><span class="badge b-cpp">Queue</span><span class="badge b-stl">C++ STL</span><span class="badge b-gt">DSA</span><span class="badge b-alg">Algorithms</span></div>
+  <h1>Queues — Complete DSA Queue Theory</h1>
+  <p>Interactive visualization of queue structure, FIFO operations, variants, and algorithms from fundamentals to hard interview problems.</p>
+</header>
+<main>
+  <div class="insight"><strong>Learning Progress.</strong> Work top to bottom: theory → operations → the interactive visualizer → patterns → cheat sheet → interview prep. Pin the visualizer (button top-right of the panel) to keep it on screen while you read.</div>
+
+  <div class="section-label">Theory &amp; Fundamentals</div>
+  <div class="concept">
+    <div><h2>What is a Queue?</h2>
+      <p>A <strong style="color:var(--teal)">Queue</strong> is a linear data structure following <strong style="color:var(--amber)">FIFO</strong> (First In, First Out). Elements are added at the <strong style="color:var(--text)">rear</strong> and removed from the <strong style="color:var(--text)">front</strong> — like a line at a checkout.</p>
+      <p>Both ends are touched by different operations, so <code>enqueue</code> and <code>dequeue</code> are <strong style="color:var(--teal)">O(1)</strong> when backed by a linked list or circular buffer.</p>
+    </div>
+    <div><h2>Core operations</h2>
+      <div class="formula">
+        <span class="cm">// FIFO — two ends</span><br>
+        <span class="kw">enqueue</span>(x)&nbsp;<span class="cm">// add at rear — O(1)</span><br>
+        <span class="kw">dequeue</span>()&nbsp;&nbsp;<span class="cm">// remove front — O(1)</span><br>
+        <span class="kw">front</span>()&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// peek front — O(1)</span><br>
+        <span class="kw">empty</span>()&nbsp;&nbsp;&nbsp;<span class="cm">// is it empty? — O(1)</span>
+      </div>
+    </div>
+  </div>
+  <div class="insight purple"><strong>Why Queues?</strong> Whenever order of arrival matters: CPU/task scheduling, BFS traversal, print spoolers, message buffers, rate limiting, and producer-consumer pipelines.</div>
+
+  <div class="section-label">Variants</div>
+  <div class="type-grid">
+    <div class="type-card"><div class="tc-icon">→</div><div class="tc-name">Simple Queue</div><div class="tc-def">Plain FIFO. Enqueue at rear, dequeue at front.</div><div class="tc-use">Use: BFS, scheduling, buffering.</div></div>
+    <div class="type-card"><div class="tc-icon">↺</div><div class="tc-name">Circular Queue</div><div class="tc-def">Fixed array where rear wraps to the front, reusing freed slots. No shifting.</div><div class="tc-use">Use: ring buffers, streaming, bounded queues.</div></div>
+    <div class="type-card"><div class="tc-icon">⚡</div><div class="tc-name">Priority Queue</div><div class="tc-def">Dequeue returns the highest (or lowest) priority element, not the oldest. Backed by a heap.</div><div class="tc-use">Use: Dijkstra, scheduling, top-K.</div></div>
+  </div>
+
+  <div class="section-label">Terminology</div>
+  <div class="card-grid">
+    <div class="info-card"><div class="ic-title">Front</div><div class="ic-desc">The oldest element; the next one to be removed.</div></div>
+    <div class="info-card"><div class="ic-title">Rear / Back</div><div class="ic-desc">The most recently added element; where new items enter.</div></div>
+    <div class="info-card"><div class="ic-title">Enqueue</div><div class="ic-desc">Add an element at the rear. O(1).</div></div>
+    <div class="info-card"><div class="ic-title">Dequeue</div><div class="ic-desc">Remove and return the front element. O(1).</div></div>
+    <div class="info-card"><div class="ic-title">Circular wrap</div><div class="ic-desc">In a circular queue, rear index wraps to 0 via modulo capacity.</div></div>
+    <div class="info-card"><div class="ic-title">Starvation</div><div class="ic-desc">In priority queues, low-priority items may never be served.</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Complexity Summary</div>
+  <div class="cx-grid">
+    <div class="cx-card"><div class="lbl">Enqueue</div><div class="big">O(1)</div><p>Add at rear.</p></div>
+    <div class="cx-card"><div class="lbl">Dequeue</div><div class="big">O(1)</div><p>Remove at front.</p></div>
+    <div class="cx-card"><div class="lbl">Front / Peek</div><div class="big">O(1)</div><p>Read the front element.</p></div>
+    <div class="cx-card"><div class="lbl">Search</div><div class="big">O(n)</div><p>No random access.</p></div>
+    <div class="cx-card"><div class="lbl">Priority Q ops</div><div class="big">O(log n)</div><p>Heap-backed push/pop.</p></div>
+    <div class="cx-card"><div class="lbl">Space</div><div class="big">O(n)</div><p>n elements stored.</p></div>
+  </div>
+
+  <div class="section-label">Advantages &amp; Disadvantages</div>
+  <div class="twocol">
+    <div class="pane good"><h3>Advantages</h3><ul>
+      <li>O(1) enqueue and dequeue.</li>
+      <li>Preserves arrival order — fair processing.</li>
+      <li>Foundation of BFS and level-order traversal.</li>
+      <li>Circular variant reuses memory with no shifting.</li>
+    </ul></div>
+    <div class="pane bad"><h3>Disadvantages</h3><ul>
+      <li>No random access to middle elements.</li>
+      <li>Naive array dequeue is O(n) without a circular buffer.</li>
+      <li>Fixed-size circular queues can overflow.</li>
+      <li>Priority queues can starve low-priority items.</li>
+    </ul></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">C++ STL Implementation</div>
+  <div class="code-section">
+    <div class="code-header"><span>queue_stl.cpp · std::queue &amp; priority_queue</span><button class="copy-btn" onclick="copyCode(this,'code1')">Copy</button></div>
+<pre id="code1"><span class="cm">#include &lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    queue&lt;<span class="kw">int</span>&gt; q;
+    q.<span class="fn">push</span>(<span class="nm">10</span>);      <span class="cm">// enqueue rear</span>
+    q.<span class="fn">push</span>(<span class="nm">20</span>);
+    q.<span class="fn">push</span>(<span class="nm">30</span>);      <span class="cm">// front=10, rear=30</span>
+    cout &lt;&lt; q.<span class="fn">front</span>() &lt;&lt; <span class="st">" "</span> &lt;&lt; q.<span class="fn">back</span>() &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 10 30</span>
+    q.<span class="fn">pop</span>();           <span class="cm">// dequeue front (10)</span>
+
+    priority_queue&lt;<span class="kw">int</span>&gt; maxHeap;      <span class="cm">// max on top</span>
+    priority_queue&lt;<span class="kw">int</span>,vector&lt;<span class="kw">int</span>&gt;,greater&lt;&gt;&gt; minHeap;
+    maxHeap.<span class="fn">push</span>(<span class="nm">5</span>); maxHeap.<span class="fn">push</span>(<span class="nm">1</span>); maxHeap.<span class="fn">push</span>(<span class="nm">9</span>);
+    cout &lt;&lt; maxHeap.<span class="fn">top</span>(); <span class="cm">// 9 — O(log n) push/pop</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+  <div class="code-section">
+    <div class="code-header"><span>circular_queue.cpp · Fixed-size ring buffer</span><button class="copy-btn" onclick="copyCode(this,'code2')">Copy</button></div>
+<pre id="code2"><span class="kw">class</span> <span class="fn">CircularQueue</span> {
+    vector&lt;<span class="kw">int</span>&gt; buf; <span class="kw">int</span> head=<span class="nm">0</span>, sz=<span class="nm">0</span>, cap;
+<span class="kw">public</span>:
+    <span class="fn">CircularQueue</span>(<span class="kw">int</span> k):buf(k),cap(k){}
+    <span class="kw">bool</span> <span class="fn">enqueue</span>(<span class="kw">int</span> x){
+        <span class="kw">if</span>(sz==cap) <span class="kw">return</span> <span class="kw">false</span>; <span class="cm">// full</span>
+        buf[(head+sz)%cap]=x; sz++; <span class="kw">return</span> <span class="kw">true</span>;
+    }
+    <span class="kw">bool</span> <span class="fn">dequeue</span>(){
+        <span class="kw">if</span>(sz==<span class="nm">0</span>) <span class="kw">return</span> <span class="kw">false</span>; <span class="cm">// empty</span>
+        head=(head+<span class="nm">1</span>)%cap; sz--; <span class="kw">return</span> <span class="kw">true</span>;
+    }
+    <span class="kw">int</span> <span class="fn">front</span>(){ <span class="kw">return</span> sz? buf[head] : -<span class="nm">1</span>; }
+};</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Interactive Queue Visualization</div>
+  <div class="tabs" id="scenario-tabs">
+    <button class="tab active" data-op="enqueue">Enqueue</button>
+    <button class="tab" data-op="dequeue">Dequeue</button>
+    <button class="tab" data-op="front">Peek Front</button>
+    <button class="tab" data-op="search">Search</button>
+    <button class="tab" data-op="drain">Drain (BFS order)</button>
+  </div>
+
+  <div class="anim-panel" id="panel">
+    <div class="anim-head"><span class="title">Interactive Queue Visualization</span><button class="pin-btn" id="pinBtn">📌 Pin while scrolling</button></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span>Element</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span>Front</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Rear</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span>Enqueue</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span>Dequeue</span>
+    </div>
+    <span class="phase-badge idle" id="phaseBadge">Idle</span>
+    <div class="queue-viz" id="queueViz"></div>
+    <div class="op-panel"><div class="op-panel-title">Current operation details</div>
+      <div class="op-row">
+        <div class="op-card"><div class="lbl">Operation</div><div class="val" id="opName">—</div></div>
+        <div class="op-card"><div class="lbl">Front</div><div class="val" id="opFront">—</div></div>
+        <div class="op-card"><div class="lbl">Rear</div><div class="val" id="opRear">—</div></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">Steps</div><div class="val" id="sSteps">0</div><div class="sub">taken</div></div>
+      <div class="stat-box acc"><div class="lbl">Enqueues</div><div class="val" id="sEnq">0</div><div class="sub">added</div></div>
+      <div class="stat-box red"><div class="lbl">Dequeues</div><div class="val" id="sDeq">0</div><div class="sub">removed</div></div>
+      <div class="stat-box green"><div class="lbl">Size</div><div class="val" id="sLen">0</div><div class="sub">elements</div></div>
+    </div>
+    <div class="step-label" id="stepLabel">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="log-box" id="logBox">Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.</div>
+    <div class="manual-row">
+      <div class="m-label">Manual controls — build your own operation</div>
+      <label style="font-size:12px;color:var(--muted)">Queue (front→rear): <input type="text" class="num-input" id="listInput" value="10,20,30" style="width:150px"></label>
+      <label style="font-size:12px;color:var(--muted)">Value: <input type="number" class="num-input" id="argInput" value="40"></label>
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="randBtn">Random</button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="backBtn">← Step back</button>
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="fwdBtn">Step forward →</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="result-pill" id="resultPill">✓ Done</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="speed"></div>
+    </div>
+  </div>
+
+  <div class="walkthrough"><h3>Step-by-step operation log</h3>
+    <div class="tbl-wrap"><table class="step-table">
+      <thead><tr><th>Step</th><th>Front</th><th>Rear</th><th>Action</th><th>Queue State</th></tr></thead>
+      <tbody id="logTableBody"><tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Key Patterns</div>
+  <div class="insight amber"><strong>BFS uses a queue.</strong> Enqueue the start node, then repeatedly dequeue a node and enqueue its unvisited neighbours. FIFO order guarantees you explore level by level — shortest path in unweighted graphs.</div>
+  <div class="insight"><strong>Monotonic deque = sliding window max.</strong> Keep indices in a deque with decreasing values; the front is always the window maximum. O(n) total.</div>
+
+  <div class="section-label">Cheat Sheet</div>
+  <div class="cmp-wrap"><table class="cmp-table">
+    <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Enqueue</td><td class="qcol">O(1)</td><td>O(1)</td><td>Add at rear</td></tr>
+      <tr><td>Dequeue</td><td class="qcol">O(1)</td><td>O(1)</td><td>Remove at front</td></tr>
+      <tr><td>Front / Peek</td><td class="qcol">O(1)</td><td>O(1)</td><td>Read front</td></tr>
+      <tr><td>Search</td><td>O(n)</td><td>O(1)</td><td>Linear scan</td></tr>
+      <tr><td>Priority push/pop</td><td class="scol">O(log n)</td><td>O(n)</td><td>Heap-backed</td></tr>
+      <tr><td>Circular enqueue</td><td>O(1)</td><td>O(k)</td><td>Fixed capacity k, wraps</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="section-label">Learning Roadmap</div>
+  <div class="roadmap">
+    <div class="rm-item"><span class="rm-num">1</span><div class="rm-body"><h4>Queue Basics</h4><p>enqueue/dequeue/front, FIFO intuition, array vs linked-list backing.</p></div><span class="rm-time">~2 hours</span></div>
+    <div class="rm-item"><span class="rm-num">2</span><div class="rm-body"><h4>Circular Queue &amp; Deque</h4><p>Ring buffers, wrap-around indexing, double-ended queue operations.</p></div><span class="rm-time">~3 hours</span></div>
+    <div class="rm-item"><span class="rm-num">3</span><div class="rm-body"><h4>BFS &amp; Level Order</h4><p>Graph/tree BFS, shortest path in unweighted graphs, multi-source BFS.</p></div><span class="rm-time">~4 hours</span></div>
+    <div class="rm-item"><span class="rm-num">4</span><div class="rm-body"><h4>Priority Queue &amp; Monotonic Deque</h4><p>Heaps, Dijkstra, top-K, sliding window maximum.</p></div><span class="rm-time">~4 hours</span></div>
+  </div>
+
+  <div class="section-label">Interview Preparation</div>
+  <div class="int-grid">
+    <div class="int-card"><div class="ic-q">Implement Queue using Stacks</div><div class="ic-a">Two stacks: push to "in", pour into "out" when dequeuing. Amortized O(1).</div><div class="ic-tag">Two Stacks</div></div>
+    <div class="int-card"><div class="ic-q">Design Circular Queue</div><div class="ic-a">Fixed array with head index and size; rear = (head+size)%cap. O(1) all ops.</div><div class="ic-tag">Ring Buffer</div></div>
+    <div class="int-card"><div class="ic-q">Sliding Window Maximum</div><div class="ic-a">Monotonic decreasing deque of indices; front holds the max, pop stale/smaller. O(n).</div><div class="ic-tag">Monotonic Deque</div></div>
+    <div class="int-card"><div class="ic-q">Rotting Oranges (multi-source BFS)</div><div class="ic-a">Enqueue all rotten cells, BFS outward counting minutes until none fresh remain.</div><div class="ic-tag">BFS</div></div>
+  </div>
+
+  <div class="section-label">Practice Problems</div>
+  <div class="prob-grid">
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Implement Queue using Stacks</span><span class="ptag">Two Stacks</span></div>
+    <div class="prob-item"><span class="pd easy">Easy</span><span class="pt">Number of Recent Calls</span><span class="ptag">Queue</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Design Circular Queue</span><span class="ptag">Ring Buffer</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Rotting Oranges</span><span class="ptag">BFS</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Binary Tree Level Order</span><span class="ptag">BFS</span></div>
+    <div class="prob-item"><span class="pd med">Medium</span><span class="pt">Task Scheduler</span><span class="ptag">Priority Queue</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Sliding Window Maximum</span><span class="ptag">Monotonic Deque</span></div>
+    <div class="prob-item"><span class="pd hard">Hard</span><span class="pt">Find Median from Data Stream</span><span class="ptag">Two Heaps</span></div>
+  </div>
+
+  <div class="section-label">Key Takeaways</div>
+  <div class="takeaway-grid">
+    <div class="take"><span class="tk-ic">🎟️</span><span><strong style="color:var(--text)">FIFO:</strong> first in, first out. Enqueue at rear, dequeue at front, both O(1).</span></div>
+    <div class="take"><span class="tk-ic">🌊</span><span><strong style="color:var(--text)">BFS engine:</strong> the queue drives breadth-first search and level-order traversal — shortest paths in unweighted graphs.</span></div>
+    <div class="take"><span class="tk-ic">↺</span><span><strong style="color:var(--text)">Circular buffer:</strong> wrap the rear index with modulo to reuse freed slots without shifting.</span></div>
+    <div class="take"><span class="tk-ic">⚡</span><span><strong style="color:var(--text)">Priority queue:</strong> a heap in disguise — serves highest priority first in O(log n), powering Dijkstra and top-K.</span></div>
+  </div>
+</main>
+
+<script>
+function copyCode(btn,id){const t=document.getElementById(id).textContent;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+const panel=document.getElementById('panel'),pinBtn=document.getElementById('pinBtn');
+pinBtn.addEventListener('click',()=>{const on=panel.classList.toggle('pinned');pinBtn.classList.toggle('active',on);pinBtn.textContent=on?'📌 Pinned':'📌 Pin while scrolling';if(on)panel.scrollTop=0;});
+
+const V={queue:[10,20,30],op:'enqueue',arg:40,steps:[],idx:-1,playing:false,timer:null};
+const els={viz:document.getElementById('queueViz'),phase:document.getElementById('phaseBadge'),opName:document.getElementById('opName'),opFront:document.getElementById('opFront'),opRear:document.getElementById('opRear'),sSteps:document.getElementById('sSteps'),sEnq:document.getElementById('sEnq'),sDeq:document.getElementById('sDeq'),sLen:document.getElementById('sLen'),stepLabel:document.getElementById('stepLabel'),prog:document.getElementById('progFill'),log:document.getElementById('logBox'),tbody:document.getElementById('logTableBody'),pill:document.getElementById('resultPill'),playBtn:document.getElementById('playBtn')};
+function speedMs(){return [1500,1000,650,380,180][document.getElementById('speed').value-1];}
+function opLabel(op){return {enqueue:'Enqueue',dequeue:'Dequeue',front:'Peek Front',search:'Search',drain:'Drain'}[op]||op;}
+
+function gen(){
+  const a=[...V.queue],op=V.op,arg=V.arg,steps=[];let enq=0,deq=0;
+  const snap=(e)=>({queue:[...a],enq,deq,...e});
+  steps.push(snap({log:`Start <span class="tea">${opLabel(op)}</span>. Queue (front→rear): [${a.join(', ')}].`,phase:'idle'}));
+  if(op==='enqueue'){steps.push(snap({log:`Add <span class="amb">${arg}</span> at the rear.`,phase:'visiting'}));enq++;a.push(arg);steps.push(snap({enqIdx:a.length-1,log:`<span class="pos">Enqueued ${arg}.</span> Rear = ${arg}. O(1).`,phase:'done',done:true}));}
+  else if(op==='dequeue'){if(a.length===0){steps.push(snap({log:`<span class="neg">Empty!</span> Nothing to dequeue.`,phase:'warning',done:true}));}else{const f=a[0];steps.push(snap({deqIdx:0,log:`Remove the front element <span class="neg">${f}</span>.`,phase:'visiting'}));deq++;a.shift();steps.push(snap({log:`<span class="pos">Dequeued ${f}.</span> New front = ${a.length?a[0]:'none'}. O(1).`,phase:'done',done:true}));}}
+  else if(op==='front'){if(a.length===0){steps.push(snap({log:`Queue empty — nothing at front.`,phase:'warning',done:true}));}else{steps.push(snap({peek:0,log:`<span class="tea">Front</span> = <span class="hi">${a[0]}</span>. Not removed. O(1).`,phase:'done',done:true}));}}
+  else if(op==='search'){let found=-1;for(let i=0;i<a.length;i++){steps.push(snap({cur:i,log:`Check position ${i}: ${a[i]} ${a[i]===arg?'== ':'≠ '}${arg}.`,phase:'traversing'}));if(a[i]===arg){found=i;steps.push(snap({peek:i,log:`<span class="pos">Found ${arg}</span> at distance ${i} from front.`,phase:'done',done:true}));break;}}if(found<0)steps.push(snap({log:`<span class="neg">${arg} not in queue.</span>`,phase:'warning',done:true}));}
+  else if(op==='drain'){while(a.length){const f=a[0];steps.push(snap({deqIdx:0,log:`Dequeue <span class="acc">${f}</span> (processed in arrival order).`,phase:'traversing'}));deq++;a.shift();}steps.push(snap({log:`<span class="pos">Queue drained</span> in FIFO order.`,phase:'done',done:true}));}
+  return steps;
+}
+function render(){
+  const s=V.steps[V.idx];if(!s)return;const a=s.queue;
+  let cells='';
+  if(a.length===0)cells='<div class="q-empty">empty queue</div>';
+  else for(let i=0;i<a.length;i++){let cls='q-cell';if(i===0)cls+=' front';if(i===a.length-1&&a.length>1)cls+=' rear';if(s.enqIdx===i)cls+=' enq';if(s.deqIdx===i)cls+=' deq';if(s.peek===i||s.cur===i)cls+=' front';const tag=i===0?'front':(i===a.length-1?'rear':'');cells+=`<div class="${cls}"><span class="qv">${a[i]}</span><span class="qtag">${tag}</span></div>`;}
+  els.viz.innerHTML=`<div class="q-ends"><span class="lbl">out</span><span class="q-arrow">←</span></div><div class="q-cells">${cells}</div><div class="q-ends"><span class="lbl">in</span><span class="q-arrow">←</span></div>`;
+  els.phase.className='phase-badge '+(s.phase||'idle');
+  els.phase.textContent={idle:'Idle',traversing:'Processing',visiting:'Working',done:'Done',warning:'Attention'}[s.phase||'idle'];
+  els.opName.textContent=opLabel(V.op);els.opFront.textContent=a.length?a[0]:'—';els.opRear.textContent=a.length?a[a.length-1]:'—';
+  els.sSteps.textContent=V.idx;els.sEnq.textContent=s.enq;els.sDeq.textContent=s.deq;els.sLen.textContent=a.length;
+  els.log.innerHTML=s.log;const total=V.steps.length-1;
+  els.prog.style.width=(total>0?(V.idx/total)*100:0)+'%';els.stepLabel.textContent=`Step ${V.idx} of ${total}`;els.pill.style.display=s.done?'inline-block':'none';
+  let rows='';for(let i=1;i<=V.idx;i++){const st=V.steps[i];const plain=st.log.replace(/<[^>]+>/g,'');rows+=`<tr class="${i===V.idx?'highlighted':''}"><td>${i}</td><td>${st.queue.length?st.queue[0]:'—'}</td><td>${st.queue.length?st.queue[st.queue.length-1]:'—'}</td><td>${plain.slice(0,40)}</td><td>[${st.queue.join(', ')}]</td></tr>`;}
+  els.tbody.innerHTML=rows||'<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function build(){V.steps=gen();V.idx=0;render();}
+function fwd(){if(V.steps.length===0)build();else if(V.idx<V.steps.length-1){V.idx++;render();}}
+function back(){if(V.idx>0){V.idx--;render();}}
+function buildInitial(){
+  const a=V.queue;let cells='';
+  if(a.length===0)cells='<div class="q-empty">empty queue</div>';
+  else for(let i=0;i<a.length;i++){const tag=i===0?'front':(i===a.length-1?'rear':'');cells+=`<div class="q-cell${i===0?' front':''}${i===a.length-1&&a.length>1?' rear':''}"><span class="qv">${a[i]}</span><span class="qtag">${tag}</span></div>`;}
+  els.viz.innerHTML=`<div class="q-ends"><span class="lbl">out</span><span class="q-arrow">←</span></div><div class="q-cells">${cells}</div><div class="q-ends"><span class="lbl">in</span><span class="q-arrow">←</span></div>`;
+  els.sLen.textContent=a.length;els.sSteps.textContent=0;els.sEnq.textContent=0;els.sDeq.textContent=0;
+  els.stepLabel.textContent='Step — of —';els.prog.style.width='0%';els.pill.style.display='none';els.phase.className='phase-badge idle';els.phase.textContent='Idle';
+  els.opName.textContent=opLabel(V.op);els.opFront.textContent=a.length?a[0]:'—';els.opRear.textContent=a.length?a[a.length-1]:'—';
+  els.log.innerHTML='Select a scenario above, or use the manual controls, then press <span class="tea">Play</span>.';
+  els.tbody.innerHTML='<tr><td colspan="5" style="color:#5c6189">Run a scenario to populate the log.</td></tr>';
+}
+function reset(){stopPlay();V.steps=[];V.idx=-1;buildInitial();}
+function play(){if(V.playing){stopPlay();return;}if(V.steps.length===0)build();if(V.idx>=V.steps.length-1)V.idx=0;V.playing=true;els.playBtn.textContent='⏸ Pause';(function run(){if(!V.playing)return;if(V.idx>=V.steps.length-1){stopPlay();return;}V.idx++;render();V.timer=setTimeout(run,speedMs());})();}
+function stopPlay(){V.playing=false;clearTimeout(V.timer);els.playBtn.textContent='▶ Play';}
+document.getElementById('playBtn').addEventListener('click',play);
+document.getElementById('fwdBtn').addEventListener('click',()=>{stopPlay();fwd();});
+document.getElementById('backBtn').addEventListener('click',()=>{stopPlay();back();});
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('applyBtn').addEventListener('click',()=>{const raw=document.getElementById('listInput').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));if(raw.length>10){alert('Max 10 elements.');return;}V.queue=raw;V.arg=parseInt(document.getElementById('argInput').value)||0;reset();});
+document.getElementById('randBtn').addEventListener('click',()=>{const len=3+Math.floor(Math.random()*3),a=[];for(let i=0;i<len;i++)a.push(Math.floor(Math.random()*90)+5);document.getElementById('listInput').value=a.join(',');V.queue=a;V.arg=a[Math.floor(Math.random()*a.length)];document.getElementById('argInput').value=V.arg;reset();});
+document.querySelectorAll('#scenario-tabs .tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('#scenario-tabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');V.op=t.dataset.op;V.arg=parseInt(document.getElementById('argInput').value)||0;reset();}));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){stopPlay();fwd();}if(e.key==='ArrowLeft'){stopPlay();back();}if(e.key===' '){e.preventDefault();play();}if(e.key==='r')reset();});
+buildInitial();
+</script>
+</body>
+</html>

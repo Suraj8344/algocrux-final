@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prim's MST</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--teal:#2dd4bf;--purple:#c084fc;--amber:#fbbf24;--green:#4ade80;--red:#f87171;--accent:#6c8fff;--text:#e6e8ef;--muted:#8b90a5;--dim:#5c6076;--mono:'Fira Code',ui-monospace,monospace;--sans:'Inter',system-ui,sans-serif;--border:rgba(255,255,255,.07);}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;padding:0 20px 80px;background-image:radial-gradient(circle at 20% -10%,rgba(108,143,255,.08),transparent 40%),radial-gradient(circle at 90% 0%,rgba(192,132,252,.06),transparent 35%);}
+.wrap{max-width:1080px;margin:0 auto}::selection{background:var(--accent);color:#fff}
+.practice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding:14px 20px;background:linear-gradient(90deg,rgba(45,212,191,.12),rgba(108,143,255,.10));border:1px solid var(--border);border-radius:14px;font-size:14px}
+.practice .tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:rgba(45,212,191,.12);padding:4px 10px;border-radius:6px}
+.practice a{color:var(--text);font-weight:600;text-decoration:none;border-bottom:1px solid var(--dim);transition:border-color .2s}
+.practice a:hover{border-color:var(--accent)}.practice .sep{color:var(--dim)}
+header{margin-top:34px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+.badge.b-teal{color:var(--teal);background:rgba(45,212,191,.10)}.badge.b-purple{color:var(--purple);background:rgba(192,132,252,.10)}.badge.b-amber{color:var(--amber);background:rgba(251,191,36,.10)}.badge.b-accent{color:var(--accent);background:rgba(108,143,255,.10)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1}h1 .accent{color:var(--teal)}
+.subtitle{color:var(--muted);font-size:18px;margin-top:10px;max-width:70ch}
+section{margin-top:44px}
+.section-label{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.concept-card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.concept-card h3 .dot{width:9px;height:9px;border-radius:50%}
+.concept-card p{color:var(--muted);font-size:15px}.concept-card p b{color:var(--text);font-weight:600}
+.concept-card code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:5px;color:var(--teal)}
+.concept-card ul{list-style:none;margin-top:10px}.concept-card li{color:var(--muted);font-size:14.5px;padding:5px 0 5px 20px;position:relative}
+.concept-card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:4px}
+.stage{display:flex;justify-content:center;padding:6px 0 14px}svg{max-width:100%;height:auto}
+.node-lbl{font-family:var(--mono);font-size:14px;font-weight:700;pointer-events:none}
+.wt-lbl{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--muted)}
+.node-circ,.edge-line{transition:fill .35s,stroke .35s,stroke-width .35s}
+.pq-view{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}.pq-view b{color:var(--purple)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{filter:brightness(1.1)}
+.kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:var(--muted)}
+.speed-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:5px;background:var(--surface2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,143,255,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.progress-track{height:7px;background:var(--surface2);border-radius:7px;margin-top:22px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:7px;transition:width .3s ease}
+.progress-caption{text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:16px}
+.stat .label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.stat .val{font-size:24px;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.stat.s-teal .val{color:var(--teal)}.stat.s-green .val{color:var(--green)}.stat.s-red .val{color:var(--red)}.stat.s-amber .val{color:var(--amber)}.stat.s-purple .val{color:var(--purple)}
+.log-box{margin-top:22px;background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:16px 18px;font-family:var(--mono);font-size:13px;height:150px;overflow-y:auto}
+.log-box div{padding:2px 0;color:var(--muted)}
+.log-box .l-teal{color:var(--teal)}.log-box .l-amber{color:var(--amber)}.log-box .l-red{color:var(--red)}.log-box .l-green{color:var(--green)}.log-box .l-purple{color:var(--purple)}
+.log-box::-webkit-scrollbar{width:8px}.log-box::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px}
+.code-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-block pre{margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.tok-key{color:var(--purple)}.tok-type{color:var(--teal)}.tok-fn{color:var(--accent)}.tok-num{color:var(--amber)}.tok-str{color:var(--green)}.tok-com{color:var(--dim);font-style:italic}
+.copy-btn{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.18s}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}.copy-btn.done{color:var(--green);border-color:var(--green)}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.cx-card .label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cx-card .big{font-family:var(--mono);font-size:22px;font-weight:700;margin:8px 0;color:var(--amber)}.cx-card .big.good{color:var(--green)}
+.cx-card p{font-size:13px;color:var(--muted)}
+.notes{background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(108,143,255,.05));border:1px solid var(--border);border-radius:16px;padding:26px}
+.notes ul{list-style:none}.notes li{padding:8px 0 8px 26px;position:relative;color:var(--muted);font-size:15px}
+.notes li::before{content:'✦';position:absolute;left:0;color:var(--purple)}.notes li b{color:var(--text);font-weight:600}
+footer{margin-top:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){h1{font-size:30px}.concept-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cx-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="practice">
+    <span class="tag">Practice</span>
+    <a href="https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/" target="_blank">GFG · Prim's MST</a>
+    <span class="sep">·</span>
+    <a href="https://leetcode.com/problems/min-cost-to-connect-all-points/" target="_blank">LeetCode 1584 · Min Cost to Connect Points</a>
+  </div>
+  <header>
+    <div class="badges"><span class="badge b-teal">Graphs</span><span class="badge b-accent">Greedy</span><span class="badge b-purple">MST</span><span class="badge b-amber">Min-Heap</span></div>
+    <h1>Prim's <span class="accent">·</span> Minimum Spanning Tree</h1>
+    <p class="subtitle">Same MST, different strategy from Kruskal. Prim grows a single tree from a start node, repeatedly absorbing the cheapest edge that reaches a node not yet in the tree.</p>
+  </header>
+  <section>
+    <div class="section-label">Concept</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--teal)"></span>Grow one tree</h3>
+        <p>Start with any node. Look at all edges crossing from the tree to the outside (<b>the cut</b>). Pick the lightest one, add its far node to the tree, repeat until everyone's in.</p>
+      </div>
+      <div class="concept-card">
+        <h3><span class="dot" style="background:var(--purple)"></span>The min-heap</h3>
+        <ul>
+          <li>Push edges from the newly added node</li>
+          <li>Pop the globally cheapest frontier edge</li>
+          <li>If its target is already in-tree, discard</li>
+          <li>Otherwise add it, then push its edges</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Interactive</div>
+    <h2>Absorb the cheapest frontier edge</h2>
+    <div class="panel">
+      <div class="legend">
+        <span><i class="sw" style="background:#3a3f57"></i>Outside tree</span>
+        <span><i class="sw" style="background:var(--green)"></i>In tree</span>
+        <span><i class="sw" style="background:var(--amber)"></i>Chosen edge</span>
+        <span><i class="sw" style="background:var(--red)"></i>Discarded</span>
+      </div>
+      <div class="stage"><svg id="graph" viewBox="0 0 460 320" width="460"></svg></div>
+      <div class="pq-view" id="pqView">Frontier heap: <b>empty</b></div>
+      <div class="controls">
+        <button class="btn" id="prevBtn">◀ Prev <span class="kbd">←</span></button>
+        <button class="btn primary" id="playBtn">▶ Play <span class="kbd">space</span></button>
+        <button class="btn" id="nextBtn">Next ▶ <span class="kbd">→</span></button>
+        <button class="btn" id="resetBtn">↺ Reset <span class="kbd">R</span></button>
+      </div>
+      <div class="speed-row"><span>slow</span><input type="range" id="speed" min="180" max="1400" value="800" step="50"><span>fast</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-caption" id="progCaption">Step 0</div>
+      <div class="stats">
+        <div class="stat s-green"><div class="label">In tree</div><div class="val" id="statInTree">0</div></div>
+        <div class="stat s-teal"><div class="label">Total cost</div><div class="val" id="statCost">0</div></div>
+        <div class="stat s-amber"><div class="label">MST edges</div><div class="val" id="statEdges">0</div></div>
+        <div class="stat s-purple"><div class="label">Heap size</div><div class="val" id="statHeap">0</div></div>
+      </div>
+      <div class="log-box" id="log"></div>
+    </div>
+  </section>
+  <section>
+    <div class="code-head">
+      <div><div class="section-label" style="margin-bottom:4px">Implementation</div><h2 style="margin:0">C++</h2></div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block">
+<pre><code id="codeText"><span class="tok-type">int</span> <span class="tok-fn">prim</span>(<span class="tok-type">int</span> n, vector&lt;vector&lt;pair&lt;<span class="tok-type">int</span>,<span class="tok-type">int</span>&gt;&gt;&gt;&amp; adj) {
+    vector&lt;<span class="tok-type">bool</span>&gt; inMST(n, <span class="tok-key">false</span>);
+    priority_queue&lt;pair&lt;<span class="tok-type">int</span>,<span class="tok-type">int</span>&gt;, vector&lt;pair&lt;<span class="tok-type">int</span>,<span class="tok-type">int</span>&gt;&gt;,
+                   greater&lt;&gt;&gt; pq;              <span class="tok-com">// {weight, node}</span>
+    pq.push({<span class="tok-num">0</span>, <span class="tok-num">0</span>});                        <span class="tok-com">// start from node 0, cost 0</span>
+
+    <span class="tok-type">int</span> cost = <span class="tok-num">0</span>, used = <span class="tok-num">0</span>;
+    <span class="tok-key">while</span> (!pq.empty() &amp;&amp; used &lt; n) {
+        <span class="tok-key">auto</span> [w, u] = pq.top(); pq.pop();
+        <span class="tok-key">if</span> (inMST[u]) <span class="tok-key">continue</span>;             <span class="tok-com">// already absorbed, discard</span>
+        inMST[u] = <span class="tok-key">true</span>;
+        cost += w; used++;
+        <span class="tok-key">for</span> (<span class="tok-key">auto</span>&amp; [v, wt] : adj[u])
+            <span class="tok-key">if</span> (!inMST[v]) pq.push({wt, v});  <span class="tok-com">// push frontier edges</span>
+    }
+    <span class="tok-key">return</span> used == n ? cost : <span class="tok-num">-1</span>;    <span class="tok-com">// -1 if disconnected</span>
+}</code></pre>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Complexity</div>
+    <div class="cx-grid">
+      <div class="cx-card"><div class="label">Time</div><div class="big good">O(E log V)</div><p>Binary-heap version. Each edge can trigger one heap push.</p></div>
+      <div class="cx-card"><div class="label">Space</div><div class="big">O(V + E)</div><p>Adjacency list, in-MST flags, and the heap.</p></div>
+      <div class="cx-card"><div class="label">Dense graphs</div><div class="big">O(V²)</div><p>An array-based Prim beats the heap when E ≈ V².</p></div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">Notes</div>
+    <div class="notes">
+      <ul>
+        <li><b>Prim vs Kruskal:</b> identical MST cost, different mechanics. Prim grows one connected tree; Kruskal merges a forest. Prim shines on dense graphs, Kruskal on sparse.</li>
+        <li>The <code style="font-family:var(--mono);color:var(--teal)">if (inMST[u]) continue</code> guard is lazy deletion, same trick as Dijkstra's stale-entry skip.</li>
+        <li>Prim needs a <b>connected</b> graph for a full MST; otherwise it only spans the start's component.</li>
+        <li>No Union-Find needed, the <code style="font-family:var(--mono);color:var(--teal)">inMST</code> flag alone prevents cycles.</li>
+        <li>Structurally almost identical to Dijkstra; the only change is pushing edge weight <code style="font-family:var(--mono);color:var(--teal)">w</code> instead of cumulative distance.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Prim's · Minimum Spanning Tree — arrow keys to step · space to play/pause · R to reset</footer>
+</div>
+<script>
+(function(){
+  const nodes=[{id:0,x:90,y:80},{id:1,x:250,y:60},{id:2,x:380,y:130},{id:3,x:110,y:240},{id:4,x:300,y:250}];
+  const rawEdges=[[0,1,2],[0,3,6],[1,2,3],[1,3,8],[1,4,5],[2,4,7],[3,4,9]];
+  const adj={};nodes.forEach(n=>adj[n.id]=[]);rawEdges.forEach(([u,v,w])=>{adj[u].push([v,w]);adj[v].push([u,w]);});
+  const svg=document.getElementById('graph'),logEl=document.getElementById('log'),NS='http://www.w3.org/2000/svg';
+  let steps=[],idx=0,playing=false,timer=null;
+  function ekey(u,v){return u<v?u+'-'+v:v+'-'+u;}
+  function buildSteps(){
+    const inMST={};nodes.forEach(n=>inMST[n.id]=false);
+    let heap=[];// {w,u,from}
+    heap.push({w:0,u:0,from:-1});
+    const snaps=[];let cost=0,used=0;const mstEdges=new Set();
+    function heapStr(){return heap.length?heap.slice().sort((a,b)=>a.w-b.w).map(e=>`(${e.u}:${e.w})`).join(' '):null;}
+    function push(chosen,discard,logObj){
+      snaps.push({inMST:{...inMST},mstEdges:new Set(mstEdges),chosen:chosen?{...chosen}:null,discard:discard?{...discard}:null,cost,used,edges:mstEdges.size,heap:heapStr(),heapSize:heap.length,log:logObj});
+    }
+    push(null,null,{cls:'l-teal',txt:'Start Prim from node 0. Push its 0-cost seed into the heap.'});
+    while(heap.length&&used<nodes.length){
+      heap.sort((a,b)=>a.w-b.w);const e=heap.shift();
+      if(inMST[e.u]){push(null,e,{cls:'l-red',txt:`Pop (${e.u}:${e.w}) but ${e.u} already in tree, discard.`});continue;}
+      inMST[e.u]=true;cost+=e.w;used++;
+      if(e.from!==-1)mstEdges.add(ekey(e.from,e.u));
+      push(e,null,{cls:'l-green',txt:e.from===-1?`Add start node 0 to the tree.`:`Absorb edge ${e.from}–${e.u} (w=${e.w}). Cost ${cost}, edges ${mstEdges.size}.`});
+      for(const [v,w] of adj[e.u]){if(!inMST[v]){heap.push({w,u:v,from:e.u});}}
+      if(adj[e.u].some(([v])=>!inMST[v]))push(e,null,{cls:'l-purple',txt:`Push frontier edges from ${e.u} into heap.`});
+    }
+    const full=used===nodes.length;
+    push(null,null,full?{cls:'l-green',txt:`✓ All ${nodes.length} nodes in tree. MST cost = ${cost}.`}:{cls:'l-red',txt:`✗ Graph disconnected. Only spanned ${used} nodes.`});
+    return snaps;
+  }
+  function render(snap){
+    svg.innerHTML='';const pos={};nodes.forEach(n=>pos[n.id]=n);
+    rawEdges.forEach(([u,v,w])=>{const a=pos[u],b=pos[v];let c='#3a3f57',wd=1.7,dash=false;
+      if(snap.mstEdges.has(ekey(u,v))){c='#4ade80';wd=3.5;}
+      if(snap.chosen&&snap.chosen.from!==-1&&ekey(snap.chosen.from,snap.chosen.u)===ekey(u,v)){c='#fbbf24';wd=3.5;}
+      if(snap.discard&&snap.discard.from!==-1&&ekey(snap.discard.from,snap.discard.u)===ekey(u,v)&&!snap.mstEdges.has(ekey(u,v))){c='#f87171';wd=2;dash=true;}
+      const line=document.createElementNS(NS,'line');line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+      line.setAttribute('stroke',c);line.setAttribute('stroke-width',wd);if(dash)line.setAttribute('stroke-dasharray','5 4');line.setAttribute('class','edge-line');svg.appendChild(line);
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const wl=document.createElementNS(NS,'text');wl.setAttribute('x',mx);wl.setAttribute('y',my-4);wl.setAttribute('text-anchor','middle');wl.setAttribute('class','wt-lbl');wl.textContent=w;svg.appendChild(wl);});
+    nodes.forEach(n=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',n.x);c.setAttribute('cy',n.y);c.setAttribute('r',21);
+      const isChosen=snap.chosen&&snap.chosen.u===n.id;
+      c.setAttribute('fill',snap.inMST[n.id]?'#4ade80':'#22263a');c.setAttribute('stroke',isChosen?'#fff':'rgba(255,255,255,.2)');c.setAttribute('stroke-width',isChosen?3.5:1.5);c.setAttribute('class','node-circ');svg.appendChild(c);
+      const t=document.createElementNS(NS,'text');t.setAttribute('x',n.x);t.setAttribute('y',n.y+5);t.setAttribute('text-anchor','middle');t.setAttribute('class','node-lbl');t.setAttribute('fill',snap.inMST[n.id]?'#0f1117':'#e6e8ef');t.textContent=n.id;svg.appendChild(t);});
+  }
+  function renderLog(upto){logEl.innerHTML='';for(let i=0;i<=upto;i++){const d=document.createElement('div');d.className=steps[i].log.cls;d.textContent=steps[i].log.txt;logEl.appendChild(d);}logEl.scrollTop=logEl.scrollHeight;}
+  function update(){
+    const s=steps[idx];render(s);renderLog(idx);
+    document.getElementById('pqView').innerHTML=s.heap?`Frontier heap: <b>${s.heap}</b>`:'Frontier heap: <b>empty</b>';
+    document.getElementById('statInTree').textContent=s.used;
+    document.getElementById('statCost').textContent=s.cost;
+    document.getElementById('statEdges').textContent=s.edges;
+    document.getElementById('statHeap').textContent=s.heapSize;
+    const pct=steps.length>1?(idx/(steps.length-1))*100:0;document.getElementById('progress').style.width=pct+'%';
+    document.getElementById('progCaption').textContent=`Step ${idx} / ${steps.length-1}`;
+    document.getElementById('prevBtn').disabled=idx===0;document.getElementById('nextBtn').disabled=idx===steps.length-1;
+  }
+  function next(){if(idx<steps.length-1){idx++;update();}else pause();}
+  function prev(){if(idx>0){idx--;update();}}
+  function reset(){pause();idx=0;update();}
+  function play(){if(idx>=steps.length-1)idx=0;playing=true;document.getElementById('playBtn').innerHTML='❚❚ Pause <span class="kbd">space</span>';const spd=+document.getElementById('speed').value;timer=setInterval(()=>{if(idx<steps.length-1)next();else pause();},spd);}
+  function pause(){playing=false;document.getElementById('playBtn').innerHTML='▶ Play <span class="kbd">space</span>';clearInterval(timer);}
+  function togglePlay(){playing?pause():play();}
+  document.getElementById('nextBtn').onclick=next;document.getElementById('prevBtn').onclick=prev;document.getElementById('resetBtn').onclick=reset;document.getElementById('playBtn').onclick=togglePlay;
+  document.getElementById('speed').oninput=()=>{if(playing){pause();play();}};
+  document.getElementById('copyBtn').onclick=function(){const txt=document.getElementById('codeText').innerText;navigator.clipboard.writeText(txt).then(()=>{this.textContent='Copied ✓';this.classList.add('done');setTimeout(()=>{this.textContent='Copy';this.classList.remove('done');},1600);});};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){e.preventDefault();pause();next();}else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}else if(e.key===' '){e.preventDefault();togglePlay();}else if(e.key==='r'||e.key==='R'){e.preventDefault();reset();}});
+  steps=buildSteps();update();
+})();
+</script>
+</body>
+</html>

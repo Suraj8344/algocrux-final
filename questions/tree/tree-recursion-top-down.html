@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree Recursion — Top-Down (Pass State Down)</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.td { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .badge.gfg { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .concept code { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+
+  .mode-toggle { display: flex; gap: 4px; margin-bottom: 1.25rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 4px; }
+  .mode-btn { flex: 1; padding: 7px 10px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .mode-btn:hover { color: var(--text); }
+  .mode-btn.active { background: var(--accent-bg); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-dim); }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .dot.d-cur   { background: var(--amber-bg);  border-color: var(--amber); }
+  .dot.d-path  { background: var(--accent-bg); border-color: var(--accent); }
+  .dot.d-done  { background: var(--purple-bg); border-color: var(--purple); }
+  .dot.d-hit   { background: var(--green-bg);  border-color: var(--green); }
+
+  .tree-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1.1rem; overflow-x: auto; }
+  svg.tree { display: block; width: 100%; height: auto; }
+  .edge { stroke: var(--border2); stroke-width: 2; transition: stroke .25s; }
+  .edge.on-path { stroke: var(--accent); stroke-width: 3; }
+  .node-circle { fill: var(--surface); stroke: var(--border2); stroke-width: 2; transition: fill .25s, stroke .25s, filter .25s; }
+  .node-circle.cur  { fill: var(--amber-bg);  stroke: var(--amber);  filter: drop-shadow(0 0 6px rgba(251,191,36,.5)); }
+  .node-circle.path { fill: var(--accent-bg); stroke: var(--accent); }
+  .node-circle.done { fill: var(--purple-bg); stroke: var(--purple); }
+  .node-circle.hit  { fill: var(--green-bg);  stroke: var(--green); filter: drop-shadow(0 0 7px rgba(74,222,128,.55)); }
+  .node-text  { fill: var(--text); font-family: var(--mono); font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+  .node-carry { font-family: var(--mono); font-size: 10px; font-weight: 700; text-anchor: middle; fill: var(--teal); }
+
+  .frames-section { margin-bottom: 1.1rem; }
+  .frames-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .frames-strip { display: flex; flex-direction: column; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem 1rem; min-height: 56px; }
+  .frame { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12.5px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border2); background: var(--surface); color: var(--muted); animation: qpop .2s ease; }
+  .frame.top { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+  .frame .f-node { font-weight: 700; }
+  .frame .f-carry { color: var(--teal); }
+  .frame .f-depth { color: var(--muted2); margin-left: auto; }
+  @keyframes qpop { 0% { transform: translateX(-6px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+  .frames-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  .out-section { margin-bottom: 1.1rem; }
+  .out-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .out-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .out-chip { padding: 3px 11px; border-radius: 7px; font-family: var(--mono); font-size: 13px; font-weight: 700; border: 1.5px solid var(--green); background: var(--green-bg); color: var(--green); animation: qpop .25s ease; }
+  .out-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-node  { color: var(--amber); }
+  .tp-carry { color: var(--teal); }
+  .tp-depth { color: var(--accent); }
+  .tp-res   { color: var(--purple); }
+
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.purple .val { color: var(--purple); }
+
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.primary { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .btn.primary:hover { background: #2a1745; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--purple); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge gfg">Pattern / Tree Recursion</span>
+      <span class="badge td">Top-Down · Pass State Down</span>
+      <span class="badge medium">Medium</span>
+    </div>
+    <h1>Tree Recursion — Top-Down Approach</h1>
+    <p>Carry information from parent to child through parameters — decide as you descend, no return value needed to compute — O(N) time</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What is top-down recursion?</h2>
+      <p>In a <strong style="color:var(--purple)">top-down</strong> traversal you push knowledge <em>down</em> the tree: each call receives the accumulated state of the path so far (a running sum, a max-so-far, the current depth) as a <strong style="color:var(--text)">parameter</strong>. You update it, then hand the new value to your children.</p>
+      <p style="margin-top:.6rem">Contrast with bottom-up, where children <em>return</em> values that the parent combines. Top-down answers questions like <em>"count nodes whose path from the root satisfies X"</em> or <em>"is there a root-to-leaf path summing to target?"</em> — the answer at a leaf depends only on what flowed down to it.</p>
+    </div>
+    <div class="formula">
+      <span class="comment">// top-down: state flows DOWN as a param</span><br>
+      <span class="keyword">dfs</span>(node, carry):<br>
+      &nbsp;&nbsp;<span class="keyword">if</span> node == null: <span class="keyword">return</span><br>
+      &nbsp;&nbsp;carry = update(carry, node.val)<br>
+      &nbsp;&nbsp;<span class="keyword">if</span> isLeaf(node): check(carry)<br>
+      &nbsp;&nbsp;dfs(node.left,&nbsp; carry)<br>
+      &nbsp;&nbsp;dfs(node.right, carry)
+    </div>
+  </div>
+
+  <div class="lc-banner" id="lcBanner">
+    <div class="lc-icon">LC</div>
+    <div class="lc-text">Top-down shows up in <b>Path Sum (112)</b>, <b>Sum Root to Leaf Numbers (129)</b>, and <b>Count Good Nodes (1448)</b>. Same skeleton, different carry.</div>
+    <a href="https://leetcode.com/problems/count-good-nodes-in-binary-tree/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time Complexity</div>
+      <div class="big">O(N)</div>
+      <p>Each node is visited once; the carry update is O(1) per node.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space Complexity</div>
+      <div class="big">O(H)</div>
+      <p>Recursion stack depth equals the tree height H (O(N) if skewed).</p>
+    </div>
+  </div>
+
+  <div class="tabs" id="exampleTabs"></div>
+
+  <div class="anim-panel" id="animPanel">
+    <div class="anim-panel-head">
+      <span class="title">Live Visualization</span>
+      <button class="pin-btn" id="pinBtn">📌 Pin panel</button>
+    </div>
+
+    <div class="mode-toggle" id="modeToggle">
+      <button class="mode-btn active" data-mode="pathsum">Path Sum (target)</button>
+      <button class="mode-btn" data-mode="rootleaf">Root→Leaf Numbers</button>
+      <button class="mode-btn" data-mode="goodnodes">Count Good Nodes</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot d-cur"></span> Current call</span>
+      <span><span class="dot d-path"></span> On active path</span>
+      <span><span class="dot d-hit"></span> Contributes to answer</span>
+      <span><span class="dot d-done"></span> Returned</span>
+    </div>
+
+    <div class="tree-wrap">
+      <svg class="tree" id="treeSvg" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="frames-section">
+      <div class="frames-label">Call stack <span style="color:var(--muted2)">(top = current) — each frame carries state down</span></div>
+      <div class="frames-strip" id="framesStrip"></div>
+    </div>
+
+    <div class="out-section">
+      <div class="out-label" id="outLabel">Answer accumulator</div>
+      <div class="out-row" id="outRow"></div>
+    </div>
+
+    <div class="tracker-row">
+      <span class="tracker-pill tp-node">node = <span id="tpNode">–</span></span>
+      <span class="tracker-pill tp-carry">carry = <span id="tpCarry">0</span></span>
+      <span class="tracker-pill tp-depth">depth = <span id="tpDepth">0</span></span>
+      <span class="tracker-pill tp-res">answer = <span id="tpRes">0</span></span>
+    </div>
+
+    <div class="step-label">Step <span id="stepNum">0</span> / <span id="stepTotal">0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box amber"><div class="lbl">Current node</div><div class="val" id="statCur">–</div><div class="sub">being processed</div></div>
+      <div class="stat-box teal"><div class="lbl" id="statCarryLbl">Carry down</div><div class="val" id="statCarry">0</div><div class="sub" id="statCarrySub">running sum</div></div>
+      <div class="stat-box accent"><div class="lbl">Depth</div><div class="val" id="statDepth">0</div><div class="sub">stack size</div></div>
+      <div class="stat-box purple"><div class="lbl" id="statResLbl">Answer</div><div class="val" id="statRes">0</div><div class="sub" id="statResSub">accumulated</div></div>
+    </div>
+
+    <div class="log-box" id="logBox">Pick a mode and hit <span class="sol">Play</span> to watch state flow down the tree.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="backBtn">⟨ Step back</button>
+      <button class="btn" id="fwdBtn">Step ⟩</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="done-pill" id="donePill">✓ Done</span>
+      <span class="speed-wrap">Speed <input type="range" id="speed" min="1" max="5" value="3"></span>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step trace</h3>
+    <table class="step-table" id="stepTable">
+      <thead>
+        <tr><th>#</th><th>Action</th><th>Node</th><th>Carry in</th><th>Depth</th><th>Answer</th></tr>
+      </thead>
+      <tbody id="stepTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="code-section">
+    <div class="code-header">
+      <span id="codeTitle">C++ — Path Sum (LC 112)</span>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <pre id="codeBlock"></pre>
+  </div>
+
+  <div class="notes-section">
+    <div class="notes-header" id="notesHeader">
+      <h3>📝 My Notes <span class="note-indicator" id="noteIndicator">●</span></h3>
+      <span class="toggle-icon">▾</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesText" placeholder="Key insight: in top-down the parameter carries the answer down. Nothing needs to be returned up. Contrast that with bottom-up..."></textarea>
+      <div class="notes-footer">
+        <span class="save-status saved" id="saveStatus">Saved</span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="practice-arena" data-problem-slug="tree-recursion-top-down"></div>
+
+</main>
+
+<button class="algo-bookmark" id="bookmarkBtn" title="Bookmark this algorithm">☆</button>
+
+<script>
+/* ============================================================
+   TREE RECURSION — TOP-DOWN
+   Modes: pathsum | rootleaf | goodnodes
+   All steps computed live via a recursive walk that carries
+   state down as a parameter. No hardcoded frames.
+   ============================================================ */
+
+const EXAMPLES = {
+  classic: {
+    label: "Classic",
+    nodes: [
+      { val: 5,  left: 1, right: 2 },
+      { val: 4,  left: 3, right: -1 },
+      { val: 8,  left: 4, right: 5 },
+      { val: 11, left: 6, right: 7 },
+      { val: 13, left: -1, right: -1 },
+      { val: 4,  left: -1, right: 8 },
+      { val: 7,  left: -1, right: -1 },
+      { val: 2,  left: -1, right: -1 },
+      { val: 1,  left: -1, right: -1 },
+    ],
+    root: 0,
+    target: 22
+  },
+  small: {
+    label: "Small",
+    nodes: [
+      { val: 1, left: 1, right: 2 },
+      { val: 2, left: -1, right: -1 },
+      { val: 3, left: -1, right: -1 },
+    ],
+    root: 0,
+    target: 3
+  },
+  goodTree: {
+    label: "Good-nodes demo",
+    nodes: [
+      { val: 3,  left: 1, right: 2 },
+      { val: 1,  left: 3, right: -1 },
+      { val: 4,  left: 4, right: 5 },
+      { val: 3,  left: -1, right: -1 },
+      { val: 1,  left: -1, right: -1 },
+      { val: 5,  left: -1, right: -1 },
+    ],
+    root: 0,
+    target: 8
+  },
+  skew: {
+    label: "Left skew",
+    nodes: [
+      { val: 1, left: 1, right: -1 },
+      { val: 2, left: 2, right: -1 },
+      { val: 3, left: 3, right: -1 },
+      { val: 4, left: -1, right: -1 },
+    ],
+    root: 0,
+    target: 10
+  },
+  single: {
+    label: "Single node",
+    nodes: [ { val: 7, left: -1, right: -1 } ],
+    root: 0,
+    target: 7
+  }
+};
+
+let exampleKeys = Object.keys(EXAMPLES);
+let curExample = "classic";
+let curMode = "pathsum"; // pathsum | rootleaf | goodnodes
+
+let steps = [], stepIdx = 0, playing = false, playTimer = null;
+let RENDER = { nodes: [] };
+const $ = id => document.getElementById(id);
+
+/* ---------- Layout ---------- */
+function layout(ex) {
+  const nodes = ex.nodes.map((n, i) => ({ ...n, id: i, x: 0, y: 0, depth: 0, _slot: 0 }));
+  function setDepth(id, d) { if (id < 0) return; nodes[id].depth = d; setDepth(nodes[id].left, d+1); setDepth(nodes[id].right, d+1); }
+  setDepth(ex.root, 0);
+  const maxDepth = Math.max(...nodes.map(n => n.depth));
+  let slot = 0;
+  function inorder(id){ if(id<0) return; inorder(nodes[id].left); nodes[id]._slot = slot++; inorder(nodes[id].right); }
+  inorder(ex.root);
+  const totalSlots = slot, W = 720, H = 330, padX = 42, padY = 36;
+  const usableW = W - padX*2;
+  const levelGap = maxDepth > 0 ? (H - padY*2) / maxDepth : 0;
+  nodes.forEach(n => {
+    n.x = totalSlots > 1 ? padX + (n._slot/(totalSlots-1))*usableW : W/2;
+    n.y = padY + n.depth*levelGap;
+  });
+  return nodes;
+}
+
+/* ---------- Build steps live ---------- */
+function buildSteps(ex, mode) {
+  const nodes = layout(ex);
+  const out = [];
+  const answerChips = [];
+  let answer = 0;
+  const target = ex.target;
+
+  function isLeaf(id){ return nodes[id].left < 0 && nodes[id].right < 0; }
+
+  function snapshot(kind, id, carryIn, stack, log, hit) {
+    out.push({
+      kind, node: id, carryIn,
+      stack: stack.map(s => ({ id: s.id, carry: s.carry })),
+      answer,
+      chips: answerChips.slice(),
+      hit: hit || null,
+      log
+    });
+  }
+
+  function dfs(id, carryIn, stack) {
+    if (id < 0) return;
+    const node = nodes[id];
+
+    let carryNow, enterLog;
+    if (mode === "pathsum") {
+      carryNow = carryIn - node.val;
+      enterLog = `Enter <span class="amb">${node.val}</span>. Remaining target: ${carryIn} − ${node.val} = <span class="tl">${carryNow}</span>.`;
+    } else if (mode === "rootleaf") {
+      carryNow = carryIn * 10 + node.val;
+      enterLog = `Enter <span class="amb">${node.val}</span>. Number so far: ${carryIn}×10 + ${node.val} = <span class="tl">${carryNow}</span>.`;
+    } else {
+      carryNow = Math.max(carryIn, node.val);
+      const good = node.val >= carryIn;
+      enterLog = `Enter <span class="amb">${node.val}</span>. Max-on-path was ${carryIn === -Infinity ? "−∞" : carryIn}. ${good ? `<span class="pos">${node.val} ≥ ${carryIn===-Infinity?"−∞":carryIn} → GOOD</span>` : `${node.val} &lt; ${carryIn} → not good`}. Carry max = <span class="tl">${carryNow===-Infinity?"−∞":carryNow}</span>.`;
+    }
+
+    const frame = { id, carry: carryNow };
+    const st2 = [...stack, frame];
+    snapshot("enter", id, carryIn, st2, enterLog);
+
+    if (mode === "goodnodes" && node.val >= carryIn) {
+      answer++;
+      answerChips.push(id);
+      snapshot("hit", id, carryIn, st2, `<span class="pos">Count ${node.val} as a good node.</span> Good nodes so far: <span class="sol">${answer}</span>.`, id);
+    }
+
+    if (isLeaf(id)) {
+      if (mode === "pathsum") {
+        if (carryNow === 0) {
+          answer = 1;
+          answerChips.push(id);
+          snapshot("hit", id, carryIn, st2, `<span class="pos">Leaf ${node.val} and remaining = 0 → target path found!</span> answer = <span class="sol">true</span>.`, id);
+        } else {
+          snapshot("leaf", id, carryIn, st2, `Leaf ${node.val}, remaining = <span class="tl">${carryNow}</span> ≠ 0 → this path fails.`);
+        }
+      } else if (mode === "rootleaf") {
+        answer += carryNow;
+        answerChips.push(id);
+        snapshot("hit", id, carryIn, st2, `<span class="pos">Leaf reached — root-to-leaf number = ${carryNow}.</span> Add to total: answer = <span class="sol">${answer}</span>.`, id);
+      }
+    }
+
+    if (node.left >= 0) dfs(node.left, carryNow, st2);
+    if (node.right >= 0) dfs(node.right, carryNow, st2);
+
+    snapshot("return", id, carryIn, stack, `Return from <span class="amb">${node.val}</span>, pop frame. ${mode==="pathsum" && answer===1 ? `<span class="pos">target already satisfied.</span>` : ""}`.trim());
+  }
+
+  const initCarry = mode === "pathsum" ? target : mode === "rootleaf" ? 0 : -Infinity;
+  let initLog;
+  if (mode === "pathsum") initLog = `Goal: is there a root-to-leaf path summing to <span class="sol">${target}</span>? Carry the <span class="tl">remaining target</span> down, start at ${target}.`;
+  else if (mode === "rootleaf") initLog = `Goal: sum every root-to-leaf number. Carry the <span class="tl">number formed so far</span> down, start at 0.`;
+  else initLog = `Goal: count "good" nodes (≥ every ancestor). Carry the <span class="tl">max value seen on the path</span> down, start at −∞.`;
+
+  out.push({ kind: "init", node: null, carryIn: initCarry, stack: [], answer: 0, chips: [], hit: null, log: initLog });
+
+  dfs(ex.root, initCarry, []);
+
+  let finalLog;
+  if (mode === "pathsum") finalLog = answer === 1 ? `✓ Done. A path summing to ${target} exists → <span class="sol">true</span>.` : `✓ Done. No root-to-leaf path sums to ${target} → <span class="neg">false</span>.`;
+  else if (mode === "rootleaf") finalLog = `✓ Done. Sum of all root-to-leaf numbers = <span class="sol">${answer}</span>.`;
+  else finalLog = `✓ Done. Total good nodes = <span class="sol">${answer}</span>.`;
+  out.push({ kind: "done", node: null, carryIn: initCarry, stack: [], answer, chips: answerChips.slice(), hit: null, log: finalLog });
+
+  return { nodes, steps: out };
+}
+
+/* ---------- Rendering ---------- */
+function renderTreeSvg(nodes) {
+  const svg = $("treeSvg"); svg.innerHTML = "";
+  const NS = "http://www.w3.org/2000/svg";
+  nodes.forEach(n => {
+    [n.left, n.right].forEach(c => {
+      if (c >= 0) {
+        const line = document.createElementNS(NS, "line");
+        line.setAttribute("x1", n.x); line.setAttribute("y1", n.y);
+        line.setAttribute("x2", nodes[c].x); line.setAttribute("y2", nodes[c].y);
+        line.setAttribute("class", "edge"); line.dataset.edge = `${n.id}-${c}`;
+        svg.appendChild(line);
+      }
+    });
+  });
+  nodes.forEach(n => {
+    const g = document.createElementNS(NS, "g");
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", 18);
+    c.setAttribute("class", "node-circle"); c.dataset.node = n.id;
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", n.x); t.setAttribute("y", n.y);
+    t.setAttribute("class", "node-text"); t.textContent = n.val;
+    const carry = document.createElementNS(NS, "text");
+    carry.setAttribute("x", n.x); carry.setAttribute("y", n.y - 26);
+    carry.setAttribute("class", "node-carry"); carry.dataset.carry = n.id;
+    g.appendChild(c); g.appendChild(t); g.appendChild(carry);
+    svg.appendChild(g);
+  });
+}
+
+function paintStep() {
+  const st = steps[stepIdx]; if (!st) return;
+  const nodes = RENDER.nodes;
+  const stackIds = st.stack.map(s => s.id);
+  const carryById = {}; st.stack.forEach(s => carryById[s.id] = s.carry);
+
+  document.querySelectorAll(".node-circle").forEach(c => {
+    c.classList.remove("cur","path","done","hit");
+    const id = +c.dataset.node;
+    if (st.chips.includes(id)) c.classList.add("hit");
+    else if (stackIds.includes(id) && id !== st.node) c.classList.add("path");
+    if (st.node === id && (st.kind === "enter" || st.kind === "leaf" || st.kind === "hit")) c.classList.add("cur");
+    if (st.kind === "return" && st.node === id) c.classList.add("done");
+  });
+  document.querySelectorAll("[data-carry]").forEach(t => {
+    const id = +t.dataset.carry;
+    if (carryById[id] !== undefined && curMode !== "goodnodes") {
+      t.textContent = carryById[id] === -Infinity ? "" : carryById[id];
+    } else if (carryById[id] !== undefined && curMode === "goodnodes") {
+      t.textContent = carryById[id] === -Infinity ? "−∞" : carryById[id];
+    } else {
+      t.textContent = "";
+    }
+  });
+  document.querySelectorAll(".edge").forEach(e => {
+    const [a,b] = e.dataset.edge.split("-").map(Number);
+    e.classList.toggle("on-path", stackIds.includes(a) && stackIds.includes(b));
+  });
+
+  const fs = $("framesStrip"); fs.innerHTML = "";
+  if (!st.stack.length) {
+    fs.innerHTML = '<span class="frames-empty">stack empty</span>';
+  } else {
+    st.stack.forEach((f, i) => {
+      const div = document.createElement("div");
+      div.className = "frame" + (i === st.stack.length - 1 ? " top" : "");
+      const carryTxt = f.carry === -Infinity ? "−∞" : f.carry;
+      const carryLabel = curMode === "pathsum" ? "remaining" : curMode === "rootleaf" ? "num" : "maxSeen";
+      div.innerHTML = `<span class="f-node">dfs(${nodes[f.id].val})</span><span class="f-carry">${carryLabel} = ${carryTxt}</span><span class="f-depth">depth ${i}</span>`;
+      fs.appendChild(div);
+    });
+  }
+
+  const or = $("outRow"); or.innerHTML = "";
+  if (curMode === "pathsum") {
+    const chip = document.createElement("span");
+    chip.className = "out-chip";
+    chip.style.borderColor = st.answer === 1 ? "var(--green)" : "var(--border2)";
+    chip.style.color = st.answer === 1 ? "var(--green)" : "var(--muted)";
+    chip.style.background = st.answer === 1 ? "var(--green-bg)" : "var(--surface)";
+    chip.textContent = st.answer === 1 ? "true" : (st.kind === "done" ? "false" : "searching…");
+    or.appendChild(chip);
+  } else if (!st.chips.length) {
+    or.innerHTML = '<span class="out-empty">nothing yet</span>';
+  } else {
+    st.chips.forEach(id => {
+      const chip = document.createElement("span"); chip.className = "out-chip"; chip.textContent = nodes[id].val; or.appendChild(chip);
+    });
+    if (curMode === "rootleaf" || curMode === "goodnodes") {
+      const eq = document.createElement("span"); eq.style.cssText = "font-family:var(--mono);color:var(--purple);font-weight:700;"; eq.textContent = "= " + st.answer; or.appendChild(eq);
+    }
+  }
+
+  $("tpNode").textContent = st.node !== null ? nodes[st.node].val : "–";
+  const topCarry = st.stack.length ? st.stack[st.stack.length-1].carry : st.carryIn;
+  $("tpCarry").textContent = topCarry === -Infinity ? "−∞" : topCarry;
+  $("tpDepth").textContent = st.stack.length ? st.stack.length - 1 : 0;
+  $("tpRes").textContent = curMode === "pathsum" ? (st.answer === 1 ? "true" : (st.kind==="done"?"false":"—")) : st.answer;
+
+  $("statCur").textContent = st.node !== null ? nodes[st.node].val : "–";
+  $("statCarry").textContent = topCarry === -Infinity ? "−∞" : topCarry;
+  $("statDepth").textContent = st.stack.length;
+  $("statRes").textContent = curMode === "pathsum" ? (st.answer === 1 ? "true" : (st.kind==="done"?"false":"—")) : st.answer;
+
+  $("logBox").innerHTML = st.log;
+
+  $("stepNum").textContent = stepIdx;
+  $("stepTotal").textContent = steps.length - 1;
+  $("progressFill").style.width = ((stepIdx/(steps.length-1))*100) + "%";
+  $("donePill").style.display = st.kind === "done" ? "inline-block" : "none";
+
+  document.querySelectorAll("#stepTbody tr").forEach((tr,i)=>tr.classList.toggle("highlighted", i===stepIdx));
+  const hl = document.querySelector("#stepTbody tr.highlighted");
+  if (hl) hl.scrollIntoView({ block:"nearest", behavior:"smooth" });
+
+  $("backBtn").disabled = stepIdx === 0;
+  $("fwdBtn").disabled = stepIdx === steps.length - 1;
+}
+
+function buildStepTable() {
+  const tb = $("stepTbody"); tb.innerHTML = "";
+  const nodes = RENDER.nodes;
+  steps.forEach((st,i)=>{
+    const tr = document.createElement("tr");
+    const action = st.kind === "init" ? "start"
+      : st.kind === "enter" ? "enter"
+      : st.kind === "hit" ? "✓ contribute"
+      : st.kind === "leaf" ? "leaf (fail)"
+      : st.kind === "return" ? "return"
+      : "done";
+    const carryTxt = st.carryIn === -Infinity ? "−∞" : (st.node !== null ? st.carryIn : "–");
+    const ans = curMode === "pathsum" ? (st.answer===1?"true":(st.kind==="done"?"false":"—")) : st.answer;
+    tr.innerHTML = `<td>${i}</td><td>${action}</td><td>${st.node!==null?nodes[st.node].val:"–"}</td><td>${carryTxt}</td><td>${st.stack.length?st.stack.length-1:0}</td><td>${ans}</td>`;
+    tr.addEventListener("click", ()=>{ stopPlay(); stepIdx=i; paintStep(); });
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- Controls ---------- */
+function rebuild() {
+  const res = buildSteps(EXAMPLES[curExample], curMode);
+  RENDER = { nodes: res.nodes };
+  steps = res.steps; stepIdx = 0;
+  renderTreeSvg(res.nodes);
+  buildStepTable(); paintStep(); updateCode(); updateLabels();
+}
+
+function updateLabels() {
+  if (curMode === "pathsum") {
+    $("outLabel").textContent = "Answer (does a path sum to target?)";
+    $("statCarryLbl").textContent = "Remaining"; $("statCarrySub").textContent = "target − sum";
+    $("statResLbl").textContent = "Found?"; $("statResSub").textContent = "true / false";
+  } else if (curMode === "rootleaf") {
+    $("outLabel").textContent = "Root-to-leaf numbers (summed)";
+    $("statCarryLbl").textContent = "Number"; $("statCarrySub").textContent = "digits so far";
+    $("statResLbl").textContent = "Total sum"; $("statResSub").textContent = "accumulated";
+  } else {
+    $("outLabel").textContent = "Good nodes counted";
+    $("statCarryLbl").textContent = "Max seen"; $("statCarrySub").textContent = "on path";
+    $("statResLbl").textContent = "Good count"; $("statResSub").textContent = "≥ all ancestors";
+  }
+}
+
+function stepForward(){ if(stepIdx < steps.length-1){ stepIdx++; paintStep(); } }
+function stepBack(){ if(stepIdx > 0){ stepIdx--; paintStep(); } }
+function play(){ if(stepIdx>=steps.length-1) stepIdx=0; playing=true; $("playBtn").textContent="❚❚ Pause"; const sp=+$("speed").value; const d=1100-sp*170; playTimer=setInterval(()=>{ if(stepIdx>=steps.length-1){stopPlay();return;} stepForward(); }, d); }
+function stopPlay(){ playing=false; $("playBtn").textContent="▶ Play"; clearInterval(playTimer); }
+function togglePlay(){ playing?stopPlay():play(); }
+
+$("playBtn").addEventListener("click", togglePlay);
+$("fwdBtn").addEventListener("click", ()=>{ stopPlay(); stepForward(); });
+$("backBtn").addEventListener("click", ()=>{ stopPlay(); stepBack(); });
+$("resetBtn").addEventListener("click", ()=>{ stopPlay(); stepIdx=0; paintStep(); });
+$("speed").addEventListener("input", ()=>{ if(playing){ stopPlay(); play(); } });
+
+$("modeToggle").addEventListener("click", e => {
+  const btn = e.target.closest(".mode-btn"); if(!btn) return;
+  stopPlay(); curMode = btn.dataset.mode;
+  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("active", b===btn));
+  rebuild();
+});
+
+function buildTabs() {
+  const wrap = $("exampleTabs"); wrap.innerHTML = "";
+  exampleKeys.forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "tab" + (k===curExample?" active":"");
+    const edge = (k==="skew"||k==="single");
+    b.innerHTML = `${EXAMPLES[k].label}<span class="tag ${edge?"tag-edge":"tag-classic"}">${edge?"edge":"classic"}</span>`;
+    b.addEventListener("click", ()=>{ stopPlay(); curExample=k; document.querySelectorAll("#exampleTabs .tab").forEach(t=>t.classList.remove("active")); b.classList.add("active"); rebuild(); });
+    wrap.appendChild(b);
+  });
+}
+
+/* ---------- Code ---------- */
+const CODE = {
+  pathsum: {
+    title: "C++ — Path Sum (LC 112)",
+    html: `<span class="cm">// carry = remaining target, flows DOWN</span>
+<span class="kw">bool</span> <span class="fn">hasPathSum</span>(TreeNode* node, <span class="kw">int</span> remaining) {
+  <span class="kw">if</span> (!node) <span class="kw">return</span> <span class="kw">false</span>;
+  remaining -= node-&gt;val;                <span class="cm">// update on the way down</span>
+  <span class="kw">if</span> (!node-&gt;left &amp;&amp; !node-&gt;right)        <span class="cm">// leaf</span>
+    <span class="kw">return</span> remaining == <span class="nm">0</span>;
+  <span class="kw">return</span> <span class="fn">hasPathSum</span>(node-&gt;left,  remaining)   <span class="cm">// pass carry down</span>
+      || <span class="fn">hasPathSum</span>(node-&gt;right, remaining);
+}
+<span class="cm">// call: hasPathSum(root, target)</span>`
+  },
+  rootleaf: {
+    title: "C++ — Sum Root to Leaf Numbers (LC 129)",
+    html: `<span class="cm">// carry = number formed so far, flows DOWN</span>
+<span class="kw">int</span> <span class="fn">dfs</span>(TreeNode* node, <span class="kw">int</span> num) {
+  <span class="kw">if</span> (!node) <span class="kw">return</span> <span class="nm">0</span>;
+  num = num * <span class="nm">10</span> + node-&gt;val;            <span class="cm">// build the number down</span>
+  <span class="kw">if</span> (!node-&gt;left &amp;&amp; !node-&gt;right)        <span class="cm">// leaf → a complete number</span>
+    <span class="kw">return</span> num;
+  <span class="kw">return</span> <span class="fn">dfs</span>(node-&gt;left,  num)
+       + <span class="fn">dfs</span>(node-&gt;right, num);       <span class="cm">// sum the leaves</span>
+}
+<span class="cm">// call: dfs(root, 0)</span>`
+  },
+  goodnodes: {
+    title: "C++ — Count Good Nodes (LC 1448)",
+    html: `<span class="cm">// carry = max value seen on path, flows DOWN</span>
+<span class="kw">int</span> <span class="fn">dfs</span>(TreeNode* node, <span class="kw">int</span> maxSoFar) {
+  <span class="kw">if</span> (!node) <span class="kw">return</span> <span class="nm">0</span>;
+  <span class="kw">int</span> good = (node-&gt;val &gt;= maxSoFar) ? <span class="nm">1</span> : <span class="nm">0</span>;
+  <span class="kw">int</span> nextMax = <span class="fn">max</span>(maxSoFar, node-&gt;val);  <span class="cm">// update max down</span>
+  <span class="kw">return</span> good
+       + <span class="fn">dfs</span>(node-&gt;left,  nextMax)
+       + <span class="fn">dfs</span>(node-&gt;right, nextMax);
+}
+<span class="cm">// call: dfs(root, INT_MIN)</span>`
+  }
+};
+function updateCode(){ $("codeTitle").textContent = CODE[curMode].title; $("codeBlock").innerHTML = CODE[curMode].html; }
+
+$("copyBtn").addEventListener("click", ()=>{ const tmp=document.createElement("div"); tmp.innerHTML=CODE[curMode].html; navigator.clipboard.writeText(tmp.textContent).then(()=>{ $("copyBtn").textContent="Copied ✓"; setTimeout(()=>$("copyBtn").textContent="Copy",1400); }); });
+
+$("pinBtn").addEventListener("click", ()=>{ const p=$("animPanel"); p.classList.toggle("pinned"); $("pinBtn").classList.toggle("active"); $("pinBtn").textContent = p.classList.contains("pinned")?"📌 Unpin":"📌 Pin panel"; });
+
+buildTabs();
+rebuild();
+</script>
+
+<!-- ===== FIREBASE: PROGRESS + BOOKMARK + NOTES ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const PROBLEM_SLUG = "tree-recursion-top-down";
+  let currentUser = null;
+
+  const trackerBar = document.createElement("div");
+  trackerBar.style.cssText = "max-width:980px;margin:0 auto;padding:0 1.5rem 1rem;";
+  trackerBar.innerHTML = `<button id="markComplete" style="display:flex;align-items:center;gap:8px;padding:8px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .2s;"><span id="mcIcon">○</span> <span id="mcLabel">Mark as Complete</span></button>`;
+  const mainEl = document.querySelector("main");
+  mainEl.insertBefore(trackerBar, mainEl.firstChild);
+  const markBtn = document.getElementById("markComplete");
+
+  function paintComplete(done){ const i=document.getElementById("mcIcon"), l=document.getElementById("mcLabel"); if(done){markBtn.style.background="var(--green-bg)";markBtn.style.borderColor="var(--green)";markBtn.style.color="var(--green)";i.textContent="✓";l.textContent="Completed";}else{markBtn.style.background="var(--surface2)";markBtn.style.borderColor="var(--border2)";markBtn.style.color="var(--muted)";i.textContent="○";l.textContent="Mark as Complete";} }
+  async function toggleComplete(){ if(!currentUser){alert("Sign in to track your progress.");return;} const ref=doc(db,"users",currentUser.uid,"progress",PROBLEM_SLUG); const snap=await getDoc(ref); const done=snap.exists()&&snap.data().completed; await setDoc(ref,{completed:!done,updatedAt:Date.now(),slug:PROBLEM_SLUG},{merge:true}); paintComplete(!done); }
+  markBtn.addEventListener("click", toggleComplete);
+
+  const bookmarkBtn = document.getElementById("bookmarkBtn");
+  function paintBookmark(on){ bookmarkBtn.classList.toggle("active",on); bookmarkBtn.textContent = on?"★":"☆"; }
+  async function toggleBookmark(){ if(!currentUser){alert("Sign in to bookmark.");return;} const ref=doc(db,"users",currentUser.uid,"bookmarks",PROBLEM_SLUG); const snap=await getDoc(ref); if(snap.exists()){ await setDoc(ref,{active:!snap.data().active,updatedAt:Date.now()},{merge:true}); paintBookmark(!snap.data().active);}else{ await setDoc(ref,{active:true,slug:PROBLEM_SLUG,title:document.title,updatedAt:Date.now()}); paintBookmark(true);} }
+  bookmarkBtn.addEventListener("click", toggleBookmark);
+
+  const notesHeader=document.getElementById("notesHeader"),notesBody=document.getElementById("notesBody"),notesText=document.getElementById("notesText"),saveStatus=document.getElementById("saveStatus"),charCount=document.getElementById("charCount"),noteIndicator=document.getElementById("noteIndicator");
+  let saveTimer=null;
+  notesHeader.addEventListener("click", ()=>{ notesHeader.classList.toggle("open"); notesBody.classList.toggle("open"); });
+  function setStatus(s,t){ saveStatus.className="save-status "+s; saveStatus.textContent=t; }
+  notesText.addEventListener("input", ()=>{ charCount.textContent=notesText.value.length+" chars"; noteIndicator.classList.toggle("visible",notesText.value.trim().length>0); setStatus("saving","Saving…"); clearTimeout(saveTimer); saveTimer=setTimeout(saveNotes,700); });
+  async function saveNotes(){ const v=notesText.value; localStorage.setItem("notes_"+PROBLEM_SLUG,v); if(currentUser){ try{ await setDoc(doc(db,"users",currentUser.uid,"notes",PROBLEM_SLUG),{text:v,updatedAt:Date.now(),slug:PROBLEM_SLUG},{merge:true}); setStatus("saved","Saved to cloud"); }catch(e){ setStatus("error","Saved locally"); } } else setStatus("saved","Saved locally"); }
+  async function loadNotes(){ let v=localStorage.getItem("notes_"+PROBLEM_SLUG)||""; if(currentUser){ try{ const snap=await getDoc(doc(db,"users",currentUser.uid,"notes",PROBLEM_SLUG)); if(snap.exists()&&snap.data().text!=null) v=snap.data().text; }catch(e){} } notesText.value=v; charCount.textContent=v.length+" chars"; noteIndicator.classList.toggle("visible",v.trim().length>0); }
+
+  onAuthStateChanged(auth, async (user)=>{ currentUser=user; if(user){ try{ const s=await getDoc(doc(db,"users",user.uid,"progress",PROBLEM_SLUG)); paintComplete(s.exists()&&s.data().completed);}catch(e){} try{ const b=await getDoc(doc(db,"users",user.uid,"bookmarks",PROBLEM_SLUG)); paintBookmark(b.exists()&&b.data().active);}catch(e){} } loadNotes(); });
+</script>
+
+<script src="../practice/config.js"></script>
+<script src="../practice/languages.js"></script>
+<script src="../practice/practice.js"></script>
+
+</body>
+</html>

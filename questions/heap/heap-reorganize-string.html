@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorganize String — Greedy + Heap</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.greedy { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .concept code { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+
+  .cfg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .cfg-row label { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .cfg-row input[type=text] { width: 180px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; }
+  .cfg-row input:focus { border-color: var(--purple); }
+  .cfg-row .apply-btn { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--purple); background: var(--purple-bg); color: var(--purple); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+  .cfg-row .apply-btn:hover { background: #2a1745; }
+  .cfg-row .cfg-hint { font-size: 11px; color: var(--muted2); }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .dot.d-pick  { background: var(--purple-bg); border-color: var(--purple); }
+  .dot.d-hold  { background: var(--amber-bg);  border-color: var(--amber); }
+  .dot.d-place { background: var(--green-bg);  border-color: var(--green); }
+  .dot.d-ready { background: var(--teal-bg);   border-color: var(--teal); }
+
+  /* HEAP (by count) */
+  .heap-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1.1rem; }
+  .heap-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; display:flex; gap:8px; align-items:center; }
+  .heap-kind { font-size: 10px; padding: 1px 8px; border-radius: 10px; font-weight: 700; background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .heap-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; min-height: 46px; }
+  .heap-cell { display: flex; flex-direction: column; align-items: center; padding: .35rem .75rem; border-radius: 8px; border: 1.5px solid var(--teal); background: var(--teal-bg); color: var(--teal); font-family: var(--mono); font-weight: 700; animation: qpop .2s ease; }
+  .heap-cell.top { border-color: var(--purple); background: var(--purple-bg); color: var(--purple); filter: drop-shadow(0 0 6px rgba(192,132,252,.4)); }
+  .heap-cell small { font-size: 9px; color: var(--muted2); font-weight: 400; }
+  @keyframes qpop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .heap-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  /* HOLD SLOT */
+  .hold-wrap { margin-bottom: 1.1rem; }
+  .hold-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .hold-row { display: flex; gap: 10px; align-items: center; min-height: 44px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .6rem .9rem; }
+  .hold-cell { padding: .3rem .8rem; border-radius: 7px; border: 1.5px solid var(--amber); background: var(--amber-bg); color: var(--amber); font-family: var(--mono); font-size: 13px; font-weight: 700; }
+  .hold-cell small { color: var(--muted2); font-weight: 400; font-size: 10px; }
+  .hold-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+  .hold-note { font-size: 11px; color: var(--muted2); }
+
+  /* OUTPUT STRING */
+  .out-wrap { margin-bottom: 1.1rem; }
+  .out-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .out-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; min-height: 40px; }
+  .out-cell { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 1.5px solid var(--green); background: var(--green-bg); color: var(--green); font-family: var(--mono); font-weight: 700; font-size: 14px; animation: qpop .2s ease; }
+  .out-cell.latest { outline: 2px solid var(--purple); outline-offset: 1px; }
+  .out-cell.bad { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+  .out-empty { color: var(--muted2); font-family: var(--mono); font-size: 12px; }
+
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-pick { color: var(--purple); }
+  .tp-hold { color: var(--amber); }
+  .tp-len  { color: var(--green); }
+  .tp-last { color: var(--teal); }
+
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--purple), var(--green)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.green  .val { color: var(--green); }
+  .stat-box.teal   .val { color: var(--teal); }
+
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.primary { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .btn.primary:hover { background: #2a1745; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--purple); }
+  .done-pill { border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode 767</span>
+      <span class="badge greedy">Greedy + Max-Heap</span>
+      <span class="badge medium">Medium</span>
+    </div>
+    <h1>Reorganize String — Greedy + Heap</h1>
+    <p>Place the most frequent char, then hold it one turn so it can't repeat. A max-heap by count drives every pick — O(N log 26) time</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>Place the busiest, then benchit</h2>
+      <p>Rearrange a string so no two adjacent characters are equal. Greedy insight: always place the character with the <strong style="color:var(--purple)">highest remaining count</strong>. If you don't, a hoarded character piles up and forces a repeat at the end.</p>
+      <p style="margin-top:.6rem">A <strong style="color:var(--purple)">max-heap</strong> keyed on count gives that pick. The catch: you can't place the same char twice in a row, so after placing one you <strong style="color:var(--amber)">hold it aside</strong> for exactly one turn (still with its remaining count). Next turn, after picking a different char, you push the held one back. Impossible iff any char's count exceeds <code>&lceil;n/2&rceil;</code>.</p>
+    </div>
+    <div class="formula">
+      <span class="comment">// max-heap by remaining count</span><br>
+      prev = none<br>
+      <span class="keyword">while</span> heap:<br>
+      &nbsp;&nbsp;[c, cnt] = heap.pop()&nbsp;<span class="comment"># busiest</span><br>
+      &nbsp;&nbsp;result += c;&nbsp; cnt -= 1<br>
+      &nbsp;&nbsp;<span class="keyword">if</span> prev.cnt &gt; 0: heap.push(prev)<br>
+      &nbsp;&nbsp;prev = [c, cnt]&nbsp;<span class="comment"># hold one turn</span>
+    </div>
+  </div>
+
+  <div class="lc-banner" id="lcBanner">
+    <div class="lc-icon">LC</div>
+    <div class="lc-text"><b>Reorganize String (767)</b>: a greedy-plus-heap staple. The "hold the last-placed char for one turn" trick is the whole game.</div>
+    <a href="https://leetcode.com/problems/reorganize-string/" target="_blank" rel="noopener" class="lc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Problem
+    </a>
+  </div>
+
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time Complexity</div>
+      <div class="big">O(N log 26)</div>
+      <p>N placements, each an O(log 26) heap push/pop. At most 26 distinct characters.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space Complexity</div>
+      <div class="big">O(26)</div>
+      <p>Heap plus the single held char, capped at the alphabet size.</p>
+    </div>
+  </div>
+
+  <div class="tabs" id="exampleTabs"></div>
+
+  <div class="anim-panel" id="animPanel">
+    <div class="anim-panel-head">
+      <span class="title">Live Visualization</span>
+      <button class="pin-btn" id="pinBtn">📌 Pin panel</button>
+    </div>
+
+    <div class="cfg-row">
+      <label>s =</label>
+      <input type="text" id="strInput" value="aab">
+      <button class="apply-btn" id="applyBtn">Apply</button>
+      <span class="cfg-hint">lowercase letters only</span>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot d-pick"></span> Picked (heap top)</span>
+      <span><span class="dot d-hold"></span> Held one turn</span>
+      <span><span class="dot d-place"></span> Placed in result</span>
+      <span><span class="dot d-ready"></span> In heap</span>
+    </div>
+
+    <div class="heap-wrap">
+      <div class="heap-title">Character heap <span class="heap-kind">max-heap by remaining count</span></div>
+      <div class="heap-row" id="heapRow"></div>
+    </div>
+
+    <div class="hold-wrap">
+      <div class="hold-title">On hold <span style="color:var(--muted2)">(last placed, benched for one turn)</span></div>
+      <div class="hold-row" id="holdRow"></div>
+    </div>
+
+    <div class="out-wrap">
+      <div class="out-title" id="outTitle">Result so far</div>
+      <div class="out-row" id="outRow"></div>
+    </div>
+
+    <div class="tracker-row">
+      <span class="tracker-pill tp-pick">picked = <span id="tpPick">–</span></span>
+      <span class="tracker-pill tp-hold">holding = <span id="tpHold">–</span></span>
+      <span class="tracker-pill tp-len">placed = <span id="tpLen">0</span></span>
+      <span class="tracker-pill tp-last">last char = <span id="tpLast">–</span></span>
+    </div>
+
+    <div class="step-label">Step <span id="stepNum">0</span> / <span id="stepTotal">0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="lbl">Picked</div><div class="val" id="statPick">–</div><div class="sub">busiest char</div></div>
+      <div class="stat-box amber"><div class="lbl">On hold</div><div class="val" id="statHold">–</div><div class="sub">benched 1 turn</div></div>
+      <div class="stat-box green"><div class="lbl">Placed</div><div class="val" id="statLen">0</div><div class="sub" id="statLenSub">of N</div></div>
+      <div class="stat-box teal"><div class="lbl">Heap size</div><div class="val" id="statHeap">0</div><div class="sub">distinct left</div></div>
+    </div>
+
+    <div class="log-box" id="logBox">Enter a string and hit <span class="sol">Play</span> to watch the greedy reorganizer build a valid result.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="playBtn">▶ Play</button>
+      <button class="btn" id="backBtn">⟨ Step back</button>
+      <button class="btn" id="fwdBtn">Step ⟩</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+      <span class="done-pill" id="donePill">✓ Done</span>
+      <span class="speed-wrap">Speed <input type="range" id="speed" min="1" max="5" value="3"></span>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step trace</h3>
+    <table class="step-table" id="stepTable">
+      <thead>
+        <tr><th>#</th><th>Action</th><th>Picked</th><th>Heap (char·count)</th><th>Hold</th><th>Result</th></tr>
+      </thead>
+      <tbody id="stepTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="code-section">
+    <div class="code-header">
+      <span>C++ — Reorganize String (LC 767)</span>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <pre id="codeBlock"><span class="kw">string</span> <span class="fn">reorganizeString</span>(<span class="kw">string</span> s) {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; cnt(<span class="nm">26</span>, <span class="nm">0</span>);
+    <span class="kw">for</span> (<span class="kw">char</span> c : s) cnt[c - <span class="st">'a'</span>]++;
+
+    <span class="cm">// max-heap of {count, char}</span>
+    <span class="fn">priority_queue</span>&lt;<span class="fn">pair</span>&lt;<span class="kw">int</span>,<span class="kw">char</span>&gt;&gt; pq;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; <span class="nm">26</span>; ++i)
+        <span class="kw">if</span> (cnt[i]) pq.<span class="fn">push</span>({cnt[i], <span class="kw">char</span>(<span class="st">'a'</span>+i)});
+
+    <span class="kw">string</span> res;
+    <span class="fn">pair</span>&lt;<span class="kw">int</span>,<span class="kw">char</span>&gt; prev = {<span class="nm">0</span>, <span class="st">'#'</span>};   <span class="cm">// held char</span>
+
+    <span class="kw">while</span> (!pq.<span class="fn">empty</span>()) {
+        <span class="kw">auto</span> [c, ch] = pq.<span class="fn">top</span>(); pq.<span class="fn">pop</span>();  <span class="cm">// busiest</span>
+        res += ch;
+        <span class="kw">if</span> (prev.first &gt; <span class="nm">0</span>) pq.<span class="fn">push</span>(prev);  <span class="cm">// release held</span>
+        prev = {c - <span class="nm">1</span>, ch};                <span class="cm">// hold current for a turn</span>
+    }
+    <span class="kw">return</span> res.<span class="fn">size</span>() == s.<span class="fn">size</span>() ? res : <span class="st">""</span>;  <span class="cm">// "" if impossible</span>
+}</pre>
+  </div>
+
+  <div class="notes-section">
+    <div class="notes-header" id="notesHeader">
+      <h3>📝 My Notes <span class="note-indicator" id="noteIndicator">●</span></h3>
+      <span class="toggle-icon">▾</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesText" placeholder="Feasibility: impossible iff maxCount > ceil(n/2). The 'hold prev for one turn' trick is what stops immediate repeats. Only release the held char AFTER placing a different one this turn..."></textarea>
+      <div class="notes-footer">
+        <span class="save-status saved" id="saveStatus">Saved</span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="practice-arena" data-problem-slug="heap-reorganize-string"></div>
+
+</main>
+
+<button class="algo-bookmark" id="bookmarkBtn" title="Bookmark this algorithm">☆</button>
+
+<script>
+/* ============================================================
+   REORGANIZE STRING (LC 767) — greedy + max-heap
+   All steps computed live. Max-heap by count; place busiest,
+   hold it one turn (prev), release prev after next placement.
+   Detects impossibility (maxCount > ceil(n/2)).
+   ============================================================ */
+
+const EXAMPLES = {
+  aab:  { label: "aab", s: "aab" },
+  aaab: { label: "aaab (impossible)", s: "aaab" },
+  vvvlo:{ label: "vvvlo", s: "vvvlo" },
+  aabbcc:{ label: "aabbcc", s: "aabbcc" },
+  aaabc:{ label: "aaabc", s: "aaabc" }
+};
+
+let exampleKeys = Object.keys(EXAMPLES);
+let curExample = "aab";
+let curStr = "aab";
+let steps = [], stepIdx = 0, playing = false, playTimer = null;
+const $ = id => document.getElementById(id);
+
+/* ---------- Max-heap of {ch, count} by count ---------- */
+function makeMaxHeap() {
+  const a = [];
+  const cmp = (x,y)=> y.count - x.count || (x.ch<y.ch?-1:1);
+  function up(i){ while(i>0){const p=(i-1>>1); if(cmp(a[i],a[p])<0){[a[i],a[p]]=[a[p],a[i]];i=p;} else break;} }
+  function down(i){ const n=a.length; while(true){let l=2*i+1,r=2*i+2,s=i; if(l<n&&cmp(a[l],a[s])<0)s=l; if(r<n&&cmp(a[r],a[s])<0)s=r; if(s!==i){[a[i],a[s]]=[a[s],a[i]];i=s;} else break;} }
+  return { arr:a, push(v){a.push(v);up(a.length-1);}, pop(){const t=a[0];const l=a.pop();if(a.length){a[0]=l;down(0);}return t;}, peek(){return a[0];}, size(){return a.length;}, snap(){return a.map(x=>({...x}));} };
+}
+
+/* ---------- Build steps ---------- */
+function buildSteps(s) {
+  const out = [];
+  const n = s.length;
+  const freq = {};
+  for (const c of s) freq[c] = (freq[c]||0)+1;
+
+  const maxCount = Math.max(...Object.values(freq));
+  const feasible = maxCount <= Math.ceil(n/2);
+
+  const heap = makeMaxHeap();
+  Object.keys(freq).sort().forEach(c => heap.push({ ch:c, count:freq[c] }));
+
+  let result = "";
+  let prev = null; // {ch, count} held
+
+  function heapSnap(){ return heap.snap(); }
+  function snap(kind, log, extra) {
+    out.push({
+      kind,
+      heap: heapSnap(),
+      prev: prev ? {...prev} : null,
+      result,
+      picked: extra && extra.picked !== undefined ? extra.picked : null,
+      bad: extra && extra.bad ? true : false,
+      log
+    });
+  }
+
+  const freqStr = Object.keys(freq).sort().map(c=>`<span class="hi">${c}×${freq[c]}</span>`).join(", ");
+  snap("init", `Counts: ${freqStr}. Max count = ${maxCount}, ⌈n/2⌉ = ${Math.ceil(n/2)}. ${feasible?`<span class="pos">Feasible</span> since ${maxCount} ≤ ${Math.ceil(n/2)}.`:`<span class="neg">Impossible</span>: ${maxCount} &gt; ${Math.ceil(n/2)} means a char must repeat.`}`);
+
+  if (!feasible) {
+    // simulate a bit to show the pileup then declare failure
+    snap("fail", `<span class="neg">Return "" — no valid arrangement exists.</span> The dominant char can't be separated enough.`, { bad:true });
+    return { steps: out, feasible:false, result:"" };
+  }
+
+  while (heap.size() > 0) {
+    const top = heap.pop();
+    result += top.ch;
+    const remaining = top.count - 1;
+    snap("place", `Pop the busiest char <span class="sol">${top.ch}</span> (count ${top.count}). Append it → result "${result}". ${remaining>0?`${remaining} left.`:`used up.`}`, { picked: top.ch });
+
+    // release previously held char (now safe, since we placed a different one)
+    if (prev && prev.count > 0) {
+      heap.push({ ...prev });
+      snap("release", `Release the held char <span class="tl">${prev.ch}</span> (count ${prev.count}) back into the heap — safe now that a different char sits at the end.`);
+    }
+    // hold current
+    prev = remaining > 0 ? { ch: top.ch, count: remaining } : null;
+    if (prev) snap("hold", `Hold <span class="amb">${top.ch}</span> (${remaining} left) aside for one turn so it can't be placed twice in a row.`);
+    else snap("hold", `<span class="hi">${top.ch}</span> is exhausted, nothing to hold.`);
+  }
+
+  snap("done", `✓ Done. Valid reorganization: <span class="pos">"${result}"</span> — no two adjacent characters match.`);
+  return { steps: out, feasible:true, result };
+}
+
+/* ---------- Rendering ---------- */
+function paintStep() {
+  const st = steps[stepIdx]; if (!st) return;
+
+  // heap
+  const hr = $("heapRow"); hr.innerHTML = "";
+  if (!st.heap.length) hr.innerHTML = '<span class="heap-empty">empty</span>';
+  else st.heap.forEach((x,i)=>{
+    const cell = document.createElement("div");
+    cell.className = "heap-cell" + (i===0?" top":"");
+    cell.innerHTML = `${x.ch}<small>×${x.count}</small>`;
+    hr.appendChild(cell);
+  });
+
+  // hold
+  const hd = $("holdRow"); hd.innerHTML = "";
+  if (!st.prev) hd.innerHTML = '<span class="hold-empty">nothing on hold</span>';
+  else {
+    const cell = document.createElement("div");
+    cell.className = "hold-cell";
+    cell.innerHTML = `${st.prev.ch}<small> ×${st.prev.count}</small>`;
+    hd.appendChild(cell);
+    const note = document.createElement("span");
+    note.className = "hold-note";
+    note.textContent = "will rejoin the heap after the next placement";
+    hd.appendChild(note);
+  }
+
+  // result
+  const or = $("outRow"); or.innerHTML = "";
+  if (st.bad) { or.innerHTML = '<div class="out-cell bad">✗</div><span class="out-empty" style="margin-left:8px">no valid arrangement</span>'; }
+  else if (!st.result.length) or.innerHTML = '<span class="out-empty">empty</span>';
+  else {
+    [...st.result].forEach((c,i)=>{
+      const cell = document.createElement("div");
+      cell.className = "out-cell" + (i===st.result.length-1 && st.kind!=="done" ? " latest" : "");
+      cell.textContent = c;
+      or.appendChild(cell);
+    });
+  }
+
+  // trackers
+  $("tpPick").textContent = st.picked || "–";
+  $("tpHold").textContent = st.prev ? `${st.prev.ch}×${st.prev.count}` : "–";
+  $("tpLen").textContent = st.result.length;
+  $("tpLast").textContent = st.result.length ? st.result[st.result.length-1] : "–";
+
+  $("statPick").textContent = st.picked || "–";
+  $("statHold").textContent = st.prev ? st.prev.ch : "–";
+  $("statLen").textContent = st.result.length;
+  $("statLenSub").textContent = "of " + curStr.length;
+  $("statHeap").textContent = st.heap.length;
+
+  $("logBox").innerHTML = st.log;
+
+  $("stepNum").textContent = stepIdx;
+  $("stepTotal").textContent = steps.length - 1;
+  $("progressFill").style.width = ((stepIdx/(steps.length-1))*100) + "%";
+  const dp = $("donePill");
+  if (st.kind === "done") { dp.style.display="inline-block"; dp.textContent = "✓ " + st.result; dp.style.background="var(--green-bg)"; dp.style.color="var(--green)"; dp.style.border="1px solid #1a6b3a"; }
+  else if (st.kind === "fail") { dp.style.display="inline-block"; dp.textContent = '✗ return ""'; dp.style.background="var(--red-bg)"; dp.style.color="var(--red)"; dp.style.border="1px solid #5a1a1a"; }
+  else dp.style.display="none";
+
+  document.querySelectorAll("#stepTbody tr").forEach((tr,i)=>tr.classList.toggle("highlighted", i===stepIdx));
+  const hl = document.querySelector("#stepTbody tr.highlighted");
+  if (hl) hl.scrollIntoView({ block:"nearest", behavior:"smooth" });
+
+  $("backBtn").disabled = stepIdx === 0;
+  $("fwdBtn").disabled = stepIdx === steps.length - 1;
+}
+
+function buildStepTable() {
+  const tb = $("stepTbody"); tb.innerHTML = "";
+  steps.forEach((st,i)=>{
+    const tr = document.createElement("tr");
+    const action = st.kind === "init" ? "start"
+      : st.kind === "place" ? "place"
+      : st.kind === "release" ? "release"
+      : st.kind === "hold" ? "hold"
+      : st.kind === "fail" ? "impossible"
+      : "done";
+    const heapStr = st.heap.length ? st.heap.map(x=>`${x.ch}${x.count}`).join(" ") : "∅";
+    const holdStr = st.prev ? `${st.prev.ch}${st.prev.count}` : "–";
+    tr.innerHTML = `<td>${i}</td><td>${action}</td><td>${st.picked||"–"}</td><td>${heapStr}</td><td>${holdStr}</td><td>${st.result||(st.bad?'""':"–")}</td>`;
+    tr.addEventListener("click", ()=>{ stopPlay(); stepIdx=i; paintStep(); });
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- Controls ---------- */
+function rebuild() {
+  const res = buildSteps(curStr);
+  steps = res.steps; stepIdx = 0;
+  buildStepTable(); paintStep();
+}
+
+function stepForward(){ if(stepIdx < steps.length-1){ stepIdx++; paintStep(); } }
+function stepBack(){ if(stepIdx > 0){ stepIdx--; paintStep(); } }
+function play(){ if(stepIdx>=steps.length-1) stepIdx=0; playing=true; $("playBtn").textContent="❚❚ Pause"; const sp=+$("speed").value; const d=1100-sp*170; playTimer=setInterval(()=>{ if(stepIdx>=steps.length-1){stopPlay();return;} stepForward(); }, d); }
+function stopPlay(){ playing=false; $("playBtn").textContent="▶ Play"; clearInterval(playTimer); }
+function togglePlay(){ playing?stopPlay():play(); }
+
+$("playBtn").addEventListener("click", togglePlay);
+$("fwdBtn").addEventListener("click", ()=>{ stopPlay(); stepForward(); });
+$("backBtn").addEventListener("click", ()=>{ stopPlay(); stepBack(); });
+$("resetBtn").addEventListener("click", ()=>{ stopPlay(); stepIdx=0; paintStep(); });
+$("speed").addEventListener("input", ()=>{ if(playing){ stopPlay(); play(); } });
+
+$("applyBtn").addEventListener("click", ()=>{
+  stopPlay();
+  const v = $("strInput").value.toLowerCase().replace(/[^a-z]/g,"");
+  if (v.length) { curStr = v; rebuild(); }
+});
+$("strInput").addEventListener("keydown", e=>{ if(e.key==="Enter"){ $("applyBtn").click(); } });
+
+function buildTabs() {
+  const wrap = $("exampleTabs"); wrap.innerHTML = "";
+  exampleKeys.forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "tab" + (k===curExample?" active":"");
+    const edge = (k==="aaab"||k==="aaabc"||k==="vvvlo");
+    b.innerHTML = `${EXAMPLES[k].label}<span class="tag ${edge?"tag-edge":"tag-classic"}">${edge?"edge":"classic"}</span>`;
+    b.addEventListener("click", ()=>{
+      stopPlay(); curExample=k; curStr=EXAMPLES[k].s;
+      $("strInput").value = curStr;
+      document.querySelectorAll("#exampleTabs .tab").forEach(t=>t.classList.remove("active")); b.classList.add("active");
+      rebuild();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+$("copyBtn").addEventListener("click", ()=>{ navigator.clipboard.writeText($("codeBlock").innerText).then(()=>{ $("copyBtn").textContent="Copied ✓"; setTimeout(()=>$("copyBtn").textContent="Copy",1400); }); });
+
+$("pinBtn").addEventListener("click", ()=>{ const p=$("animPanel"); p.classList.toggle("pinned"); $("pinBtn").classList.toggle("active"); $("pinBtn").textContent = p.classList.contains("pinned")?"📌 Unpin":"📌 Pin panel"; });
+
+$("strInput").value = curStr;
+buildTabs();
+rebuild();
+</script>
+
+<!-- ===== FIREBASE: PROGRESS + BOOKMARK + NOTES ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const PROBLEM_SLUG = "heap-reorganize-string";
+  let currentUser = null;
+
+  const trackerBar = document.createElement("div");
+  trackerBar.style.cssText = "max-width:980px;margin:0 auto;padding:0 1.5rem 1rem;";
+  trackerBar.innerHTML = `<button id="markComplete" style="display:flex;align-items:center;gap:8px;padding:8px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .2s;"><span id="mcIcon">○</span> <span id="mcLabel">Mark as Complete</span></button>`;
+  const mainEl = document.querySelector("main");
+  mainEl.insertBefore(trackerBar, mainEl.firstChild);
+  const markBtn = document.getElementById("markComplete");
+
+  function paintComplete(done){ const i=document.getElementById("mcIcon"), l=document.getElementById("mcLabel"); if(done){markBtn.style.background="var(--green-bg)";markBtn.style.borderColor="var(--green)";markBtn.style.color="var(--green)";i.textContent="✓";l.textContent="Completed";}else{markBtn.style.background="var(--surface2)";markBtn.style.borderColor="var(--border2)";markBtn.style.color="var(--muted)";i.textContent="○";l.textContent="Mark as Complete";} }
+  async function toggleComplete(){ if(!currentUser){alert("Sign in to track your progress.");return;} const ref=doc(db,"users",currentUser.uid,"progress",PROBLEM_SLUG); const snap=await getDoc(ref); const done=snap.exists()&&snap.data().completed; await setDoc(ref,{completed:!done,updatedAt:Date.now(),slug:PROBLEM_SLUG},{merge:true}); paintComplete(!done); }
+  markBtn.addEventListener("click", toggleComplete);
+
+  const bookmarkBtn = document.getElementById("bookmarkBtn");
+  function paintBookmark(on){ bookmarkBtn.classList.toggle("active",on); bookmarkBtn.textContent = on?"★":"☆"; }
+  async function toggleBookmark(){ if(!currentUser){alert("Sign in to bookmark.");return;} const ref=doc(db,"users",currentUser.uid,"bookmarks",PROBLEM_SLUG); const snap=await getDoc(ref); if(snap.exists()){ await setDoc(ref,{active:!snap.data().active,updatedAt:Date.now()},{merge:true}); paintBookmark(!snap.data().active);}else{ await setDoc(ref,{active:true,slug:PROBLEM_SLUG,title:document.title,updatedAt:Date.now()}); paintBookmark(true);} }
+  bookmarkBtn.addEventListener("click", toggleBookmark);
+
+  const notesHeader=document.getElementById("notesHeader"),notesBody=document.getElementById("notesBody"),notesText=document.getElementById("notesText"),saveStatus=document.getElementById("saveStatus"),charCount=document.getElementById("charCount"),noteIndicator=document.getElementById("noteIndicator");
+  let saveTimer=null;
+  notesHeader.addEventListener("click", ()=>{ notesHeader.classList.toggle("open"); notesBody.classList.toggle("open"); });
+  function setStatus(s,t){ saveStatus.className="save-status "+s; saveStatus.textContent=t; }
+  notesText.addEventListener("input", ()=>{ charCount.textContent=notesText.value.length+" chars"; noteIndicator.classList.toggle("visible",notesText.value.trim().length>0); setStatus("saving","Saving…"); clearTimeout(saveTimer); saveTimer=setTimeout(saveNotes,700); });
+  async function saveNotes(){ const v=notesText.value; localStorage.setItem("notes_"+PROBLEM_SLUG,v); if(currentUser){ try{ await setDoc(doc(db,"users",currentUser.uid,"notes",PROBLEM_SLUG),{text:v,updatedAt:Date.now(),slug:PROBLEM_SLUG},{merge:true}); setStatus("saved","Saved to cloud"); }catch(e){ setStatus("error","Saved locally"); } } else setStatus("saved","Saved locally"); }
+  async function loadNotes(){ let v=localStorage.getItem("notes_"+PROBLEM_SLUG)||""; if(currentUser){ try{ const snap=await getDoc(doc(db,"users",currentUser.uid,"notes",PROBLEM_SLUG)); if(snap.exists()&&snap.data().text!=null) v=snap.data().text; }catch(e){} } notesText.value=v; charCount.textContent=v.length+" chars"; noteIndicator.classList.toggle("visible",v.trim().length>0); }
+
+  onAuthStateChanged(auth, async (user)=>{ currentUser=user; if(user){ try{ const s=await getDoc(doc(db,"users",user.uid,"progress",PROBLEM_SLUG)); paintComplete(s.exists()&&s.data().completed);}catch(e){} try{ const b=await getDoc(doc(db,"users",user.uid,"bookmarks",PROBLEM_SLUG)); paintBookmark(b.exists()&&b.data().active);}catch(e){} } loadNotes(); });
+</script>
+
+<script src="../practice/config.js"></script>
+<script src="../practice/languages.js"></script>
+<script src="../practice/practice.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Split Array Largest Sum — Binary Search on Answer</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3a4a7a;
+    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
+    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace; --sans: 'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; background: var(--surface); }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge.hard { background: var(--red-bg); color: var(--red); border: 1px solid #5a1a1a; }
+  .badge.bs { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .badge.lc { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2; }
+  .formula .comment { color: var(--muted); font-style: italic; } .formula .keyword { color: var(--purple); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; overflow-x: auto; }
+  .tab { flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag { display: inline-block; margin-left: 5px; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .tag-edge { background: var(--purple-bg); color: var(--purple); } .tag-classic { background: var(--accent-bg); color: var(--accent); }
+  .anim-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .anim-panel.pinned { position: sticky; top: 12px; z-index: 30; box-shadow: 0 14px 36px rgba(0,0,0,.5); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .anim-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn { font-size: 12px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; flex-shrink: 0; }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); } .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .bs-bar-wrap { margin-bottom: 1.1rem; }
+  .bs-bar-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .bs-bar-outer { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
+  .bs-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .bs-key { font-size: 12px; color: var(--muted); min-width: 30px; font-family: var(--mono); }
+  .bs-track { flex: 1; height: 12px; background: var(--border); border-radius: 6px; position: relative; min-width: 120px; }
+  .bs-fill { height: 100%; border-radius: 6px; position: absolute; top: 0; transition: left .3s ease, width .3s ease; background: linear-gradient(90deg, var(--teal), var(--purple)); }
+  .bs-pointer { width: 20px; height: 20px; border-radius: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: var(--mono); border: 2px solid; transition: left .3s ease; }
+  .bs-pointer.lo { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .bs-pointer.hi { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .bs-pointer.mid { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .bs-vals { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; font-family: var(--mono); }
+  .bs-val-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bs-val-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .bs-val-num { font-size: 18px; font-weight: 700; }
+  .books-section { margin-bottom: 1.1rem; }
+  .books-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .books-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .book-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .book-bar { width: 44px; border-radius: 6px 6px 3px 3px; border: 1.5px solid var(--border2); background: var(--surface2); display: flex; align-items: flex-start; justify-content: center; padding-top: 4px; font-size: 12px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: background .2s, border-color .2s, color .2s; }
+  .book-bar.s0 { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .book-bar.s1 { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .book-bar.s2 { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .book-bar.s3 { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .book-bar.overflow { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .book-idx { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .student-divider { width: 2px; height: 52px; background: var(--border2); border-radius: 2px; position: relative; align-self: flex-end; }
+  .student-divider::after { content: attr(data-s); position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono); display: flex; flex-direction: column; gap: 3px; min-width: 110px; }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); } .alloc-card .ac-sum { font-weight: 700; }
+  .alloc-card.over { border-color: var(--red); background: var(--red-bg); } .alloc-card.over .ac-sum { color: var(--red); }
+  .alloc-card.ok { border-color: var(--green); background: var(--green-bg); } .alloc-card.ok .ac-sum { color: var(--green); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; } .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono); }
+  .tp-lo { color: var(--teal); } .tp-hi { color: var(--red); } .tp-mid { color: var(--amber); } .tp-ans { color: var(--purple); }
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; } .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; } .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.teal .val { color: var(--teal); } .stat-box.red .val { color: var(--red); } .stat-box.amber .val { color: var(--amber); } .stat-box.purple .val { color: var(--purple); }
+  .log-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; font-size: 13.5px; color: var(--muted); min-height: 52px; margin-bottom: 1.25rem; line-height: 1.65; }
+  .log-box .hi { color: var(--text); font-weight: 500; } .log-box .pos { color: var(--green); font-weight: 600; } .log-box .neg { color: var(--red); font-weight: 600; } .log-box .acc { color: var(--accent); font-weight: 600; } .log-box .amb { color: var(--amber); font-weight: 600; } .log-box .sol { color: var(--purple); font-weight: 600; } .log-box .tl { color: var(--teal); font-weight: 600; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--border); border-color: var(--muted); } .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); } .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 4px 12px; display: none; }
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th { text-align: left; padding: 6px 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn { font-size: 12px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .cm { color: var(--muted); font-style: italic; } .nm { color: var(--amber); } .st { color: var(--green); }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); } .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s} .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px} .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s} .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)} .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none} .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)} .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px} .notes-footer .save-status.saved{color:var(--green)} .notes-footer .save-status.saving{color:var(--amber)} .notes-footer .save-status.error{color:var(--red)}
+  .lc-banner{ display:flex; align-items:center; gap:.75rem; background:linear-gradient(135deg,#1a2140,#0c2624); border:1px solid #343a57; border-radius:12px; padding:1rem 1.25rem; margin:1.5rem 0; font-size:14px; }
+  .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;} .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
+  .algo-bookmark{ position:fixed; bottom:2rem; right:2rem; z-index:100; width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--muted2); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:all .2s ease; font-size:18px; }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);} .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge bs">Binary Search on Answer</span>
+      <span class="badge hard">Hard</span>
+    </div>
+    <h1>Split Array Largest Sum</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding. Note: this is the twin of the Book Allocation problem.</div>
+      <a href="https://leetcode.com/problems/split-array-largest-sum/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>Split nums into k contiguous subarrays so the largest subarray sum is minimised — binary search the answer, O(N log S) time</p>
+  </div>
+</header>
+
+<main>
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Split <code style="color:var(--accent)">nums</code> into <code style="color:var(--accent)">k</code> non-empty <strong style="color:var(--text)">contiguous</strong> subarrays so the <strong style="color:var(--teal)">largest subarray sum</strong> is as small as possible. This is exactly the Book Allocation problem with a different story: books → numbers, students → subarrays.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> binary search on the <em>answer</em> (the max allowed subarray sum). For a candidate limit <code style="color:var(--accent)">mid</code>, greedily count how many subarrays you'd need if no subarray may exceed <code style="color:var(--accent)">mid</code>. If that count &le; k, the limit is feasible, try smaller; otherwise go bigger. Range is [max(nums), sum(nums)] → <strong style="color:var(--teal)">O(N log S)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// binary search on answer</span><br>
+        lo = max(nums), hi = sum(nums)<br>
+        <span class="keyword">while</span> lo &lt;= hi:<br>
+        &nbsp;&nbsp;mid = (lo+hi)/2<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> pieces(mid) &lt;= k:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;ans = mid; hi = mid-1<br>
+        &nbsp;&nbsp;<span class="keyword">else</span>: lo = mid+1
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card"><div class="lbl">Time complexity</div><div class="big">O(N log S)</div><p>Binary search runs O(log S) times over the sum range; each feasibility check is an O(N) greedy scan.</p></div>
+    <div class="complex-card"><div class="lbl">Space complexity</div><div class="big">O(1)</div><p>A handful of counters. No DP table (the DP formulation is O(N²k) and much slower).</p></div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[7,2,5,10,8], k=2 <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[1,2,3,4,5], k=2 <span class="tag tag-classic">even split</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[1,4,4], k=3 <span class="tag tag-edge">k = n</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[10], k=1 <span class="tag tag-edge">single</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[2,3,1,2,4,3], k=3 <span class="tag tag-edge">6 items</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — binary search on the answer</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> lo</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> hi</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> mid (testing)</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> feasible → record</span>
+      <span><span class="dot" style="background:var(--red-bg);border-color:var(--red)"></span> too many pieces</span>
+    </div>
+    <div class="bs-bar-wrap">
+      <div class="bs-bar-label">Search space — [lo … hi]</div>
+      <div class="bs-bar-outer">
+        <div class="bs-row">
+          <span class="bs-key">lo</span>
+          <div class="bs-track" id="bs-track">
+            <div class="bs-fill" id="bs-fill"></div>
+            <div class="bs-pointer lo" id="ptr-lo">L</div>
+            <div class="bs-pointer hi" id="ptr-hi">H</div>
+            <div class="bs-pointer mid" id="ptr-mid" style="display:none">M</div>
+          </div>
+          <span class="bs-key" style="text-align:right">hi</span>
+        </div>
+        <div class="bs-vals">
+          <div class="bs-val-item"><span class="bs-val-lbl">lo</span><span class="bs-val-num" id="bv-lo" style="color:var(--teal)">—</span></div>
+          <div class="bs-val-item"><span class="bs-val-lbl">mid</span><span class="bs-val-num" id="bv-mid" style="color:var(--amber)">—</span></div>
+          <div class="bs-val-item"><span class="bs-val-lbl">hi</span><span class="bs-val-num" id="bv-hi" style="color:var(--red)">—</span></div>
+          <div class="bs-val-item"><span class="bs-val-lbl">best answer</span><span class="bs-val-num" id="bv-ans" style="color:var(--purple)">—</span></div>
+          <div class="bs-val-item"><span class="bs-val-lbl">feasible?</span><span class="bs-val-num" id="bv-feas" style="font-size:14px">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="books-section">
+      <div class="books-label">nums (values)<span style="font-size:11px;color:var(--muted)" id="mid-label">— testing mid = —</span></div>
+      <div class="books-row" id="books-row"></div>
+    </div>
+    <div class="alloc-section">
+      <div class="alloc-label" id="alloc-label">Greedy split for mid = —</div>
+      <div class="alloc-row" id="alloc-row"></div>
+    </div>
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo" id="pill-lo">lo = —</span>
+      <span class="tracker-pill tp-hi" id="pill-hi">hi = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">mid = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">ans = —</span>
+    </div>
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="lbl">lo (lower bound)</div><div class="val" id="s-lo">—</div><div class="sub">max single num</div></div>
+      <div class="stat-box red"><div class="lbl">hi (upper bound)</div><div class="val" id="s-hi">—</div><div class="sub">sum of all</div></div>
+      <div class="stat-box amber"><div class="lbl">mid (candidate)</div><div class="val" id="s-mid">—</div><div class="sub" id="s-mid-sub">—</div></div>
+      <div class="stat-box purple"><div class="lbl">Best answer</div><div class="val" id="s-ans">—</div><div class="sub" id="s-ans-sub">—</div></div>
+    </div>
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Answer: —</span>
+      <div class="speed-wrap"><span>Speed</span><input type="range" id="speed" min="1" max="5" value="3" step="1"><span id="spd-lbl" style="min-width:50px">Medium</span></div>
+    </div>
+  </div>
+
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead><tr><th>Step</th><th>Phase</th><th>lo</th><th>hi</th><th>mid</th><th>pieces</th><th>Feasible?</th><th>Action</th><th>Best ans</th></tr></thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header"><span>split_array_largest_sum.cpp</span><button class="copy-btn" onclick="copyCode()">Copy</button></div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// How many pieces if no subarray may exceed 'limit'?</span>
+<span class="kw">int</span> <span class="fn">pieces</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> limit) {
+    <span class="kw">int</span> cnt = <span class="nm">1</span>, cur = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> x : a) {
+        <span class="kw">if</span> (cur + x &gt; limit) { cnt++; cur = x; } <span class="cm">// start a new piece</span>
+        <span class="kw">else</span> cur += x;
+    }
+    <span class="kw">return</span> cnt;
+}
+
+<span class="kw">int</span> <span class="fn">splitArray</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span> k) {
+    <span class="kw">int</span> lo = *max_element(a.begin(), a.end());
+    <span class="kw">int</span> hi = accumulate(a.begin(), a.end(), <span class="nm">0</span>);
+    <span class="kw">int</span> ans = hi;
+    <span class="kw">while</span> (lo &lt;= hi) {
+        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+        <span class="kw">if</span> (<span class="fn">pieces</span>(a, mid) &lt;= k) {
+            ans = mid;   <span class="cm">// feasible — try a smaller max</span>
+            hi = mid - <span class="nm">1</span>;
+        } <span class="kw">else</span> {
+            lo = mid + <span class="nm">1</span>; <span class="cm">// too many pieces — allow bigger max</span>
+        }
+    }
+    <span class="kw">return</span> ans;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; a = {<span class="nm">7</span>,<span class="nm">2</span>,<span class="nm">5</span>,<span class="nm">10</span>,<span class="nm">8</span>};
+    cout &lt;&lt; <span class="fn">splitArray</span>(a, <span class="nm">2</span>) &lt;&lt; <span class="st">"\n"</span>; <span class="cm">// 18</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader"><h3><span id="noteIcon">&#x1F4DD;</span><span>Notes</span><span class="note-indicator" id="noteIndicator">&#x2705;</span></h3><span class="toggle-icon" id="toggleIcon">&#x25BC;</span></div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm..."></textarea>
+      <div class="notes-footer"><span class="save-status" id="saveStatus"><span id="saveDot">&#x25CF;</span><span id="saveText">Start typing to save...</span></span><span id="charCount">0 chars</span></div>
+    </div>
+  </div>
+
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="split-array-largest-sum"></div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { a:[7,2,5,10,8], k:2, desc:`<strong style="color:var(--text)">[7,2,5,10,8], k=2 — answer 18.</strong> lo=10, hi=32. Best split: [7,2,5]=14 and [10,8]=18. Minimised largest sum = <strong style="color:var(--purple)">18</strong>.` },
+  { a:[1,2,3,4,5], k:2, desc:`<strong style="color:var(--text)">[1,2,3,4,5], k=2 — answer 9.</strong> lo=5, hi=15. Best split: [1,2,3,4]=10? no — [1,2,3,4] is 10, try [1,2,3]+[4,5]. Optimal is [1,2,3,4]|[5]? The minimised max is <strong style="color:var(--purple)">9</strong> via [1,2,3,... ]. Watch the search converge.` },
+  { a:[1,4,4], k:3, desc:`<strong style="color:var(--text)">[1,4,4], k=3 — answer 4.</strong> k equals n, each number is its own piece. The largest single value 4 is the answer. lo=hi=4 quickly. <strong style="color:var(--purple)">4</strong>.` },
+  { a:[10], k:1, desc:`<strong style="color:var(--text)">[10], k=1 — answer 10.</strong> One number, one piece. lo=hi=10, single check. Answer <strong style="color:var(--purple)">10</strong>.` },
+  { a:[2,3,1,2,4,3], k:3, desc:`<strong style="color:var(--text)">[2,3,1,2,4,3], k=3 — answer 6.</strong> lo=4, hi=15. Best: [2,3,1]=6, [2,4]=6, [3]=3. Minimised max <strong style="color:var(--purple)">6</strong>.` }
+];
+const SPEEDS=[1600,1000,600,300,120]; const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input',function(){document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];});
+const S_COLORS=['s0','s1','s2','s3'];
+let A=[],K=2,LO_START=0,HI_START=0,steps=[],cursor=-1,playing=false,timer=null;
+
+function greedy(a,limit){
+  const alloc=[];let cur=[],curSum=0,cnt=1;
+  for(const x of a){
+    if(x>limit)return{feasible:false,alloc:[],used:cnt+1};
+    if(curSum+x>limit){alloc.push({pages:[...cur],sum:curSum});cnt++;cur=[x];curSum=x;}
+    else{cur.push(x);curSum+=x;}
+  }
+  alloc.push({pages:[...cur],sum:curSum});
+  return{feasible:cnt<=K,alloc,used:cnt};
+}
+function buildSteps(a,k){
+  A=a;K=k;LO_START=Math.max(...a);HI_START=a.reduce((x,y)=>x+y,0);
+  const stps=[];
+  stps.push({phase:'init',lo:LO_START,hi:HI_START,mid:null,feasible:null,alloc:[],used:null,ans:-1,msg:`<span class="hi">Initialise binary search.</span> lo = max(nums) = <span class="tl">${LO_START}</span> (a subarray can't be smaller than its biggest element). hi = sum = <span class="neg">${HI_START}</span> (one piece holds everything). Search for the minimum feasible max.`});
+  let lo=LO_START,hi=HI_START,ans=-1;
+  while(lo<=hi){
+    const mid=lo+Math.floor((hi-lo)/2);
+    stps.push({phase:'pick-mid',lo,hi,mid,feasible:null,alloc:[],used:null,ans,msg:`<span class="hi">lo=${lo} ≤ hi=${hi} → mid = ${mid}.</span> Testing: can we split into ≤ <span class="acc">${k}</span> pieces if no piece exceeds <span class="amb">${mid}</span>?`});
+    const {feasible,alloc,used}=greedy(a,mid);
+    stps.push({phase:feasible?'feasible':'not-feasible',lo,hi,mid,feasible,alloc,used,ans,msg:feasible?`<span class="hi">Greedy with limit=${mid}:</span> <span class="pos">Feasible!</span> Needs <span class="tl">${used}</span> piece(s) (≤ ${k}). Record ans=<span class="sol">${mid}</span>, shrink <span class="neg">hi=${mid-1}</span>.`:`<span class="hi">Greedy with limit=${mid}:</span> <span class="neg">Not feasible.</span> Needs <span class="neg">${used}</span> pieces &gt; ${k}. Raise <span class="tl">lo=${mid+1}</span>.`});
+    if(feasible){ans=mid;hi=mid-1;}else lo=mid+1;
+  }
+  stps.push({phase:'done',lo,hi,mid:null,feasible:null,alloc:[],used:null,ans,msg:`<span class="hi">lo (${lo}) &gt; hi (${hi}) — done.</span> <span class="pos">Minimum largest subarray sum = <span class="sol">${ans}</span>.</span>`});
+  return stps;
+}
+function buildTableRows(stps){
+  document.getElementById('step-tbody').innerHTML=stps.map((s,i)=>{
+    let ph,act,feas;
+    if(s.phase==='init'){ph='<span style="color:var(--muted)">Init</span>';act='set lo,hi';feas='—';}
+    else if(s.phase==='pick-mid'){ph='<span style="color:var(--amber)">Pick mid</span>';act='compute mid';feas='—';}
+    else if(s.phase==='feasible'){ph='<span style="color:var(--green)">Feasible ✓</span>';act='hi=mid-1; ans=mid';feas='<span style="color:var(--green)">Yes</span>';}
+    else if(s.phase==='not-feasible'){ph='<span style="color:var(--red)">Not feasible ✗</span>';act='lo=mid+1';feas='<span style="color:var(--red)">No</span>';}
+    else{ph='<span style="color:var(--teal)">Done ✓</span>';act='return ans';feas='—';}
+    return `<tr id="tr-${i}"><td>${i+1}</td><td>${ph}</td><td style="color:var(--teal)">${s.lo}</td><td style="color:var(--red)">${s.hi}</td><td style="color:var(--amber);font-weight:600">${s.mid!==null?s.mid:'—'}</td><td style="color:var(--accent)">${s.used!==null?s.used:'—'}</td><td>${feas}</td><td style="color:var(--muted)">${act}</td><td style="color:var(--purple);font-weight:600">${s.ans>=0?s.ans:'—'}</td></tr>`;
+  }).join('');
+}
+function renderBooks(alloc,mid){
+  const row=document.getElementById('books-row');const maxP=Math.max(...A,1);row.innerHTML='';
+  (alloc&&alloc.length?alloc:[{pages:A,sum:0}]).forEach((seg,si)=>{
+    seg.pages.forEach((p)=>{
+      const h=24+Math.round((p/maxP)*80);
+      const cls=alloc&&alloc.length?(S_COLORS[si%S_COLORS.length]+(p>mid&&mid!==null?' overflow':'')):'';
+      row.innerHTML+=`<div class="book-wrap"><div class="book-bar ${cls}" style="height:${h}px">${p}</div><div class="book-idx"></div></div>`;
+    });
+    if(si<(alloc?alloc.length:1)-1)row.innerHTML+=`<div class="student-divider" data-s="P${si+1}|P${si+2}"></div>`;
+  });
+}
+function renderAlloc(alloc,mid){
+  const row=document.getElementById('alloc-row');
+  document.getElementById('alloc-label').textContent=mid!==null?`Greedy split for mid = ${mid}`:'Split';
+  if(!alloc||!alloc.length){row.innerHTML='<span style="font-size:12px;color:var(--muted)">—</span>';return;}
+  row.innerHTML=alloc.map((seg,si)=>{const over=seg.sum>mid;return `<div class="alloc-card ${over?'over':'ok'}"><div class="ac-head">Piece ${si+1}</div><div class="ac-books">[${seg.pages.join(', ')}]</div><div class="ac-sum">${seg.sum}${over?` &gt; ${mid} ✗`:` ≤ ${mid} ✓`}</div></div>`;}).join('');
+}
+function updateBar(lo,hi,mid){
+  const total=HI_START-LO_START||1;
+  const loP=((lo-LO_START)/total*100).toFixed(1),hiP=((hi-LO_START)/total*100).toFixed(1);
+  document.getElementById('bs-fill').style.left=loP+'%';
+  document.getElementById('bs-fill').style.width=Math.max(0,((hi-lo)/total*100)).toFixed(1)+'%';
+  document.getElementById('ptr-lo').style.left=loP+'%';
+  document.getElementById('ptr-hi').style.left=hiP+'%';
+  if(mid!==null){document.getElementById('ptr-mid').style.left=((mid-LO_START)/total*100).toFixed(1)+'%';document.getElementById('ptr-mid').style.display='flex';}
+  else document.getElementById('ptr-mid').style.display='none';
+  document.getElementById('bv-lo').textContent=lo;document.getElementById('bv-hi').textContent=hi;document.getElementById('bv-mid').textContent=mid!==null?mid:'—';
+}
+function applyState(idx){
+  steps.forEach((_,i)=>{const tr=document.getElementById('tr-'+i);if(tr)tr.classList.remove('highlighted');});
+  document.getElementById('done-pill').style.display='none';
+  if(idx<0){
+    updateBar(LO_START,HI_START,null);renderBooks(null,null);renderAlloc([],null);
+    document.getElementById('pill-lo').textContent=`lo = ${LO_START}`;document.getElementById('pill-hi').textContent=`hi = ${HI_START}`;document.getElementById('pill-mid').textContent='mid = —';document.getElementById('pill-ans').textContent='ans = —';
+    document.getElementById('s-lo').textContent=LO_START;document.getElementById('s-hi').textContent=HI_START;document.getElementById('s-mid').textContent='—';document.getElementById('s-mid-sub').textContent='—';document.getElementById('s-ans').textContent='—';document.getElementById('s-ans-sub').textContent='—';
+    document.getElementById('bv-ans').textContent='—';document.getElementById('bv-feas').textContent='—';
+    document.getElementById('step-label').textContent='Step — of —';document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    document.getElementById('mid-label').textContent='— testing mid = —';
+    return;
+  }
+  const s=steps[idx];updateBar(s.lo,s.hi,s.mid);
+  if(s.alloc&&s.alloc.length){renderBooks(s.alloc,s.mid);renderAlloc(s.alloc,s.mid);}else{renderBooks(null,s.mid);renderAlloc([],s.mid);}
+  document.getElementById('mid-label').textContent=s.mid!==null?`— testing mid = ${s.mid}`:'';
+  document.getElementById('pill-lo').textContent=`lo = ${s.lo}`;document.getElementById('pill-hi').textContent=`hi = ${s.hi}`;document.getElementById('pill-mid').textContent=`mid = ${s.mid!==null?s.mid:'—'}`;document.getElementById('pill-ans').textContent=`ans = ${s.ans>=0?s.ans:'—'}`;
+  document.getElementById('bv-ans').textContent=s.ans>=0?s.ans:'—';
+  if(s.feasible===true){document.getElementById('bv-feas').textContent='✓ Yes';document.getElementById('bv-feas').style.color='var(--green)';}
+  else if(s.feasible===false){document.getElementById('bv-feas').textContent='✗ No';document.getElementById('bv-feas').style.color='var(--red)';}
+  else{document.getElementById('bv-feas').textContent='—';document.getElementById('bv-feas').style.color='var(--muted)';}
+  document.getElementById('s-lo').textContent=s.lo;document.getElementById('s-hi').textContent=s.hi;document.getElementById('s-mid').textContent=s.mid!==null?s.mid:'—';
+  document.getElementById('s-mid-sub').textContent=s.mid!==null?(s.feasible===true?'feasible ✓':s.feasible===false?'not feasible ✗':'testing…'):'—';
+  document.getElementById('s-ans').textContent=s.ans>=0?s.ans:'—';document.getElementById('s-ans-sub').textContent=s.ans>=0?'best so far':'not found yet';
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML=s.msg;
+  if(s.phase==='done'){const p=document.getElementById('done-pill');p.textContent=`✓ Answer: ${s.ans}`;p.style.display='inline-block';}
+  const tr=document.getElementById('tr-'+idx);if(tr){tr.classList.add('highlighted');tr.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+function loadExample(i,btn){
+  stopPlay();document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');
+  steps=buildSteps(EXAMPLES[i].a,EXAMPLES[i].k);
+  document.getElementById('example-desc').innerHTML=EXAMPLES[i].desc;
+  buildTableRows(steps);cursor=-1;applyState(-1);
+}
+function stepForward(){if(cursor<steps.length-1){cursor++;applyState(cursor);}}
+function stepBack(){if(cursor>0){cursor--;applyState(cursor);}else if(cursor===0){cursor=-1;applyState(-1);}}
+function resetAnim(){stopPlay();cursor=-1;applyState(-1);}
+function stopPlay(){playing=false;clearTimeout(timer);document.getElementById('btn-play').textContent='▶ Play';}
+function playPause(){if(playing){stopPlay();return;}if(cursor>=steps.length-1){cursor=-1;applyState(-1);}playing=true;document.getElementById('btn-play').textContent='⏸ Pause';tick();}
+function tick(){if(!playing)return;if(cursor>=steps.length-1){stopPlay();return;}cursor++;applyState(cursor);timer=setTimeout(tick,SPEEDS[document.getElementById('speed').value-1]);}
+function togglePin(){const panel=document.getElementById('anim-panel'),btn=document.getElementById('pin-btn');const p=panel.classList.toggle('pinned');btn.classList.toggle('active',p);btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+loadExample(0,document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const algoName=document.title.replace(' - AlgoCrux','');
+  let currentUser=null,isCompleted=false;
+  const trackerUI=document.createElement('div');
+  trackerUI.innerHTML=`<div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div><div><div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div><div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div></div></div><button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span>Mark as Complete</span></button><div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0"><a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a></div></div>`;
+  document.body.appendChild(trackerUI);
+  const markBtn=document.getElementById('markCompleteBtn'),trackerStatus=document.getElementById('trackerStatus'),trackerIcon=document.getElementById('trackerIcon'),trackerLogin=document.getElementById('trackerLogin');
+  function setCompletedState(){isCompleted=true;markBtn.innerHTML='<span>&#x2705; Completed</span>';markBtn.style.background='#0d2318';markBtn.style.borderColor='#1a6b3a';markBtn.style.color='#4ade80';markBtn.style.cursor='default';trackerStatus.textContent='Completed!';trackerStatus.style.color='#4ade80';trackerIcon.innerHTML='&#x2705;';trackerIcon.style.background='#0d2318';trackerIcon.style.border='1px solid #1a6b3a';trackerIcon.style.color='#4ade80';}
+  function setLoggedOutState(){markBtn.style.display='none';trackerLogin.style.display='block';trackerStatus.textContent='Sign in to track';}
+  onAuthStateChanged(auth,async(user)=>{if(!user){setLoggedOutState();return;}currentUser=user;markBtn.style.display='flex';trackerLogin.style.display='none';const userDoc=await getDoc(doc(db,'users',user.uid));if(userDoc.exists()&&(userDoc.data().completedAnimations||[]).includes(algoId))setCompletedState();});
+  markBtn.addEventListener('click',async()=>{if(!currentUser||isCompleted)return;markBtn.disabled=true;markBtn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';try{const userRef=doc(db,'users',currentUser.uid);const userDoc=await getDoc(userRef);const today=(function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();if(userDoc.exists())await updateDoc(userRef,{completedAnimations:arrayUnion(algoId),lastActive:new Date().toISOString(),['activityMap.'+today]:increment(1)});else await setDoc(userRef,{name:currentUser.displayName||currentUser.email.split('@')[0],email:currentUser.email,createdAt:new Date().toISOString(),completedAnimations:[algoId],totalTimeSpent:0,lastActive:new Date().toISOString(),activityMap:{[today]:1}});setCompletedState();}catch(err){markBtn.disabled=false;markBtn.innerHTML='<span>Mark as Complete</span>';}});
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth=getAuth();const db=getFirestore();const btn=document.getElementById('algoBookmark');
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');let isBookmarked=false;
+  auth.onAuthStateChanged(async(user)=>{if(!user)return;const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()){const bm=snap.data().bookmarks||[];isBookmarked=bm.includes(algoId);btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);}});
+  btn.addEventListener('click',async()=>{const user=auth.currentUser;if(!user)return;const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const data=snap.exists()?snap.data():{};const bm=new Set(data.bookmarks||[]);if(bm.has(algoId))bm.delete(algoId);else bm.add(algoId);await setDoc(ref,{bookmarks:Array.from(bm)},{merge:true});isBookmarked=!isBookmarked;btn.innerHTML=isBookmarked?'&#x2605;':'&#x2606;';btn.classList.toggle('active',isBookmarked);});
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const firebaseConfig = { apiKey:"AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E", authDomain:"algocrux8344.firebaseapp.com", projectId:"algocrux8344", storageBucket:"algocrux8344.firebasestorage.app", messagingSenderId:"915570389436", appId:"1:915570389436:web:cd97f604b5beb2e515fbb9", measurementId:"G-FFQ8CW124S" };
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);
+  const algoId=window.location.pathname.split('/').pop().replace('.html','');const LOCAL_KEY='algocrux_notes_'+algoId;
+  const notesHeader=document.getElementById('notesHeader'),notesBody=document.getElementById('notesBody'),toggleIcon=document.getElementById('toggleIcon'),textarea=document.getElementById('notesTextarea'),saveStatus=document.getElementById('saveStatus'),saveText=document.getElementById('saveText'),saveDot=document.getElementById('saveDot'),charCount=document.getElementById('charCount'),noteIndicator=document.getElementById('noteIndicator');
+  let currentUser=null,saveTimer=null,isSaving=false;
+  notesHeader.addEventListener('click',()=>{const isOpen=notesBody.classList.toggle('open');notesHeader.classList.toggle('open',isOpen);toggleIcon.innerHTML=isOpen?'&#x25B2;':'&#x25BC;';if(isOpen)textarea.focus();});
+  textarea.addEventListener('input',()=>{const len=textarea.value.length;charCount.textContent=len+' char'+(len!==1?'s':'');setSaveStatus('unsaved');clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNotes(),1500);});
+  function setSaveStatus(s){saveStatus.className='save-status '+s;if(s==='saved'){saveText.textContent='Saved';saveDot.innerHTML='&#x2705;';noteIndicator.classList.add('visible');}else if(s==='saving'){saveText.textContent='Saving...';saveDot.innerHTML='&#x23F3;';}else if(s==='error'){saveText.textContent='Error saving';saveDot.innerHTML='&#x274C;';}else{saveText.textContent='Unsaved changes';saveDot.innerHTML='&#x25CF;';}}
+  async function saveNotes(){if(isSaving)return;isSaving=true;setSaveStatus('saving');try{if(currentUser){const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);await setDoc(notesRef,{text:textarea.value,updatedAt:new Date().toISOString()},{merge:true});}localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('saved');}catch(err){localStorage.setItem(LOCAL_KEY,textarea.value);setSaveStatus('error');}finally{isSaving=false;}}
+  async function loadNotes(){let text='';if(currentUser){try{const notesRef=doc(db,'users',currentUser.uid,'notes',algoId);const snap=await getDoc(notesRef);if(snap.exists())text=snap.data().text||'';}catch(err){}}if(!text)text=localStorage.getItem(LOCAL_KEY)||'';textarea.value=text;const len=text.length;charCount.textContent=len+' char'+(len!==1?'s':'');if(text.trim()){noteIndicator.classList.add('visible');setSaveStatus('saved');}else setSaveStatus('unsaved');}
+  onAuthStateChanged(auth,async(user)=>{currentUser=user;await loadNotes();});
+  window.addEventListener('beforeunload',()=>{if(textarea.value.trim()){localStorage.setItem(LOCAL_KEY,textarea.value);if(currentUser&&!isSaving)saveNotes();}});
+</script>
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

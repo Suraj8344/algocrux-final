@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - AlgoCrux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc; --purple-bg:#1e0f33;
+    --green:#4ade80; --green-bg:#0d2318;
+    --red:#f87171; --red-bg:#2a1111;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+    --font-smooth: antialiased;
+    --font-feature: "cv02","cv03","cv04","cv11";
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65; min-height:100vh;
+    -webkit-font-smoothing: var(--font-smooth);
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: var(--font-feature);
+    text-rendering: optimizeLegibility;
+  }
+  a{color:inherit; text-decoration:none}
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 2.5rem; backdrop-filter:blur(20px) saturate(1.2);
+    background:rgba(10,11,16,.82); border-bottom:1px solid var(--border);
+    transition: background 0.3s ease;
+  }
+  nav.scrolled{
+    background:rgba(10,11,16,.95);
+    box-shadow: 0 4px 30px rgba(0,0,0,.3);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-0.03em; text-shadow: 0 0 20px rgba(108,143,255,.15);}
+  .brand .mark{
+    width:30px; height:30px; position:relative; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    border-radius:8px; transform:rotate(12deg);
+    box-shadow:0 4px 16px rgba(108,143,255,.35);
+  }
+  .brand .mark::after{
+    content:''; position:absolute; inset:5px; border-radius:4px;
+    background:var(--bg); transform:rotate(-12deg) scale(.85);
+  }
+  .nav-right{display:flex; align-items:center; gap:1.5rem}
+  .user-info{display:flex; align-items:center; gap:.75rem; font-size:14px; color:var(--muted); font-weight:500;}
+  .user-avatar{
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--teal));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:14px; color:#fff;
+    box-shadow: 0 2px 10px rgba(108,143,255,.25);
+  }
+  .logout-btn{
+    background:var(--surface); border:1px solid var(--border); color:var(--muted);
+    padding:.55rem 1.1rem; border-radius:10px; font-family:var(--sans); font-size:13px;
+    cursor:pointer; transition:all .2s ease; font-weight:500;
+  }
+  .logout-btn:hover{border-color:var(--red); color:var(--red); background:var(--red-bg); box-shadow: 0 0 12px rgba(248,113,113,.15);}
+
+  /* DASHBOARD */
+  .container{max-width:1180px; margin:0 auto; padding:3.5rem 2.5rem}
+  .welcome{font-family:var(--display); font-size:clamp(2rem,4.5vw,2.8rem); font-weight:700; margin-bottom:.5rem; letter-spacing:-0.04em; text-wrap: balance;}
+  .welcome span{background:linear-gradient(120deg,var(--accent),var(--teal) 70%); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .subtitle{color:var(--muted); font-size:16px; margin-bottom:2.5rem; line-height:1.6; max-width:500px;}
+
+  /* STATS GRID */
+  .stats-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; margin-bottom:3rem}
+  @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:500px){.stats-grid{grid-template-columns:1fr}}
+  .stat-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:1.75rem; position:relative; overflow:hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover{
+    transform: translateY(-3px);
+    border-color: var(--border2);
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,.4);
+  }
+  .stat-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  }
+  .stat-card.accent::before{background:linear-gradient(90deg,var(--accent),var(--teal))}
+  .stat-card.teal::before{background:var(--teal)}
+  .stat-card.amber::before{background:var(--amber)}
+  .stat-card.purple::before{background:var(--purple)}
+  .stat-label{font-size:11px; color:var(--muted2); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.5rem; font-weight:600;}
+  .stat-value{font-family:var(--display); font-size:2.2rem; font-weight:700; letter-spacing:-0.03em;}
+  .stat-value.accent{color:var(--accent)}
+  .stat-value.teal{color:var(--teal)}
+  .stat-value.amber{color:var(--amber)}
+  .stat-value.purple{color:var(--purple)}
+  .stat-sub{font-size:12.5px; color:var(--muted); margin-top:.3rem; font-weight:400;}
+
+  /* PROGRESS SECTION */
+  .section-head{margin-bottom:1.75rem}
+  .section-tag{font-family:var(--mono); font-size:12px; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; margin-bottom:.4rem; display:block; font-weight:500;}
+  h2{font-family:var(--display); font-weight:700; font-size:1.5rem; letter-spacing:-0.02em;}
+
+  /* PROGRESS BAR */
+  .progress-section{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:2rem; margin-bottom:2rem;
+    position:relative; overflow:hidden;
+  }
+  .progress-section::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  }
+  .progress-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem}
+  .progress-bar-bg{height:12px; background:var(--bg2); border-radius:6px; overflow:hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,.3);}
+  .progress-bar-fill{
+    height:100%; background:linear-gradient(90deg,var(--accent),var(--teal));
+    border-radius:6px; transition:width 1s cubic-bezier(.2,.8,.2,1); width:0%;
+    box-shadow: 0 0 12px rgba(108,143,255,.3);
+  }
+  .progress-cats{display:flex; gap:1.25rem; margin-top:1.5rem; flex-wrap:wrap}
+  .progress-cat{
+    display:flex; align-items:center; gap:.5rem; font-size:13.5px; color:var(--muted); font-weight:500;
+    padding:4px 0;
+  }
+  .progress-cat-dot{width:10px; height:10px; border-radius:50%; box-shadow: 0 0 6px currentColor;}
+
+  /* RECENT ACTIVITY */
+  .activity-list{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    overflow:hidden;
+  }
+  .activity-item{
+    display:flex; align-items:center; gap:1rem; padding:1.1rem 1.5rem;
+    border-bottom:1px solid var(--border); transition:all .2s ease;
+  }
+  .activity-item:last-child{border-bottom:none}
+  .activity-item:hover{background:var(--surface2)}
+  .activity-icon{
+    width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0; transition: transform 0.2s ease;
+  }
+  .activity-item:hover .activity-icon{transform: scale(1.08);}
+  .activity-details{flex:1}
+  .activity-title{font-weight:600; font-size:14.5px; letter-spacing:-0.01em;}
+  .activity-time{font-size:12.5px; color:var(--muted2); font-weight:400;}
+  .activity-tag{
+    font-size:10px; font-weight:700; text-transform:uppercase; padding:3px 10px; border-radius:20px;
+  }
+  .tag-sort{background:var(--teal-bg); color:var(--teal)}
+  .tag-array{background:var(--accent-bg); color:var(--accent)}
+  .tag-backtrack{background:var(--purple-bg); color:var(--purple)}
+  .tag-dp{background:var(--amber-bg); color:var(--amber)}
+
+  .empty-state{
+    text-align:center; padding:3.5rem; color:var(--muted);
+  }
+  .empty-state svg{margin-bottom:1.25rem; opacity:.5}
+  .empty-state p{font-size:14.5px; line-height:1.6;}
+  .empty-state a{color:var(--accent); text-decoration:underline}
+
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:14px; padding:.9rem 1.6rem; border-radius:12px;
+    border:1px solid transparent; cursor:pointer; transition:all .2s cubic-bezier(.2,.8,.2,1);
+    display:inline-flex; align-items:center; gap:8px; background:var(--surface2); border-color:var(--border2); color:var(--text);
+    letter-spacing:0.01em;
+  }
+  .btn:hover{border-color:var(--accent); transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff; box-shadow:0 6px 24px rgba(108,143,255,.3); border:none; position:relative; overflow:hidden;}
+  .btn-primary::before{content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); transition:left 0.5s ease;}
+  .btn-primary:hover::before{left:100%;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px rgba(108,143,255,.45)}
+
+  .spinner{
+    width:20px; height:20px; border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading{display:flex; align-items:center; justify-content:center; gap:.75rem; padding:3.5rem; color:var(--muted); font-size:14.5px;}
+
+  /* ===== HEATMAP ===== */
+  .heatmap-section{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:2rem; margin-bottom:2rem; position:relative;
+  }
+  .heatmap-section::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  }
+  .heatmap-header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;
+  }
+  .heatmap-legend{
+    display:flex; align-items:center; gap:4px; font-size:12px; color:var(--muted2);
+  }
+  .legend-box{
+    width:12px; height:12px; border-radius:2px;
+  }
+
+  .heatmap-wrap{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:44px;
+  }
+  .heatmap-labels-y{
+    display:grid;
+    grid-template-rows: repeat(7, 12px);
+    grid-gap: 3px;
+    font-size:11px;
+    color:var(--muted2);
+    align-items:center;
+    padding-top:18px;
+    font-weight:500;
+    flex-shrink:0;
+  }
+  .heatmap-labels-y .day-label{
+    line-height:12px;
+    height:12px;
+    display:flex;
+    align-items:center;
+  }
+  .heatmap-main{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+    flex:1;
+  }
+  .heatmap-labels-x{
+    display:flex;
+    gap:3px;
+    height:14px;
+    position:relative;
+    padding-left:2px;
+    min-width:0;
+  }
+  .heatmap-labels-x .month-label{
+    font-size:11px;
+    color:var(--muted2);
+    font-family:var(--sans);
+    font-weight:500;
+    flex-shrink:0;
+    line-height:14px;
+  }
+  .heatmap-grid{
+    display:grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 12px);
+    grid-auto-columns: 12px;
+    grid-gap: 3px;
+  }
+  .heatmap-day{
+    width:12px; height:12px; border-radius:2px;
+    background:var(--surface3);
+    transition:transform .15s, box-shadow .15s;
+    cursor:pointer; position:relative;
+  }
+  .heatmap-day:hover{
+    transform:scale(1.5);
+    box-shadow:0 0 10px rgba(45,212,191,.4);
+    z-index:10;
+  }
+  .heatmap-day.l0{background:var(--surface3)}
+  .heatmap-day.l1{background:rgba(45,212,191,.25)}
+  .heatmap-day.l2{background:rgba(45,212,191,.5)}
+  .heatmap-day.l3{background:rgba(45,212,191,.75)}
+  .heatmap-day.l4{background:var(--teal)}
+  .heatmap-day.l4:hover{box-shadow:0 0 12px rgba(45,212,191,.6)}
+
+  .heatmap-tooltip{
+    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
+    background:var(--surface2); border:1px solid var(--border2); border-radius:8px;
+    padding:6px 10px; font-size:12px; white-space:nowrap; pointer-events:none;
+    opacity:0; transition:opacity .15s; z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .heatmap-day:hover .heatmap-tooltip{opacity:1}
+  .heatmap-tooltip::after{
+    content:''; position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    border:5px solid transparent; border-bottom-color:var(--border2);
+  }
+
+  .heatmap-footer{
+    margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border);
+    font-size:13px; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;
+    align-items:center;
+  }
+  .heatmap-footer b{color:var(--text); font-weight:600}
+  .heatmap-divider{color:var(--border2)}
+
+  /* ===== MOBILE RESPONSIVENESS ===== */
+  @media(max-width:640px){
+    nav{padding:1rem 1.25rem}
+    .container{padding:2rem 1.25rem}
+    .welcome{font-size:clamp(1.6rem,6vw,2rem)}
+    .subtitle{font-size:14px;margin-bottom:1.5rem}
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
+    .stat-card{padding:1.25rem}
+    .stat-value{font-size:1.8rem}
+    .stat-label{font-size:10px}
+    .stat-sub{font-size:12px}
+    .progress-section{padding:1.5rem}
+    .progress-cats{gap:1rem}
+    .progress-cat{font-size:12px}
+    .heatmap-section{padding:1.25rem}
+    .heatmap-header{flex-direction:column;align-items:flex-start;gap:.75rem}
+    .heatmap-legend{font-size:11px}
+    .legend-box{width:10px;height:10px}
+    .heatmap-wrap{padding-bottom:40px}
+    .heatmap-labels-y{font-size:9px;padding-top:14px}
+    .heatmap-labels-y .day-label{height:10px;line-height:10px}
+    .heatmap-grid{grid-template-rows:repeat(7,10px);grid-auto-columns:10px;grid-gap:2px}
+    .heatmap-day{width:10px;height:10px}
+    .heatmap-labels-x{height:12px}
+    .heatmap-labels-x .month-label{font-size:9px}
+    .heatmap-footer{font-size:12px;gap:.75rem}
+    .heatmap-divider{display:none}
+    .activity-item{padding:.9rem 1.25rem}
+    .activity-icon{width:36px;height:36px;font-size:14px}
+    .activity-title{font-size:13px}
+    .activity-time{font-size:11px}
+    .activity-tag{font-size:9px;padding:2px 8px}
+    .empty-state{padding:2.5rem 1.25rem}
+    .btn{padding:.6rem 1rem;font-size:13px}
+    .section-head{margin-bottom:1.25rem}
+    h2{font-size:1.3rem}
+    .section-tag{font-size:11px}
+  }
+  @media(max-width:480px){
+    .stats-grid{grid-template-columns:1fr}
+    .stat-card{padding:1rem}
+    .stat-value{font-size:1.6rem}
+    .progress-header{flex-direction:column;align-items:flex-start;gap:1rem}
+    .progress-bar-bg{height:10px}
+    .progress-cats{flex-direction:column;gap:.6rem}
+    .heatmap-grid{grid-template-rows:repeat(7,8px);grid-auto-columns:8px;grid-gap:2px}
+    .heatmap-day{width:8px;height:8px}
+    .heatmap-labels-y{padding-top:12px}
+    .heatmap-labels-y .day-label{height:8px;line-height:8px;font-size:8px}
+    .heatmap-labels-x{height:10px}
+    .heatmap-labels-x .month-label{font-size:8px}
+    .heatmap-tooltip{font-size:10px;padding:4px 8px}
+    .heatmap-footer{flex-direction:column;align-items:flex-start;gap:.4rem}
+    .user-info span{display:none}
+    .user-avatar{width:32px;height:32px}
+    .logout-btn{padding:.45rem .9rem;font-size:12px}
+    .welcome{font-size:1.5rem}
+  }
+  @media(max-width:360px){
+    .stats-grid{grid-template-columns:1fr}
+    .stat-value{font-size:1.4rem}
+    .heatmap-grid{grid-template-rows:repeat(7,7px);grid-auto-columns:7px}
+    .heatmap-day{width:7px;height:7px}
+  }
+
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand"><span class="mark"></span>AlgoCrux</a>
+  <div class="nav-right">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">S</div>
+      <span id="userName">Loading...</span>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="welcome">Hello, <span id="welcomeName">Student</span>!</h1>
+  <p class="subtitle">Here is your algorithm learning progress</p>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card accent">
+      <div class="stat-label">Animations Watched</div>
+      <div class="stat-value accent" id="statWatched">0</div>
+      <div class="stat-sub">out of 141 total</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-label">Completion Rate</div>
+      <div class="stat-value teal" id="statRate">0%</div>
+      <div class="stat-sub">keep it up!</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Current Streak</div>
+      <div class="stat-value purple" id="statStreak">0</div>
+      <div class="stat-sub">days in a row</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Max Streak</div>
+      <div class="stat-value amber" id="statMaxStreak">0</div>
+      <div class="stat-sub">best ever</div>
+    </div>
+  </div>
+
+  <!-- HEATMAP SECTION -->
+  <div class="heatmap-section" id="heatmapSection">
+    <div class="heatmap-header">
+      <div>
+        <span class="section-tag">Activity</span>
+        <h2>Learning Streak</h2>
+      </div>
+      <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="legend-box" style="background:var(--surface3)"></div>
+        <div class="legend-box" style="background:rgba(45,212,191,.25)"></div>
+        <div class="legend-box" style="background:rgba(45,212,191,.5)"></div>
+        <div class="legend-box" style="background:rgba(45,212,191,.75)"></div>
+        <div class="legend-box" style="background:var(--teal)"></div>
+        <span>More</span>
+      </div>
+    </div>
+    <div class="heatmap-wrap" id="heatmapWrap">
+      <div class="heatmap-labels-y" id="heatmapLabelsY"></div>
+      <div class="heatmap-main" id="heatmapMain">
+        <div class="heatmap-labels-x" id="heatmapLabelsX"></div>
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+      </div>
+    </div>
+    <div class="heatmap-footer">
+      <span id="heatmapTotal">0 animations in the past year</span>
+      <span class="heatmap-divider">|</span>
+      <span>Total active days: <b id="heatmapActiveDays">0</b></span>
+      <span class="heatmap-divider">|</span>
+      <span>Max streak: <b id="heatmapMaxStreak">0</b></span>
+    </div>
+    <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+      <button id="syncBtn" class="btn" style="font-size:13px; padding:.6rem 1.2rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:middle"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sync from History
+      </button>
+      <span id="syncStatus" style="font-size:13px; color:var(--muted);"></span>
+    </div>
+  </div>
+
+  <!-- BOOKMARKS SECTION -->
+  <div class="section-head" style="margin-top:2rem">
+    <span class="section-tag">Saved</span>
+    <h2>Bookmarked Algorithms</h2>
+  </div>
+  <div class="loading" id="loadingBookmarks">
+    <div class="spinner"></div>
+    <span>Loading bookmarks...</span>
+  </div>
+  <div class="activity-list" id="bookmarksList"></div>
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <div>
+        <span class="section-tag">Progress</span>
+        <h2>Overall Completion</h2>
+      </div>
+      <a href="index.html" class="btn btn-primary">Back to Home</a>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-cats" id="progressCats">
+      <div class="progress-cat"><span class="progress-cat-dot" style="background:var(--teal)"></span>Sorting: 0/9</div>
+      <div class="progress-cat"><span class="progress-cat-dot" style="background:var(--accent)"></span>Arrays: 0/27</div>
+      <div class="progress-cat"><span class="progress-cat-dot" style="background:var(--purple)"></span>Backtracking: 0/7</div>
+      <div class="progress-cat"><span class="progress-cat-dot" style="background:var(--amber)"></span>DP: 0/25</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <span class="section-tag">History</span>
+    <h2>Recently Watched</h2>
+  </div>
+  <div class="activity-list" id="activityList">
+    <div class="loading" id="loadingActivity">
+      <div class="spinner"></div>
+      <span>Loading your activity...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 20) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // Fallback: hide loading spinners after 5s if Firebase is slow
+  setTimeout(() => {
+    const lb = document.getElementById('loadingBookmarks');
+    const la = document.getElementById('loadingActivity');
+
+    if (lb && lb.style.display !== 'none') {
+      lb.style.display = 'none';
+      const bl = document.getElementById('bookmarksList');
+      if (bl && !bl.innerHTML.trim()) {
+        // Check if user data was loaded (bookmarksList would have content if it was)
+        // If still empty after 5s, user is either not logged in or has no bookmarks
+        // We can't distinguish here, so show a neutral message
+        bl.innerHTML = `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg><p>No bookmarks yet. <a href="index.html#algorithms">Browse algorithms!</a></p></div>`;
+      }
+    }
+    if (la && la.style.display !== 'none') {
+      la.style.display = 'none';
+      const al = document.getElementById('activityList');
+      if (al && !al.innerHTML.trim()) {
+        al.innerHTML = `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg><p>No animations watched yet. <a href="index.html#algorithms">Start learning!</a></p></div>`;
+      }
+    }
+  }, 5000);
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+  authDomain: "algocrux8344.firebaseapp.com",
+  projectId: "algocrux8344",
+  storageBucket: "algocrux8344.firebasestorage.app",
+  messagingSenderId: "915570389436",
+  appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+  measurementId: "G-FFQ8CW124S"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const userName = document.getElementById('userName');
+  const welcomeName = document.getElementById('welcomeName');
+  const userAvatar = document.getElementById('userAvatar');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statWatched = document.getElementById('statWatched');
+  const statRate = document.getElementById('statRate');
+  const statStreak = document.getElementById('statStreak');
+  const statMaxStreak = document.getElementById('statMaxStreak');
+  const progressFill = document.getElementById('progressFill');
+  const progressCats = document.getElementById('progressCats');
+  const activityList = document.getElementById('activityList');
+  const loadingActivity = document.getElementById('loadingActivity');
+
+  // Category mapping for display
+  const catMap = {
+    'bubble-sort': { name: 'Bubble Sort', cat: 'sort', tag: 'Sorting' },
+    'insertion-sort': { name: 'Insertion Sort', cat: 'sort', tag: 'Sorting' },
+    'mergesort': { name: 'Merge Sort', cat: 'sort', tag: 'Sorting' },
+    'quick-sort': { name: 'Quick Sort', cat: 'sort', tag: 'Sorting' },
+    'selection-sort': { name: 'Selection Sort', cat: 'sort', tag: 'Sorting' },
+    'merge-sorted-arrays': { name: 'Merge Sorted Arrays', cat: 'array', tag: 'Array' },
+    'dutch-national-flag': { name: 'Dutch National Flag', cat: 'array', tag: 'Array' },
+    'count-inversions': { name: 'Count Inversions', cat: 'array', tag: 'Array' },
+    'next-permutation': { name: 'Next Permutation', cat: 'array', tag: 'Array' },
+    'peak-index-mountain-array': { name: 'Peak Index in Mountain Array', cat: 'array', tag: 'Array' },
+    'reverse-words-in-string': { name: 'Reverse Words in a String', cat: 'array', tag: 'Array' },
+    'Rotatedsortedarray': { name: 'Search in Rotated Sorted Array', cat: 'array', tag: 'Array' },
+    'search-2d-matrix-1': { name: 'Search a 2D Matrix I (LeetCode 74)', cat: 'array', tag: 'Array' },
+    'search-2d-matrix-2': { name: 'Search a 2D Matrix II (LeetCode 240)', cat: 'array', tag: 'Array' },
+    'single_elemnent_sorted': { name: 'Single Element in a Sorted Array', cat: 'array', tag: 'Array' },
+    'sliding-window-maximum': { name: 'Sliding Window Maximum', cat: 'array', tag: 'Array' },
+    'spiral-matrix-54': { name: 'Spiral Matrix (LeetCode 54)', cat: 'array', tag: 'Array' },
+    'split-array-largest-sum': { name: 'Split Array Largest Sum', cat: 'array', tag: 'Array' },
+    'string-compression-443': { name: 'String Compression (LeetCode 443)', cat: 'array', tag: 'Array' },
+    'subarraysum_k': { name: 'Subarray Sum Equals K', cat: 'array', tag: 'Array' },
+    'sum_3': { name: '3Sum', cat: 'array', tag: 'Array' },
+    'trapping-rainwater': { name: 'Trapping Rain Water', cat: 'array', tag: 'Array' },
+    'pow': { name: 'Pow(x, n)', cat: 'array', tag: 'Array' },
+    'bookallocation': { name: 'Book Allocation', cat: 'array', tag: 'Array' },
+    'detect-cycle-linked-list': { name: 'Detect Cycle in Linked List', cat: 'linked', tag: 'Linked List' },
+    'reverselist': { name: 'Reverse Linked List', cat: 'linked', tag: 'Linked List' },
+    'reverselist_2': { name: 'Reverse Linked List II', cat: 'linked', tag: 'Linked List' },
+    'allsubset': { name: 'All Subsets', cat: 'backtrack', tag: 'Backtracking' },
+    'combination-sum': { name: 'Combination Sum', cat: 'backtrack', tag: 'Backtracking' },
+    'n-queens': { name: 'N-Queens', cat: 'backtrack', tag: 'Backtracking' },
+    'permutations-46': { name: 'Permutations (LeetCode 46)', cat: 'backtrack', tag: 'Backtracking' },
+    'sudoku-solver': { name: 'Sudoku Solver', cat: 'backtrack', tag: 'Backtracking' },
+    'check-knight-tour': { name: 'Knight Tour', cat: 'backtrack', tag: 'Backtracking' },
+    'generate-parentheses': { name: 'Generate Parentheses', cat: 'backtrack', tag: 'Backtracking' },
+    'kadanes-algorithm': { name: 'Kadane Algorithm', cat: 'dp', tag: 'DP' },
+    'stock-buy-sell': { name: 'Best Time to Buy and Sell Stock', cat: 'dp', tag: 'DP' },
+    'stone-game-877': { name: 'Stone Game (LeetCode 877)', cat: 'dp', tag: 'DP' },
+    'house-robber': { name: 'House Robber', cat: 'dp', tag: 'DP' },
+    'houserobber2': { name: 'House Robber II', cat: 'dp', tag: 'DP' },
+    'triangle-min-path': { name: 'Triangle Minimum Path Sum', cat: 'dp', tag: 'DP' },
+    'valid-parentheses': { name: 'Valid Parentheses', cat: 'stack', tag: 'Stack' },
+    'group-anagrams-49': { name: 'Group Anagrams (LeetCode 49)', cat: 'hash', tag: 'Hash Table' },
+    'fastslowpointers': { name: 'Fastslowpointers', cat: 'array', tag: 'Array' },
+    'maxproductsubarray': { name: 'Maxproductsubarray', cat: 'array', tag: 'Array' },
+    'prefix2d': { name: 'Prefix2d', cat: 'array', tag: 'Array' },
+    'prefixsum': { name: 'Prefixsum', cat: 'array', tag: 'Array' },
+    'prefixxor': { name: 'Prefixxor', cat: 'array', tag: 'Array' },
+    'search-2d-matrix-1-2': { name: 'Search 2d Matrix 1 2', cat: 'array', tag: 'Array' },
+    'subarraygivenxor': { name: 'Subarraygivenxor', cat: 'array', tag: 'Array' },
+    'variableslidingwindow': { name: 'Variableslidingwindow', cat: 'array', tag: 'Array' },
+    'bit-checks': { name: 'Bit Checks', cat: 'bit', tag: 'Bit Manipulation' },
+    'bit-masking': { name: 'Bit Masking', cat: 'bit', tag: 'Bit Manipulation' },
+    'prefix-xor': { name: 'Prefix Xor', cat: 'bit', tag: 'Bit Manipulation' },
+    'subset-via-bits': { name: 'Subset via Bits', cat: 'bit', tag: 'Bit Manipulation' },
+    'xor-pattern': { name: 'Xor Pattern', cat: 'bit', tag: 'Bit Manipulation' },
+    'dp-1d': { name: 'Dp 1d', cat: 'dp', tag: 'DP' },
+    'dp-2d': { name: 'Dp 2d', cat: 'dp', tag: 'DP' },
+    'dp-bitmask': { name: 'Dp Bitmask', cat: 'dp', tag: 'DP' },
+    'dp-decision': { name: 'Dp Decision', cat: 'dp', tag: 'DP' },
+    'dp-digit': { name: 'Dp Digit', cat: 'dp', tag: 'DP' },
+    'dp-grid': { name: 'Dp Grid', cat: 'dp', tag: 'DP' },
+    'dp-interval': { name: 'Dp Interval', cat: 'dp', tag: 'DP' },
+    'dp-knapsack': { name: 'Dp Knapsack', cat: 'dp', tag: 'DP' },
+    'dp-linear': { name: 'Dp Linear', cat: 'dp', tag: 'DP' },
+    'dp-memo-vs-tab': { name: 'Dp Memo Vs Tab', cat: 'dp', tag: 'DP' },
+    'dp-partition': { name: 'Dp Partition', cat: 'dp', tag: 'DP' },
+    'dp-sequence': { name: 'Dp Sequence', cat: 'dp', tag: 'DP' },
+    'dp-trees': { name: 'Dp Trees', cat: 'dp', tag: 'DP' },
+    'graph-01-bfs-rotting-oranges': { name: 'Bfs Rotting Oranges', cat: 'graph', tag: 'Graph' },
+    'graph-02-dfs-number-of-islands': { name: 'Dfs Number of Islands', cat: 'graph', tag: 'Graph' },
+    'graph-03-cycle-detection-directed': { name: 'Cycle Detection Directed', cat: 'graph', tag: 'Graph' },
+    'graph-04-cycle-detection-undirected': { name: 'Cycle Detection Undirected', cat: 'graph', tag: 'Graph' },
+    'graph-05-topological-sort-kahn': { name: 'Topological Sort Kahn', cat: 'graph', tag: 'Graph' },
+    'graph-06-topological-sort-dfs': { name: 'Topological Sort Dfs', cat: 'graph', tag: 'Graph' },
+    'graph-07-dijkstra-network-delay': { name: 'Dijkstra Network Delay', cat: 'graph', tag: 'Graph' },
+    'graph-08-bellman-ford': { name: 'Bellman Ford', cat: 'graph', tag: 'Graph' },
+    'graph-09-floyd-warshall': { name: 'Floyd Warshall', cat: 'graph', tag: 'Graph' },
+    'graph-10-kruskal-mst': { name: 'Kruskal Mst', cat: 'graph', tag: 'Graph' },
+    'graph-11-prim-mst': { name: 'Prim Mst', cat: 'graph', tag: 'Graph' },
+    'graph-12-union-find-dsu': { name: 'Union Find Dsu', cat: 'graph', tag: 'Graph' },
+    'graph-13-bipartite-check': { name: 'Bipartite Check', cat: 'graph', tag: 'Graph' },
+    'activity-selection': { name: 'Activity Selection', cat: 'dp', tag: 'DP' },
+    'deadline-scheduling': { name: 'Deadline Scheduling', cat: 'dp', tag: 'DP' },
+    'huffman-merge-cost': { name: 'Huffman Merge Cost', cat: 'dp', tag: 'DP' },
+    'jump-game': { name: 'Jump Game', cat: 'dp', tag: 'DP' },
+    'minimum-platforms': { name: 'Minimum Platforms', cat: 'dp', tag: 'DP' },
+    'non-overlapping-intervals': { name: 'Non Overlapping Intervals', cat: 'dp', tag: 'DP' },
+    'firstuniquecharacter': { name: 'Firstuniquecharacter', cat: 'hash', tag: 'Hash Table' },
+    'longestconsecutive': { name: 'Longestconsecutive', cat: 'hash', tag: 'Hash Table' },
+    'next-smaller-element': { name: 'Next Smaller Element', cat: 'hash', tag: 'Hash Table' },
+    'top-k-frequent-347': { name: 'Top K Frequent 347', cat: 'hash', tag: 'Hash Table' },
+    'twosum': { name: 'Twosum', cat: 'hash', tag: 'Hash Table' },
+    'heap-huffman-encoding': { name: 'Heap Huffman Encoding', cat: 'heap', tag: 'Heap' },
+    'heap-k-way-merge': { name: 'Heap K Way Merge', cat: 'heap', tag: 'Heap' },
+    'heap-meeting-rooms': { name: 'Heap Meeting Rooms', cat: 'heap', tag: 'Heap' },
+    'heap-reorganize-string': { name: 'Heap Reorganize String', cat: 'heap', tag: 'Heap' },
+    'heap-task-scheduler': { name: 'Heap Task Scheduler', cat: 'heap', tag: 'Heap' },
+    'heap-top-k-kth-closest': { name: 'Heap Top K Kth Closest', cat: 'heap', tag: 'Heap' },
+    'floyd-cycle-detection': { name: 'Floyd Cycle Detection', cat: 'linked', tag: 'Linked List' },
+    'merge-two-sorted-lists': { name: 'Merge Two Sorted Lists', cat: 'linked', tag: 'Linked List' },
+    'middle-of-linked-list': { name: 'Middle of Linked List', cat: 'linked', tag: 'Linked List' },
+    'reverse-k-group': { name: 'Reverse K Group', cat: 'linked', tag: 'Linked List' },
+    'reverse-linked-list': { name: 'Reverse Linked List', cat: 'linked', tag: 'Linked List' },
+    'bfs-queue-traversal': { name: 'Bfs Queue Traversal', cat: 'queue', tag: 'Queue/Deque' },
+    'circular-queue': { name: 'Circular Queue', cat: 'queue', tag: 'Queue/Deque' },
+    'deque-based': { name: 'Deque Based', cat: 'queue', tag: 'Queue/Deque' },
+    'level-order-traversal': { name: 'Level Order Traversal', cat: 'queue', tag: 'Queue/Deque' },
+    'recursion-01-backtracking-template': { name: 'Backtracking Template', cat: 'recursion', tag: 'Recursion' },
+    'recursion-02-subsets-power-set': { name: 'Subsets Power Set', cat: 'recursion', tag: 'Recursion' },
+    'recursion-03-permutations': { name: 'Permutations', cat: 'recursion', tag: 'Recursion' },
+    'recursion-04-combinations': { name: 'Combinations', cat: 'recursion', tag: 'Recursion' },
+    'recursion-05-word-search': { name: 'Word Search', cat: 'recursion', tag: 'Recursion' },
+    'recursion-06-palindrome-partitioning': { name: 'Palindrome Partitioning', cat: 'recursion', tag: 'Recursion' },
+    'recursion-07-quick-select': { name: 'Quick Select', cat: 'recursion', tag: 'Recursion' },
+    'recursion-08-count-inversions': { name: 'Count Inversions', cat: 'recursion', tag: 'Recursion' },
+    'recursion-09-n-queens': { name: 'N Queens', cat: 'recursion', tag: 'Recursion' },
+    'bucket-sort': { name: 'Bucket Sort', cat: 'sort', tag: 'Sorting' },
+    'counting-sort': { name: 'Counting Sort', cat: 'sort', tag: 'Sorting' },
+    'heap-sort': { name: 'Heap Sort', cat: 'sort', tag: 'Sorting' },
+    'radix-sort': { name: 'Radix Sort', cat: 'sort', tag: 'Sorting' },
+    'evaluate-rpn': { name: 'Evaluate Rpn', cat: 'stack', tag: 'Stack' },
+    'largest-rectangle-histogram': { name: 'Largest Rectangle Histogram', cat: 'stack', tag: 'Stack' },
+    'min-max-stack': { name: 'Min Max Stack', cat: 'stack', tag: 'Stack' },
+    'next-greater-element': { name: 'Next Greater Element', cat: 'stack', tag: 'Stack' },
+    'previous-greater-element': { name: 'Previous Greater Element', cat: 'stack', tag: 'Stack' },
+    'stock-span': { name: 'Stock Span', cat: 'stack', tag: 'Stack' },
+    'kmp': { name: 'Kmp', cat: 'string', tag: 'String' },
+    'minimumwindowsubstring': { name: 'Minimumwindowsubstring', cat: 'string', tag: 'String' },
+    'palindromecheck': { name: 'Palindromecheck', cat: 'string', tag: 'String' },
+    'permutationinstring': { name: 'Permutationinstring', cat: 'string', tag: 'String' },
+    'rabinkarp': { name: 'Rabinkarp', cat: 'string', tag: 'String' },
+    'zalgorithm': { name: 'Zalgorithm', cat: 'string', tag: 'String' },
+    'tree-bfs-variants': { name: 'Tree Bfs Variants', cat: 'tree', tag: 'Tree' },
+    'tree-dfs-traversals': { name: 'Tree Dfs Traversals', cat: 'tree', tag: 'Tree' },
+    'tree-diameter-height-depth': { name: 'Tree Diameter Height Depth', cat: 'tree', tag: 'Tree' },
+    'tree-max-path-sum': { name: 'Tree Max Path Sum', cat: 'tree', tag: 'Tree' },
+    'tree-recursion-bottom-up': { name: 'Tree Recursion Bottom Up', cat: 'tree', tag: 'Tree' },
+    'tree-recursion-top-down': { name: 'Tree Recursion Top Down', cat: 'tree', tag: 'Tree' },
+    'trie-bitwise': { name: 'Trie Bitwise', cat: 'trie', tag: 'Trie' },
+    'trie-insert-search': { name: 'Trie Insert Search', cat: 'trie', tag: 'Trie' },
+    'trie-prefix-match': { name: 'Trie Prefix Match', cat: 'trie', tag: 'Trie' },
+  };
+
+  const urlMap = {
+    'bubble-sort': 'questions/sorting/bubble-sort.html',
+    'insertion-sort': 'questions/sorting/insertion-sort.html',
+    'mergesort': 'algorithms/mergesort.html',
+    'quick-sort': 'questions/sorting/quick-sort.html',
+    'selection-sort': 'questions/sorting/selection-sort.html',
+    'merge-sorted-arrays': 'questions/array/merge-sorted-arrays.html',
+    'dutch-national-flag': 'questions/array/dutch-national-flag.html',
+    'count-inversions': 'algorithms/count-inversions.html',
+    'next-permutation': 'algorithms/next-permutation.html',
+    'peak-index-mountain-array': 'questions/array/peak-index-mountain-array.html',
+    'reverse-words-in-string': 'questions/strings/reverse-words-in-string.html',
+    'Rotatedsortedarray': 'questions/array/Rotatedsortedarray.html',
+    'search-2d-matrix-1': 'algorithms/search-2d-matrix-1.html',
+    'search-2d-matrix-2': 'algorithms/search-2d-matrix-2.html',
+    'single_elemnent_sorted': 'questions/array/single_elemnent_sorted.html',
+    'sliding-window-maximum': 'questions/array/sliding-window-maximum.html',
+    'spiral-matrix-54': 'algorithms/spiral-matrix-54.html',
+    'split-array-largest-sum': 'questions/array/split-array-largest-sum.html',
+    'string-compression-443': 'questions/strings/string-compression-443.html',
+    'subarraysum_k': 'questions/array/subarraysum_k.html',
+    'sum_3': 'questions/array/sum_3.html',
+    'trapping-rainwater': 'questions/array/trapping-rainwater.html',
+    'pow': 'algorithms/pow.html',
+    'bookallocation': 'algorithms/bookallocation.html',
+    'detect-cycle-linked-list': 'algorithms/detect-cycle-linked-list.html',
+    'reverselist': 'algorithms/reverselist.html',
+    'reverselist_2': 'algorithms/reverselist_2.html',
+    'allsubset': 'algorithms/allsubset.html',
+    'combination-sum': 'algorithms/combination-sum.html',
+    'n-queens': 'algorithms/n-queens.html',
+    'permutations-46': 'algorithms/permutations-46.html',
+    'sudoku-solver': 'algorithms/sudoku-solver.html',
+    'check-knight-tour': 'algorithms/check-knight-tour.html',
+    'generate-parentheses': 'algorithms/generate-parentheses.html',
+    'kadanes-algorithm': 'questions/array/kadanes-algorithm.html',
+    'stock-buy-sell': 'algorithms/stock-buy-sell.html',
+    'stone-game-877': 'algorithms/stone-game-877.html',
+    'house-robber': 'algorithms/house-robber.html',
+    'houserobber2': 'algorithms/houserobber2.html',
+    'triangle-min-path': 'algorithms/triangle-min-path.html',
+    'valid-parentheses': 'algorithms/valid-parentheses.html',
+    'group-anagrams-49': 'questions/strings/group-anagrams-49.html',
+    'fastslowpointers': 'questions/array/fastslowpointers.html',
+    'maxproductsubarray': 'questions/array/maxproductsubarray.html',
+    'prefix2d': 'questions/array/prefix2d.html',
+    'prefixsum': 'questions/array/prefixsum.html',
+    'prefixxor': 'questions/array/prefixxor.html',
+    'search-2d-matrix-1-2': 'questions/array/search-2d-matrix-1-2.html',
+    'subarraygivenxor': 'questions/array/subarraygivenxor.html',
+    'variableslidingwindow': 'questions/array/variableslidingwindow.html',
+    'bit-checks': 'questions/bit-manipulation/bit-checks.html',
+    'bit-masking': 'questions/bit-manipulation/bit-masking.html',
+    'prefix-xor': 'questions/bit-manipulation/prefix-xor.html',
+    'subset-via-bits': 'questions/bit-manipulation/subset-via-bits.html',
+    'xor-pattern': 'questions/bit-manipulation/xor-pattern.html',
+    'dp-1d': 'questions/dp/dp-1d.html',
+    'dp-2d': 'questions/dp/dp-2d.html',
+    'dp-bitmask': 'questions/dp/dp-bitmask.html',
+    'dp-decision': 'questions/dp/dp-decision.html',
+    'dp-digit': 'questions/dp/dp-digit.html',
+    'dp-grid': 'questions/dp/dp-grid.html',
+    'dp-interval': 'questions/dp/dp-interval.html',
+    'dp-knapsack': 'questions/dp/dp-knapsack.html',
+    'dp-linear': 'questions/dp/dp-linear.html',
+    'dp-memo-vs-tab': 'questions/dp/dp-memo-vs-tab.html',
+    'dp-partition': 'questions/dp/dp-partition.html',
+    'dp-sequence': 'questions/dp/dp-sequence.html',
+    'dp-trees': 'questions/dp/dp-trees.html',
+    'graph-01-bfs-rotting-oranges': 'questions/graphs/graph-01-bfs-rotting-oranges.html',
+    'graph-02-dfs-number-of-islands': 'questions/graphs/graph-02-dfs-number-of-islands.html',
+    'graph-03-cycle-detection-directed': 'questions/graphs/graph-03-cycle-detection-directed.html',
+    'graph-04-cycle-detection-undirected': 'questions/graphs/graph-04-cycle-detection-undirected.html',
+    'graph-05-topological-sort-kahn': 'questions/graphs/graph-05-topological-sort-kahn.html',
+    'graph-06-topological-sort-dfs': 'questions/graphs/graph-06-topological-sort-dfs.html',
+    'graph-07-dijkstra-network-delay': 'questions/graphs/graph-07-dijkstra-network-delay.html',
+    'graph-08-bellman-ford': 'questions/graphs/graph-08-bellman-ford.html',
+    'graph-09-floyd-warshall': 'questions/graphs/graph-09-floyd-warshall.html',
+    'graph-10-kruskal-mst': 'questions/graphs/graph-10-kruskal-mst.html',
+    'graph-11-prim-mst': 'questions/graphs/graph-11-prim-mst.html',
+    'graph-12-union-find-dsu': 'questions/graphs/graph-12-union-find-dsu.html',
+    'graph-13-bipartite-check': 'questions/graphs/graph-13-bipartite-check.html',
+    'activity-selection': 'questions/greedy/activity-selection.html',
+    'deadline-scheduling': 'questions/greedy/deadline-scheduling.html',
+    'huffman-merge-cost': 'questions/greedy/huffman-merge-cost.html',
+    'jump-game': 'questions/greedy/jump-game.html',
+    'minimum-platforms': 'questions/greedy/minimum-platforms.html',
+    'non-overlapping-intervals': 'questions/greedy/non-overlapping-intervals.html',
+    'firstuniquecharacter': 'questions/hashmap/firstuniquecharacter.html',
+    'longestconsecutive': 'questions/hashmap/longestconsecutive.html',
+    'next-smaller-element': 'questions/hashmap/next-smaller-element.html',
+    'top-k-frequent-347': 'questions/hashmap/top-k-frequent-347.html',
+    'twosum': 'questions/hashmap/twosum.html',
+    'heap-huffman-encoding': 'questions/heap/heap-huffman-encoding.html',
+    'heap-k-way-merge': 'questions/heap/heap-k-way-merge.html',
+    'heap-meeting-rooms': 'questions/heap/heap-meeting-rooms.html',
+    'heap-reorganize-string': 'questions/heap/heap-reorganize-string.html',
+    'heap-task-scheduler': 'questions/heap/heap-task-scheduler.html',
+    'heap-top-k-kth-closest': 'questions/heap/heap-top-k-kth-closest.html',
+    'floyd-cycle-detection': 'questions/list/floyd-cycle-detection.html',
+    'merge-two-sorted-lists': 'questions/list/merge-two-sorted-lists.html',
+    'middle-of-linked-list': 'questions/list/middle-of-linked-list.html',
+    'reverse-k-group': 'questions/list/reverse-k-group.html',
+    'reverse-linked-list': 'questions/list/reverse-linked-list.html',
+    'bfs-queue-traversal': 'questions/queue-dequeue/bfs-queue-traversal.html',
+    'circular-queue': 'questions/queue-dequeue/circular-queue.html',
+    'deque-based': 'questions/queue-dequeue/deque-based.html',
+    'level-order-traversal': 'questions/queue-dequeue/level-order-traversal.html',
+    'recursion-01-backtracking-template': 'questions/recursion/recursion-01-backtracking-template.html',
+    'recursion-02-subsets-power-set': 'questions/recursion/recursion-02-subsets-power-set.html',
+    'recursion-03-permutations': 'questions/recursion/recursion-03-permutations.html',
+    'recursion-04-combinations': 'questions/recursion/recursion-04-combinations.html',
+    'recursion-05-word-search': 'questions/recursion/recursion-05-word-search.html',
+    'recursion-06-palindrome-partitioning': 'questions/recursion/recursion-06-palindrome-partitioning.html',
+    'recursion-07-quick-select': 'questions/recursion/recursion-07-quick-select.html',
+    'recursion-08-count-inversions': 'questions/recursion/recursion-08-count-inversions.html',
+    'recursion-09-n-queens': 'questions/recursion/recursion-09-n-queens.html',
+    'bucket-sort': 'questions/sorting/bucket-sort.html',
+    'counting-sort': 'questions/sorting/counting-sort.html',
+    'heap-sort': 'questions/sorting/heap-sort.html',
+    'radix-sort': 'questions/sorting/radix-sort.html',
+    'evaluate-rpn': 'questions/stack/evaluate-rpn.html',
+    'largest-rectangle-histogram': 'questions/stack/largest-rectangle-histogram.html',
+    'min-max-stack': 'questions/stack/min-max-stack.html',
+    'next-greater-element': 'questions/stack/next-greater-element.html',
+    'previous-greater-element': 'questions/stack/previous-greater-element.html',
+    'stock-span': 'questions/stack/stock-span.html',
+    'kmp': 'questions/strings/kmp.html',
+    'minimumwindowsubstring': 'questions/strings/minimumwindowsubstring.html',
+    'palindromecheck': 'questions/strings/palindromecheck.html',
+    'permutationinstring': 'questions/strings/permutationinstring.html',
+    'rabinkarp': 'questions/strings/rabinkarp.html',
+    'zalgorithm': 'questions/strings/zalgorithm.html',
+    'tree-bfs-variants': 'questions/tree/tree-bfs-variants.html',
+    'tree-dfs-traversals': 'questions/tree/tree-dfs-traversals.html',
+    'tree-diameter-height-depth': 'questions/tree/tree-diameter-height-depth.html',
+    'tree-max-path-sum': 'questions/tree/tree-max-path-sum.html',
+    'tree-recursion-bottom-up': 'questions/tree/tree-recursion-bottom-up.html',
+    'tree-recursion-top-down': 'questions/tree/tree-recursion-top-down.html',
+    'trie-bitwise': 'questions/trie/trie-bitwise.html',
+    'trie-insert-search': 'questions/trie/trie-insert-search.html',
+    'trie-prefix-match': 'questions/trie/trie-prefix-match.html',
+  };
+
+  const catCounts = { sort: 9, array: 27, linked: 8, backtrack: 7, recursion: 9, dp: 25, stack: 8, queue: 4, hash: 6, heap: 6, graph: 13, tree: 6, trie: 3, string: 8, bit: 6 };
+  const catColors = { sort: 'var(--teal)', array: 'var(--accent)', linked: 'var(--purple)', backtrack: 'var(--amber)', recursion: 'var(--red)', dp: 'var(--green)', stack: 'var(--teal)', queue: 'var(--accent)', hash: 'var(--purple)', heap: 'var(--amber)', graph: 'var(--red)', tree: 'var(--green)', trie: 'var(--teal)', string: 'var(--accent)', bit: 'var(--purple)' };
+  const catLabels = { sort: 'Sorting', array: 'Arrays', linked: 'Linked List', backtrack: 'Backtracking', recursion: 'Recursion', dp: 'DP / Greedy', stack: 'Stack', queue: 'Queue / Deque', hash: 'Hash Table', heap: 'Heap', graph: 'Graphs', tree: 'Tree', trie: 'Trie', string: 'Strings', bit: 'Bit Manipulation' };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Email verification gate: an account created with someone else's
+    // email address can't ever click the verification link, so it stays
+    // locked out of the dashboard here. Google accounts are always
+    // pre-verified by Google, so this only actually blocks unverified
+    // password accounts.
+    if (!user.emailVerified) {
+      await signOut(auth);
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const name = user.displayName || user.email.split('@')[0];
+    userName.textContent = name;
+    welcomeName.textContent = name;
+    userAvatar.textContent = name.charAt(0).toUpperCase();
+
+    // Update last active
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { lastActive: new Date().toISOString() });
+    } catch(e) {}
+
+    // Load user data
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      const completed = data.completedAnimations || [];
+      const bookmarks = data.bookmarks || [];
+      const totalTime = data.totalTimeSpent || 0;
+
+      // Update stats
+      statWatched.textContent = completed.length;
+      statRate.textContent = Math.round((completed.length / 141) * 100) + '%';
+
+      // Load bookmarks
+      const loadingBookmarks = document.getElementById('loadingBookmarks');
+      const bookmarksList = document.getElementById('bookmarksList');
+      if (loadingBookmarks) loadingBookmarks.style.display = 'none';
+
+      if (bookmarks.length === 0) {
+        if (bookmarksList) {
+          bookmarksList.innerHTML = `
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+              <p>No bookmarks yet. <a href="index.html#algorithms">Browse algorithms!</a></p>
+            </div>`;
+        }
+      } else {
+        if (bookmarksList) {
+          bookmarksList.innerHTML = bookmarks.map(id => {
+            const info = catMap[id] || { name: id, cat: 'array', tag: 'Array' };
+            const tagClass = info.cat === 'sort' ? 'tag-sort' : info.cat === 'array' ? 'tag-array' : info.cat === 'backtrack' ? 'tag-backtrack' : info.cat === 'dp' ? 'tag-dp' : info.cat === 'linked' ? 'tag-linked' : info.cat === 'stack' ? 'tag-stack' : info.cat === 'hash' ? 'tag-hash' : 'tag-array';
+            return `
+              <a href="${urlMap[id] || ('algorithms/' + id + '.html')}" class="activity-item">
+                <div class="activity-icon" style="background:${catColors[info.cat] || 'var(--accent)'}22; color:${catColors[info.cat] || 'var(--accent)'}; border:1px solid ${catColors[info.cat] || 'var(--accent)'}44">&#x2605;</div>
+                <div class="activity-details">
+                  <div class="activity-title">${info.name}</div>
+                  <div class="activity-time">Bookmarked</div>
+                </div>
+                <span class="activity-tag ${tagClass}">${info.tag}</span>
+              </a>`;
+          }).join('');
+        }
+      }
+
+      // Get activity dates
+      const activityDates = data.activityDates || [];
+
+      // Calculate streaks
+      const { currentStreak, maxStreak } = calculateStreaks(activityDates, data.activityMap);
+      statStreak.textContent = currentStreak;
+      statMaxStreak.textContent = maxStreak;
+
+      // Render heatmap
+      renderHeatmap(activityDates, data.activityMap);
+
+      // Progress bar
+      setTimeout(() => {
+        progressFill.style.width = Math.round((completed.length / 141) * 100) + '%';
+      }, 300);
+
+      // Category breakdown
+      const catProgress = {};
+      completed.forEach(id => {
+        const info = catMap[id];
+        if (info) {
+          catProgress[info.cat] = (catProgress[info.cat] || 0) + 1;
+        }
+      });
+
+      progressCats.innerHTML = Object.entries(catCounts).map(([cat, total]) => {
+        const done = catProgress[cat] || 0;
+        return `<div class="progress-cat"><span class="progress-cat-dot" style="background:${catColors[cat]}"></span>${catLabels[cat]}: ${done}/${total}</div>`;
+      }).join('');
+
+      // Activity list
+      loadingActivity.style.display = 'none';
+      if (completed.length === 0) {
+        activityList.innerHTML = `
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+            <p>No animations watched yet. <a href="index.html#algorithms">Start learning!</a></p>
+          </div>`;
+      } else {
+        activityList.innerHTML = completed.slice(-10).reverse().map(id => {
+          const info = catMap[id] || { name: id, tag: 'Array' };
+          const tagClass = info.cat === 'sort' ? 'tag-sort' : info.cat === 'array' ? 'tag-array' : info.cat === 'backtrack' ? 'tag-backtrack' : info.cat === 'dp' ? 'tag-dp' : 'tag-array';
+          return `
+            <a href="${urlMap[id] || ('algorithms/' + id + '.html')}" class="activity-item">
+              <div class="activity-icon" style="background:${catColors[info.cat] || 'var(--accent)'}22; color:${catColors[info.cat] || 'var(--accent)'}; border:1px solid ${catColors[info.cat] || 'var(--accent)'}44">&#x25B6;</div>
+              <div class="activity-details">
+                <div class="activity-title">${info.name}</div>
+                <div class="activity-time">Completed</div>
+              </div>
+              <span class="activity-tag ${tagClass}">${info.tag}</span>
+            </a>`;
+        }).join('');
+      }
+    } else {
+      const loadingBookmarks = document.getElementById('loadingBookmarks');
+      const bookmarksList = document.getElementById('bookmarksList');
+      if (loadingBookmarks) loadingBookmarks.style.display = 'none';
+      if (bookmarksList) {
+        bookmarksList.innerHTML = `
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            <p>No bookmarks yet. <a href="index.html#algorithms">Browse algorithms!</a></p>
+          </div>`;
+      }
+      loadingActivity.style.display = 'none';
+      activityList.innerHTML = `
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+          <p>No animations watched yet. <a href="index.html#algorithms">Start learning!</a></p>
+        </div>`;
+    }
+  });
+
+  function calculateStreaks(activityDates, activityMap) {
+    let dates = [];
+    if (activityMap && typeof activityMap === 'object') {
+      dates = Object.keys(activityMap).sort();
+    } else if (activityDates && activityDates.length > 0) {
+      dates = [...new Set(activityDates.map(d => typeof d === 'string' ? d.split('T')[0] : d))].sort();
+    }
+    if (dates.length === 0) return { currentStreak: 0, maxStreak: 0 };
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let tempStreak = 0;
+    const _ld = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const today = _ld(new Date());
+    const yesterday = _ld(new Date(Date.now() - 86400000));
+    const lastActive = dates[dates.length - 1];
+    if (lastActive === today || lastActive === yesterday) {
+      let checkDate = new Date(lastActive + 'T00:00:00');
+      while (true) {
+        const checkStr = _ld(checkDate);
+        if (dates.includes(checkStr)) {
+          currentStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+    }
+    for (let i = 0; i < dates.length; i++) {
+      if (i === 0) {
+        tempStreak = 1;
+      } else {
+        const prev = new Date(dates[i - 1]);
+        const curr = new Date(dates[i]);
+        const diff = (curr - prev) / 86400000;
+        if (diff === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+      }
+      maxStreak = Math.max(maxStreak, tempStreak);
+    }
+    return { currentStreak, maxStreak };
+  }
+
+  function renderHeatmap(activityDates, activityMap) {
+    const grid = document.getElementById('heatmapGrid');
+    const labelsX = document.getElementById('heatmapLabelsX');
+    const labelsY = document.getElementById('heatmapLabelsY');
+    const totalEl = document.getElementById('heatmapTotal');
+    const activeDaysEl = document.getElementById('heatmapActiveDays');
+    const maxStreakEl = document.getElementById('heatmapMaxStreak');
+    if (!grid) return;
+
+    // Build dayCount from activityMap (preferred) or activityDates (legacy)
+    const dayCount = {};
+    if (activityMap && typeof activityMap === 'object') {
+      Object.entries(activityMap).forEach(([day, count]) => {
+        dayCount[day] = count;
+      });
+    } else if (activityDates) {
+      (activityDates || []).forEach(d => {
+        const day = typeof d === 'string' ? d.split('T')[0] : d;
+        dayCount[day] = (dayCount[day] || 0) + 1;
+      });
+    }
+
+    // Render Y-axis labels (days of week) - show every other for cleaner look
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    labelsY.innerHTML = dayNames.map((d, i) => `<div class="day-label">${d}</div>`).join('');
+
+    let totalSubmissions = 0;
+    let activeDays = 0;
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - 364);
+    while (startDate.getDay() !== 0) {
+      startDate.setDate(startDate.getDate() - 1);
+    }
+
+    // Track month labels with proper positioning
+    let lastLabeledMonth = -1;
+    const monthLabels = [];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    grid.innerHTML = '';
+
+    for (let week = 0; week < 53; week++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() + week * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      // Find which month this week "belongs" to:
+      // If the week contains the 1st of a month, label that month.
+      // Otherwise, label the month of weekStart if different from last labeled.
+      let labelMonth = -1;
+      for (let d = 0; d < 7; d++) {
+        const checkDate = new Date(weekStart);
+        checkDate.setDate(checkDate.getDate() + d);
+        if (checkDate.getDate() === 1) {
+          labelMonth = checkDate.getMonth();
+          break;
+        }
+      }
+      // If no 1st in this week, use weekStart's month if changed
+      if (labelMonth === -1 && weekStart.getMonth() !== lastLabeledMonth) {
+        labelMonth = weekStart.getMonth();
+      }
+      // Only add if it's a new month we haven't labeled
+      if (labelMonth !== -1 && labelMonth !== lastLabeledMonth) {
+        lastLabeledMonth = labelMonth;
+        monthLabels.push({ month: months[labelMonth], weekIndex: week });
+      }
+
+      for (let day = 0; day < 7; day++) {
+        const date = new Date(weekStart);
+        date.setDate(date.getDate() + day);
+        const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        const count = dayCount[dateStr] || 0;
+        if (count > 0) { totalSubmissions += count; activeDays++; }
+
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-day';
+        let level = 0;
+        if (count > 0) level = 1;
+        if (count >= 3) level = 2;
+        if (count >= 5) level = 3;
+        if (count >= 8) level = 4;
+        cell.classList.add('l' + level);
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'heatmap-tooltip';
+        const dateFmt = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        tooltip.textContent = count > 0 ? count + ' animation' + (count > 1 ? 's' : '') + ' on ' + dateFmt : 'No activity on ' + dateFmt;
+        cell.appendChild(tooltip);
+        grid.appendChild(cell);
+      }
+    }
+
+    // Render month labels with precise positioning
+    // Each week column is 12px wide + 3px gap = 15px
+    // Skip labels that would visually overlap, but always keep the last one
+    const minPixelGap = 35; // minimum pixels between label starts
+    const filteredLabels = [];
+    monthLabels.forEach((m, i) => {
+      const leftPos = m.weekIndex * 15;
+      if (i === 0) {
+        filteredLabels.push({ ...m, leftPos });
+      } else {
+        const last = filteredLabels[filteredLabels.length - 1];
+        if (leftPos - last.leftPos >= minPixelGap) {
+          filteredLabels.push({ ...m, leftPos });
+        } else if (i === monthLabels.length - 1) {
+          // Always keep the last (current) month - replace previous if too close
+          filteredLabels[filteredLabels.length - 1] = { ...m, leftPos };
+        }
+      }
+    });
+    labelsX.innerHTML = filteredLabels.map(m => {
+      return `<div class="month-label" style="position:absolute; left:${m.leftPos}px;">${m.month}</div>`;
+    }).join('');
+    labelsX.style.position = 'relative';
+
+    totalEl.textContent = totalSubmissions + ' animation' + (totalSubmissions !== 1 ? 's' : '') + ' in the past year';
+    activeDaysEl.textContent = activeDays;
+    const { maxStreak } = calculateStreaks(activityDates, activityMap);
+    maxStreakEl.textContent = maxStreak;
+  }
+
+  // Sync button handler
+  const syncBtn = document.getElementById('syncBtn');
+  const syncStatus = document.getElementById('syncStatus');
+  if (syncBtn && syncStatus) {
+    syncBtn.addEventListener('click', async () => {
+      syncBtn.disabled = true;
+      syncStatus.textContent = 'Syncing...';
+      syncStatus.style.color = 'var(--accent)';
+      try {
+        const user = auth.currentUser;
+        if (!user) { syncStatus.textContent = 'Not logged in'; return; }
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (!snap.exists()) { syncStatus.textContent = 'No user data'; return; }
+        const data = snap.data();
+        const completed = data.completedAnimations || [];
+        const activityMap = data.activityMap || {};
+        const _d = new Date();
+        const today = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
+
+        // FIX: We have no per-completion timestamp, so we can't know which exact
+        // day each past animation was really completed on. The old code set
+        // activityMap[today] = completed.length every click, which overwrote
+        // today's real count and re-added already-tracked animations on every sync.
+        // Instead: only the DELTA between total completions and what's already
+        // tracked across all days gets added to today, and only once per animation
+        // (never subtracted, never re-added on repeat clicks).
+        const alreadyTracked = Object.values(activityMap).reduce((a, b) => a + b, 0);
+        const untracked = Math.max(0, completed.length - alreadyTracked);
+
+        if (untracked > 0) {
+          activityMap[today] = (activityMap[today] || 0) + untracked;
+          await setDoc(doc(db, 'users', user.uid), { activityMap: activityMap }, { merge: true });
+        }
+
+        const activeDays = Object.keys(activityMap).length;
+        syncStatus.textContent = untracked > 0
+          ? `Synced! ${untracked} untracked animation${untracked > 1 ? 's' : ''} added to today · ${activeDays} active days`
+          : `Already up to date · ${activeDays} active days`;
+        syncStatus.style.color = 'var(--green)';
+        renderHeatmap([], activityMap);
+        const { currentStreak, maxStreak } = calculateStreaks([], activityMap);
+        statStreak.textContent = currentStreak;
+        statMaxStreak.textContent = maxStreak;
+      } catch (err) {
+        syncStatus.textContent = 'Error: ' + err.message;
+        syncStatus.style.color = 'var(--red)';
+        console.error('Sync error:', err);
+      } finally {
+        syncBtn.disabled = false;
+      }
+    });
+  }
+
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  });
+</script>
+
+</body>
+</html>

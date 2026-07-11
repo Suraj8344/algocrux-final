@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3Sum — Two Pointers</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --mono: 'Fira Code','Cascadia Code','Consolas',monospace;
+    --sans: 'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6;}
+
+  /* HEADER */
+  header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface);}
+  .badge{background:var(--purple-bg);color:var(--purple);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid #3a2155;}
+  header h1{font-size:1.25rem;font-weight:600;}
+  header p{font-size:13px;color:var(--muted);margin-top:2px;}
+
+  /* LAYOUT */
+  main{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;}
+
+  /* CONCEPT */
+  .concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+  @media(max-width:640px){.concept{grid-template-columns:1fr;}}
+  .concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem;}
+  .concept p{font-size:13px;color:var(--muted);line-height:1.7;}
+  .formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:13px;color:var(--amber);line-height:2.1;}
+  .formula .cm{color:var(--muted);font-style:italic;}
+  .formula .kw{color:var(--purple);}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto;}
+  .tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap;}
+  .tab:hover{color:var(--text);background:var(--surface2);}
+  .tab.active{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;}
+
+  /* ANIM PANEL */
+  .anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
+  .anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.5);max-height:calc(100vh - 24px);overflow-y:auto;}
+  .anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem;}
+  .anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+  .pin-btn:hover{color:var(--text);border-color:var(--muted);}
+  .pin-btn.active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple);}
+
+  /* LEGEND */
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .leg-pill{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;}
+  .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+  /* ARRAY */
+  .array-outer{overflow-x:auto;padding-bottom:.5rem;margin-bottom:1.5rem;}
+  .array-scene{display:inline-flex;flex-direction:column;gap:0;min-width:max-content;}
+
+  .ptr-row{display:flex;gap:4px;height:32px;margin-bottom:2px;}
+  .ptr-cell{width:56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:10px;font-family:var(--mono);font-weight:700;gap:1px;}
+  .ptr-arrow{font-size:13px;line-height:1;}
+  .ptr-i  {color:var(--amber);}
+  .ptr-lo {color:var(--accent);}
+  .ptr-hi {color:var(--red);}
+
+  .elem-row{display:flex;gap:4px;}
+  .acell{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:18px;font-weight:700;font-family:var(--mono);border:2px solid transparent;transition:box-shadow .2s,background .2s,transform .2s;}
+
+  .acell.neutral  {background:var(--surface2);color:var(--text);border-color:var(--border2);}
+  .acell.fixed-i  {background:var(--amber-bg);color:var(--amber);border-color:var(--amber);}
+  .acell.ptr-left {background:var(--accent-bg);color:var(--accent);border-color:var(--accent);}
+  .acell.ptr-right{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+  .acell.triplet  {background:var(--purple-bg);color:var(--purple);border-color:var(--purple);animation:popcell .35s ease;}
+  .acell.skip-dup {opacity:.4;border-color:var(--border);}
+  .acell.sorted-z {background:var(--green-bg);color:var(--green);border-color:var(--green);}
+
+  .idx-row{display:flex;gap:4px;margin-top:5px;}
+  .idx-cell{width:56px;text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);}
+
+  @keyframes popcell{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+
+  /* SUM DISPLAY */
+  .sum-display{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;font-family:var(--mono);font-size:15px;}
+  .sum-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem 1rem;display:flex;align-items:center;gap:8px;}
+  .sum-box .slbl{font-size:11px;color:var(--muted);margin-right:4px;}
+  .sum-val{font-size:20px;font-weight:700;}
+  .sum-eq {font-size:13px;color:var(--muted);}
+  .sum-arrow{font-size:18px;color:var(--muted);}
+
+  /* TRIPLETS BOX */
+  .triplets-panel{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem;min-height:46px;}
+  .triplets-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .triplet-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .triplet-chip{background:var(--purple-bg);border:1px solid #3a2155;color:var(--purple);border-radius:6px;font-family:var(--mono);font-size:13px;padding:3px 10px;animation:popcell .3s ease;}
+
+  /* PROGRESS */
+  .step-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden;}
+  .progress-fill{height:4px;background:linear-gradient(90deg,var(--purple),var(--accent));border-radius:2px;transition:width .3s ease;width:0%;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+  @media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;}
+  .stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px;}
+  .stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text);transition:color .2s;}
+  .stat-box .sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono);}
+  .stat-box.purple .val{color:var(--purple);}
+  .stat-box.amber  .val{color:var(--amber);}
+  .stat-box.accent .val{color:var(--accent);}
+
+  /* LOG */
+  .log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.25rem;line-height:1.65;}
+  .log-box .hi {color:var(--text);font-weight:500;}
+  .log-box .pos{color:var(--green);font-weight:600;}
+  .log-box .neg{color:var(--red);font-weight:600;}
+  .log-box .acc{color:var(--accent);font-weight:600;}
+  .log-box .amb{color:var(--amber);font-weight:600;}
+  .log-box .sol{color:var(--purple);font-weight:600;}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+  .btn:hover{background:var(--border);border-color:var(--muted);}
+  .btn.primary{background:var(--purple-bg);border-color:var(--purple);color:var(--purple);}
+  .btn.primary:hover{background:#2a1545;}
+  .speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto;}
+  input[type=range]{width:80px;accent-color:var(--purple);}
+  .done-pill{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none;}
+
+  /* STEP TABLE */
+  .walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
+  .walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem;}
+  .step-table{width:100%;border-collapse:collapse;font-size:13px;overflow:auto;display:block;}
+  .step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;}
+  .step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap;}
+  .step-table tr.highlighted td{background:var(--surface2);color:var(--text);}
+  .act-fix   {color:var(--amber);}
+  .act-scan  {color:var(--accent);}
+  .act-found {color:var(--purple);}
+  .act-skip  {color:var(--muted);}
+  .act-done  {color:var(--green);}
+
+  /* CODE */
+  .code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem;}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .code-header span{font-size:12px;color:var(--muted);font-weight:500;}
+  .copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted);}
+  pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8;}
+  .kw{color:var(--purple);} .fn{color:var(--accent);} .cm{color:var(--muted);font-style:italic;} .nm{color:var(--amber);} .st{color:var(--green);}
+
+  /* COMPLEXITY */
+  .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem;}
+  @media(max-width:480px){.complexity-grid{grid-template-columns:1fr;}}
+  .complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;}
+  .complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase;}
+  .complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--purple);}
+  .complex-card p{font-size:12px;color:var(--muted);margin-top:4px;}
+  .divider{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+  #example-desc{font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.7;}
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Two Pointers</span>
+      <h1>3Sum</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/3sum/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Find all unique triplets that sum to zero — O(n²) time · O(1) extra space · LeetCode #15</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given an integer array, find all <strong style="color:var(--text)">unique triplets</strong> <code style="color:var(--accent)">[a, b, c]</code> such that <code style="color:var(--purple)">a + b + c = 0</code>. The solution set must not contain duplicate triplets.</p>
+      <p style="margin-top:.75rem">Sort the array first, then fix one element <code style="color:var(--amber)">i</code> and use a <strong style="color:var(--text)">two-pointer scan</strong> with <code style="color:var(--accent)">lo</code> and <code style="color:var(--red)">hi</code> moving inward to find all valid pairs.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="cm">// sort, then for each i:</span><br>
+        <span class="kw">for</span> i = 0 → n-3:<br>
+        &nbsp;&nbsp;<span class="kw">if</span> i>0 &amp;&amp; arr[i]==arr[i-1]: skip<br>
+        &nbsp;&nbsp;lo=i+1, hi=n-1<br>
+        &nbsp;&nbsp;<span class="kw">while</span> lo &lt; hi:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;s = arr[i]+arr[lo]+arr[hi]<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> s==0: record; skip dups<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> s&lt;0: lo++ &nbsp;<span class="kw">else</span>: hi--
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Classic [-1,0,1,2,-1,-4]</button>
+    <button class="tab" onclick="loadExample(1,this)">All zeros [0,0,0,0]</button>
+    <button class="tab" onclick="loadExample(2,this)">No solution [1,2,3,4]</button>
+    <button class="tab" onclick="loadExample(3,this)">With duplicates [-2,0,0,2,2]</button>
+    <button class="tab" onclick="loadExample(4,this)">Longer [-4,-1,-1,0,1,2]</button>
+  </div>
+
+  <!-- ANIM PANEL -->
+  <div class="anim-panel" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">▶ Visualiser</span>
+      <button class="pin-btn" id="pin-btn" onclick="togglePin()">📌 Pin while scrolling</button>
+    </div>
+
+    <div id="example-desc"></div>
+
+    <div class="legend">
+      <div class="leg-pill"><div class="leg-dot" style="background:var(--amber)"></div>Fixed anchor i</div>
+      <div class="leg-pill"><div class="leg-dot" style="background:var(--accent)"></div>lo pointer</div>
+      <div class="leg-pill"><div class="leg-dot" style="background:var(--red)"></div>hi pointer</div>
+      <div class="leg-pill"><div class="leg-dot" style="background:var(--purple)"></div>Triplet found</div>
+      <div class="leg-pill"><div class="leg-dot" style="background:var(--border2)"></div>Skipped duplicate</div>
+    </div>
+
+    <!-- SUM DISPLAY -->
+    <div class="sum-display" id="sum-display">
+      <div class="sum-box">
+        <span class="slbl">a[i]</span><span class="sum-val" id="sv-i" style="color:var(--amber)">—</span>
+      </div>
+      <span class="sum-arrow">+</span>
+      <div class="sum-box">
+        <span class="slbl">a[lo]</span><span class="sum-val" id="sv-lo" style="color:var(--accent)">—</span>
+      </div>
+      <span class="sum-arrow">+</span>
+      <div class="sum-box">
+        <span class="slbl">a[hi]</span><span class="sum-val" id="sv-hi" style="color:var(--red)">—</span>
+      </div>
+      <span class="sum-arrow">=</span>
+      <div class="sum-box">
+        <span class="slbl">sum</span><span class="sum-val" id="sv-sum">—</span>
+      </div>
+      <div class="sum-eq" id="sv-verdict"></div>
+    </div>
+
+    <!-- ARRAY -->
+    <div class="array-outer">
+      <div class="array-scene" id="array-scene"></div>
+    </div>
+
+    <!-- TRIPLETS -->
+    <div class="triplets-panel">
+      <div class="triplets-label">Triplets found so far</div>
+      <div class="triplet-chips" id="triplet-chips"><span style="font-size:12px;color:var(--border2);font-family:var(--mono)">none yet</span></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">Anchor i</div>
+        <div class="val" id="s-i">—</div>
+        <div class="sub" id="s-i-sub">value</div>
+      </div>
+      <div class="stat-box accent">
+        <div class="lbl">lo / hi</div>
+        <div class="val" id="s-lo">—</div>
+        <div class="sub" id="s-lo-sub">indices</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Current sum</div>
+        <div class="val" id="s-sum">—</div>
+        <div class="sub" id="s-sum-sub">target: 0</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">Triplets found</div>
+        <div class="val" id="s-found">0</div>
+        <div class="sub">unique</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Complete</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>#</th><th>i</th><th>lo</th><th>hi</th>
+          <th>a[i]</th><th>a[lo]</th><th>a[hi]</th>
+          <th>Sum</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>three_sum.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; <span class="fn">threeSum</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; nums) {
+    <span class="fn">sort</span>(nums.<span class="fn">begin</span>(), nums.<span class="fn">end</span>());   <span class="cm">// sort first</span>
+    <span class="fn">vector</span>&lt;<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&gt; res;
+    <span class="kw">int</span> n = nums.size();
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n - <span class="nm">2</span>; i++) {
+        <span class="cm">// skip duplicate anchors</span>
+        <span class="kw">if</span> (i &gt; <span class="nm">0</span> &amp;&amp; nums[i] == nums[i - <span class="nm">1</span>]) <span class="kw">continue</span>;
+        <span class="cm">// early exit: smallest possible sum > 0</span>
+        <span class="kw">if</span> (nums[i] &gt; <span class="nm">0</span>) <span class="kw">break</span>;
+
+        <span class="kw">int</span> lo = i + <span class="nm">1</span>, hi = n - <span class="nm">1</span>;
+        <span class="kw">while</span> (lo &lt; hi) {
+            <span class="kw">int</span> s = nums[i] + nums[lo] + nums[hi];
+            <span class="kw">if</span> (s == <span class="nm">0</span>) {
+                res.<span class="fn">push_back</span>({nums[i], nums[lo], nums[hi]});
+                <span class="kw">while</span> (lo &lt; hi &amp;&amp; nums[lo] == nums[lo+<span class="nm">1</span>]) lo++;
+                <span class="kw">while</span> (lo &lt; hi &amp;&amp; nums[hi] == nums[hi-<span class="nm">1</span>]) hi--;
+                lo++; hi--;
+            } <span class="kw">else if</span> (s &lt; <span class="nm">0</span>) {
+                lo++;   <span class="cm">// need larger sum</span>
+            } <span class="kw">else</span> {
+                hi--;   <span class="cm">// need smaller sum</span>
+            }
+        }
+    }
+    <span class="kw">return</span> res;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; nums = {-<span class="nm">1</span>, <span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">2</span>, -<span class="nm">1</span>, -<span class="nm">4</span>};
+    <span class="kw">auto</span> res = <span class="fn">threeSum</span>(nums);
+    <span class="cm">// res: [[-1,-1,2],[-1,0,1]]</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(n²)</div>
+      <p>Sorting costs O(n log n). The outer loop runs O(n) times; for each anchor, the two-pointer inner scan is O(n). Total: O(n²) which dominates the sort.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Only three index variables (i, lo, hi) plus the output list. No auxiliary hash set or extra array is needed — sorting in-place keeps extra space constant.</p>
+    </div>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  { arr:[-1,0,1,2,-1,-4], desc:`<strong style="color:var(--text)">Classic LeetCode example</strong> — <code style="color:var(--accent)">[-1,0,1,2,-1,-4]</code>. After sorting: <code style="color:var(--amber)">[-4,-1,-1,0,1,2]</code>. Two triplets exist: <code style="color:var(--purple)">[-1,-1,2]</code> and <code style="color:var(--purple)">[-1,0,1]</code>. Watch the anchor advance and duplicate skips fire.` },
+  { arr:[0,0,0,0], desc:`<strong style="color:var(--text)">All zeros</strong> — <code style="color:var(--accent)">[0,0,0,0]</code>. Only one unique triplet exists: <code style="color:var(--purple)">[0,0,0]</code>. The duplicate-skip logic keeps the result set clean even though multiple index combinations sum to zero.` },
+  { arr:[1,2,3,4], desc:`<strong style="color:var(--text)">No solution</strong> — <code style="color:var(--accent)">[1,2,3,4]</code>. All values are positive, so even the smallest triplet sum (1+2+3=6) exceeds zero. The anchor's early-exit condition (<code style="color:var(--amber)">nums[i]>0 → break</code>) fires immediately.` },
+  { arr:[-2,0,0,2,2], desc:`<strong style="color:var(--text)">With duplicates</strong> — <code style="color:var(--accent)">[-2,0,0,2,2]</code>. One unique triplet: <code style="color:var(--purple)">[-2,0,2]</code>. The duplicate-skip logic on lo and hi prevents the same triplet from being recorded twice despite the repeated 0s and 2s.` },
+  { arr:[-4,-1,-1,0,1,2], desc:`<strong style="color:var(--text)">Longer array</strong> — <code style="color:var(--accent)">[-4,-1,-1,0,1,2]</code>. Already sorted. Two triplets: <code style="color:var(--purple)">[-1,-1,2]</code> and <code style="color:var(--purple)">[-1,0,1]</code>. A good example to watch duplicate-anchor skipping when i advances past the first −1.` },
+];
+
+const SPEEDS=[1800,1200,700,380,180];
+const SPEED_NAMES=['Slow','Slower','Medium','Fast','Fastest'];
+
+let steps=[], cursor=-1, playing=false, timer=null;
+let ARR=[], SORTED=[];
+
+document.getElementById('speed').addEventListener('input',function(){
+  document.getElementById('spd-lbl').textContent=SPEED_NAMES[this.value-1];
+});
+
+/* ── BUILD STEPS ── */
+function buildSteps(orig){
+  const a=[...orig].sort((x,y)=>x-y);
+  SORTED=[...a];
+  const n=a.length;
+  const out=[];
+  const triplets=[];
+
+  const snap=(type,i,lo,hi,extra={})=>
+    out.push({type,arr:[...a],i,lo,hi,triplets:triplets.map(t=>[...t]),...extra});
+
+  snap('sort',-1,-1,-1);
+
+  for(let i=0;i<n-2;i++){
+    // skip dup anchor
+    if(i>0 && a[i]===a[i-1]){ snap('skip-i',i,-1,-1,{reason:'dup anchor'}); continue; }
+    // early exit
+    if(a[i]>0){ snap('break',i,-1,-1,{reason:'anchor>0'}); break; }
+
+    snap('fix-i',i,i+1,n-1);
+
+    let lo=i+1, hi=n-1;
+    while(lo<hi){
+      const s=a[i]+a[lo]+a[hi];
+      snap('scan',i,lo,hi,{sum:s});
+      if(s===0){
+        triplets.push([a[i],a[lo],a[hi]]);
+        snap('found',i,lo,hi,{sum:s,newTriplet:[a[i],a[lo],a[hi]]});
+        // skip lo dups
+        while(lo<hi && a[lo]===a[lo+1]){ lo++; snap('skip-lo',i,lo,hi,{sum:s}); }
+        // skip hi dups
+        while(lo<hi && a[hi]===a[hi-1]){ hi--; snap('skip-hi',i,lo,hi,{sum:s}); }
+        lo++; hi--;
+      } else if(s<0){
+        snap('move-lo',i,lo,hi,{sum:s});
+        lo++;
+      } else {
+        snap('move-hi',i,lo,hi,{sum:s});
+        hi--;
+      }
+    }
+  }
+  snap('done',-1,-1,-1);
+  return out;
+}
+
+/* ── RENDER ARRAY ── */
+function renderArrayScene(n){
+  const scene=document.getElementById('array-scene');
+  let ptr=`<div class="ptr-row">`;
+  for(let i=0;i<n;i++) ptr+=`<div class="ptr-cell" id="ptr-${i}"></div>`;
+  ptr+=`</div>`;
+  let elem=`<div class="elem-row">`;
+  for(let i=0;i<n;i++) elem+=`<div class="acell neutral" id="ac-${i}"></div>`;
+  elem+=`</div>`;
+  let idx=`<div class="idx-row">`;
+  for(let i=0;i<n;i++) idx+=`<div class="idx-cell">${i}</div>`;
+  idx+=`</div>`;
+  scene.innerHTML=ptr+elem+idx;
+}
+
+function setCell(i,val,cls){ const c=document.getElementById(`ac-${i}`); if(!c)return; c.className=`acell ${cls}`; c.textContent=val; }
+function setPtr(i,html){ const p=document.getElementById(`ptr-${i}`); if(p) p.innerHTML=html; }
+function clearPtrs(n){ for(let i=0;i<n;i++){ const p=document.getElementById(`ptr-${i}`); if(p) p.innerHTML=''; } }
+
+/* ── APPLY STATE ── */
+function applyState(idx){
+  steps.forEach((_,i)=>{ const tr=document.getElementById('tr-'+i); if(tr) tr.classList.remove('highlighted'); });
+
+  if(idx<0){
+    document.getElementById('s-i').textContent='—';
+    document.getElementById('s-i-sub').textContent='value';
+    document.getElementById('s-lo').textContent='—';
+    document.getElementById('s-lo-sub').textContent='indices';
+    document.getElementById('s-sum').textContent='—';
+    document.getElementById('s-sum-sub').textContent='target: 0';
+    document.getElementById('s-found').textContent='0';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    document.getElementById('done-pill').style.display='none';
+    document.getElementById('sv-i').textContent='—';
+    document.getElementById('sv-lo').textContent='—';
+    document.getElementById('sv-hi').textContent='—';
+    document.getElementById('sv-sum').textContent='—';
+    document.getElementById('sv-verdict').textContent='';
+    document.getElementById('triplet-chips').innerHTML='<span style="font-size:12px;color:var(--border2);font-family:var(--mono)">none yet</span>';
+    const n=SORTED.length;
+    clearPtrs(n);
+    for(let i=0;i<n;i++) setCell(i,SORTED[i],'neutral');
+    return;
+  }
+
+  const s=steps[idx];
+  const n=s.arr.length;
+
+  // draw cells
+  for(let i=0;i<n;i++){
+    let cls='neutral';
+    if(s.type==='done'){ cls='sorted-z'; }
+    else if(i===s.i){ cls='fixed-i'; }
+    else if(i===s.lo){ cls='ptr-left'; }
+    else if(i===s.hi){ cls='ptr-right'; }
+    else if(s.i>=0 && i<s.i){ cls='skip-dup'; }
+
+    if((s.type==='found'||s.type==='skip-lo'||s.type==='skip-hi') && (i===s.i||i===s.lo||i===s.hi)) cls='triplet';
+    setCell(i,s.arr[i],cls);
+  }
+
+  // pointers
+  clearPtrs(n);
+  if(s.i>=0) setPtr(s.i,`<span class="ptr-arrow ptr-i">↑</span><span class="ptr-i" style="font-size:10px">i</span>`);
+  if(s.lo>=0 && s.lo!==s.i) setPtr(s.lo,`<span class="ptr-arrow ptr-lo">↑</span><span class="ptr-lo" style="font-size:10px">lo</span>`);
+  if(s.hi>=0 && s.hi!==s.i && s.hi!==s.lo) setPtr(s.hi,`<span class="ptr-arrow ptr-hi">↑</span><span class="ptr-hi" style="font-size:10px">hi</span>`);
+
+  // sum display
+  const aI  = s.i>=0  ? s.arr[s.i]  : '—';
+  const aLo = s.lo>=0 ? s.arr[s.lo] : '—';
+  const aHi = s.hi>=0 ? s.arr[s.hi] : '—';
+  document.getElementById('sv-i').textContent  = aI;
+  document.getElementById('sv-lo').textContent = aLo;
+  document.getElementById('sv-hi').textContent = aHi;
+
+  let sumVal='—', verdict='';
+  if(s.sum!==undefined){
+    sumVal=s.sum;
+    const sumEl=document.getElementById('sv-sum');
+    sumEl.textContent=s.sum;
+    sumEl.style.color = s.sum===0?'var(--purple)':s.sum<0?'var(--accent)':'var(--red)';
+    verdict = s.sum===0
+      ? `<span style="color:var(--purple);font-weight:700;font-size:14px">= 0 ✓ Found!</span>`
+      : s.sum<0
+        ? `<span style="color:var(--accent);font-weight:600;font-size:13px">&lt; 0 → lo++</span>`
+        : `<span style="color:var(--red);font-weight:600;font-size:13px">&gt; 0 → hi--</span>`;
+  } else {
+    document.getElementById('sv-sum').textContent='—';
+    document.getElementById('sv-sum').style.color='var(--text)';
+  }
+  document.getElementById('sv-verdict').innerHTML=verdict;
+
+  // triplets panel
+  const chips=document.getElementById('triplet-chips');
+  if(s.triplets.length===0){
+    chips.innerHTML='<span style="font-size:12px;color:var(--border2);font-family:var(--mono)">none yet</span>';
+  } else {
+    chips.innerHTML=s.triplets.map(t=>`<div class="triplet-chip">[${t.join(', ')}]</div>`).join('');
+  }
+
+  // stats
+  document.getElementById('s-i').textContent    = s.i>=0 ? s.i : '—';
+  document.getElementById('s-i-sub').textContent = s.i>=0 ? `val: ${s.arr[s.i]}` : 'value';
+  document.getElementById('s-lo').textContent   = s.lo>=0 ? `${s.lo} / ${s.hi}` : '—';
+  document.getElementById('s-lo-sub').textContent = s.lo>=0 ? `vals: ${s.arr[s.lo]}, ${s.arr[s.hi]}` : 'indices';
+  const sc = s.sum!==undefined ? s.sum : '—';
+  document.getElementById('s-sum').textContent  = sc;
+  document.getElementById('s-sum').style.color  = sc===0?'var(--purple)':sc<0?'var(--accent)':sc>0?'var(--red)':'var(--text)';
+  document.getElementById('s-found').textContent = s.triplets.length;
+
+  // progress
+  document.getElementById('step-label').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width=((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  // log
+  let msg='';
+  const ai=s.i>=0?s.arr[s.i]:'?', alo=s.lo>=0?s.arr[s.lo]:'?', ahi=s.hi>=0?s.arr[s.hi]:'?';
+  if(s.type==='sort')
+    msg=`<span class="hi">Start.</span> Array sorted: <span class="acc">[${s.arr.join(', ')}]</span>. Sorting is required so two-pointer logic works correctly. Now fixing anchor i from left to right.`;
+  else if(s.type==='break')
+    msg=`<span class="hi">Early exit.</span> <span class="amb">a[i] = ${ai} &gt; 0</span>. Since the array is sorted and a[i] is the smallest of the three, the sum can never be ≤ 0. Stopping early.`;
+  else if(s.type==='skip-i')
+    msg=`<span class="hi">Skip duplicate anchor.</span> <span class="amb">a[${s.i}] = ${ai}</span> equals a[${s.i-1}]. Skipping to avoid duplicate triplets in the result.`;
+  else if(s.type==='fix-i')
+    msg=`<span class="hi">Fix anchor i = ${s.i}</span> (value <span class="amb">${ai}</span>). Setting <span class="acc">lo = ${s.lo}</span>, <span class="neg">hi = ${s.hi}</span>. Two-pointer scan begins.`;
+  else if(s.type==='scan')
+    msg=`<span class="hi">Inspect.</span> <span class="amb">${ai}</span> + <span class="acc">${alo}</span> + <span class="neg">${ahi}</span> = <span ${s.sum===0?'class="sol"':s.sum<0?'class="acc"':'class="neg"'}>${s.sum}</span>. ${s.sum===0?'Zero! Recording triplet.':s.sum<0?'Too small — move lo right.':'Too large — move hi left.'}`;
+  else if(s.type==='found')
+    msg=`<span class="sol">★ Triplet found!</span> <span class="sol">[${s.newTriplet.join(', ')}]</span> sums to zero. Recording and skipping duplicates before moving both pointers inward.`;
+  else if(s.type==='skip-lo')
+    msg=`<span class="hi">Skip lo duplicate.</span> <span class="acc">a[lo] = ${alo}</span> equals the previous lo value — advancing lo to avoid duplicate triplets.`;
+  else if(s.type==='skip-hi')
+    msg=`<span class="hi">Skip hi duplicate.</span> <span class="neg">a[hi] = ${ahi}</span> equals the next hi value — retreating hi to avoid duplicate triplets.`;
+  else if(s.type==='move-lo')
+    msg=`<span class="hi">Sum too small (${s.sum} &lt; 0).</span> Move <span class="acc">lo</span> right from ${s.lo} to ${s.lo+1} to increase the sum.`;
+  else if(s.type==='move-hi')
+    msg=`<span class="hi">Sum too large (${s.sum} &gt; 0).</span> Move <span class="neg">hi</span> left from ${s.hi} to ${s.hi-1} to decrease the sum.`;
+  else if(s.type==='done')
+    msg=`<span class="sol">★ Done!</span> Search complete. Found <span class="sol">${s.triplets.length}</span> unique triplet${s.triplets.length!==1?'s':''}: ${s.triplets.length?s.triplets.map(t=>`<span class="sol">[${t.join(',')}]</span>`).join(', '):'<span class="neg">none</span>'}.`;
+
+  if(idx===steps.length-1) document.getElementById('done-pill').style.display='inline-block';
+  else document.getElementById('done-pill').style.display='none';
+  document.getElementById('log').innerHTML=msg;
+
+  const tr=document.getElementById('tr-'+idx);
+  if(tr){ tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+/* ── TABLE ── */
+function buildTableRows(stps){
+  const tbody=document.getElementById('step-tbody');
+  tbody.innerHTML=stps.map((s,i)=>{
+    let act='—';
+    if(s.type==='sort')     act=`<span class="act-fix">Sort</span>`;
+    if(s.type==='fix-i')    act=`<span class="act-fix">Fix i</span>`;
+    if(s.type==='skip-i')   act=`<span class="act-skip">Skip dup i</span>`;
+    if(s.type==='break')    act=`<span class="act-skip">Break (i>0)</span>`;
+    if(s.type==='scan')     act=`<span class="act-scan">Inspect</span>`;
+    if(s.type==='found')    act=`<span class="act-found">★ Found</span>`;
+    if(s.type==='skip-lo')  act=`<span class="act-skip">Skip lo dup</span>`;
+    if(s.type==='skip-hi')  act=`<span class="act-skip">Skip hi dup</span>`;
+    if(s.type==='move-lo')  act=`<span class="act-scan">lo++</span>`;
+    if(s.type==='move-hi')  act=`<span class="act-scan">hi--</span>`;
+    if(s.type==='done')     act=`<span class="act-done">✓ Done</span>`;
+
+    const ii=s.i>=0?s.i:'—', lo=s.lo>=0?s.lo:'—', hi=s.hi>=0?s.hi:'—';
+    const ai=s.i>=0?s.arr[s.i]:'—', al=s.lo>=0?s.arr[s.lo]:'—', ah=s.hi>=0?s.arr[s.hi]:'—';
+    const sm=s.sum!==undefined?s.sum:'—';
+    return `<tr id="tr-${i}"><td>${i+1}</td><td>${ii}</td><td>${lo}</td><td>${hi}</td><td>${ai}</td><td>${al}</td><td>${ah}</td><td>${sm}</td><td>${act}</td></tr>`;
+  }).join('');
+}
+
+/* ── LOAD ── */
+function loadExample(n,btn){
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const ex=EXAMPLES[n];
+  ARR=[...ex.arr];
+  document.getElementById('example-desc').innerHTML=ex.desc;
+  steps=buildSteps(ARR);
+  renderArrayScene(SORTED.length);
+  buildTableRows(steps);
+  cursor=-1;
+  applyState(-1);
+}
+
+/* ── CONTROLS ── */
+function stepForward(){ if(cursor<steps.length-1){ cursor++; applyState(cursor); } }
+function stepBack(){    if(cursor>0){ cursor--; applyState(cursor); } else if(cursor===0){ cursor=-1; applyState(-1); } }
+function resetAnim(){   stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay(){    playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause(){
+  if(playing){ stopPlay(); return; }
+  if(cursor>=steps.length-1){ cursor=-1; applyState(-1); }
+  playing=true; document.getElementById('btn-play').textContent='⏸ Pause'; tick();
+}
+function tick(){
+  if(!playing) return;
+  if(cursor>=steps.length-1){ stopPlay(); return; }
+  cursor++; applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin(){
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent=p?'📌 Pinned while scrolling':'📌 Pin while scrolling';
+}
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

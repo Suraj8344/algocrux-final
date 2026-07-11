@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graphs — Complete DSA Graph Theory</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0c2624;--orange:#fb923c;--orange-bg:#2a1500;--pink:#f472b6;--pink-bg:#2a0f1a;--cyan:#22d3ee;--cyan-bg:#0c2430;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}
+.badges{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.b-ds{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.b-cpp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+.b-stl{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+.b-gt{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.b-alg{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+header h1{font-size:1.25rem;font-weight:600}
+header p{font-size:13px;color:var(--muted);margin-top:3px}
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:2rem}
+.section-label:first-of-type{margin-top:0}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.concept{grid-template-columns:1fr}}
+.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}
+.concept p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:.4rem}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--teal);line-height:2.2}
+.formula .cm{color:var(--muted);font-style:italic}
+.formula .kw{color:var(--purple)}
+.formula .nm{color:var(--amber)}
+.formula .fn{color:var(--accent)}
+.insight{background:var(--teal-bg);border:1px solid #0e3d38;border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:13px;color:var(--muted);line-height:1.7}
+.insight strong{color:var(--teal)}
+.insight.amber{background:var(--amber-bg);border-color:#4a3a00}
+.insight.amber strong{color:var(--amber)}
+.insight.purple{background:var(--purple-bg);border-color:#3a1a52}
+.insight.purple strong{color:var(--purple)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.card-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.card-grid{grid-template-columns:1fr}}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.info-card .ic-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.info-card .ic-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem}
+.pane h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.pane.good h3{color:var(--green)}
+.pane.bad h3{color:var(--red)}
+.pane ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.pane li{font-size:12.5px;color:var(--muted);line-height:1.6;padding-left:1.1rem;position:relative}
+.pane.good li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}
+.pane.bad li::before{content:'\2715';position:absolute;left:0;color:var(--red);font-weight:700}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;overflow-x:auto}
+.cmp-wrap h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:480px}
+.cmp-table th{text-align:left;padding:8px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted)}
+.cmp-table td.qcol{color:var(--teal);font-weight:600}
+.cmp-table td.scol{color:var(--purple);font-weight:600}
+.diagram-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.diagram-panel h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.step-strip{display:flex;flex-direction:column;gap:.6rem}
+.step-item{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--muted);line-height:1.6}
+.step-item .num{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal);flex-shrink:0}
+.cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:600px){.cx-grid{grid-template-columns:1fr}}
+.cx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+.cx-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+.cx-card .big{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--teal)}
+.cx-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto}
+.tab{flex-shrink:0;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.tag-s{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--accent-bg);color:var(--accent)}
+.tag-e{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--purple-bg);color:var(--purple)}
+.tag-g{display:inline-block;margin-left:5px;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;background:var(--green-bg);color:var(--green)}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.6);max-height:calc(100vh - 24px);overflow-y:auto}
+.anim-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}
+.anim-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.pin-btn:hover{color:var(--text)}
+.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:11px;height:11px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 13px;border-radius:20px;margin-bottom:1.1rem}
+.phase-badge.traversing{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.phase-badge.visiting{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+.phase-badge.done{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.phase-badge.idle{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.phase-badge.warning{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.graph-canvas-wrap{display:flex;justify-content:center;align-items:center;min-height:300px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);margin-bottom:1rem;position:relative}
+#graph-viz-canvas{display:block;border-radius:10px}
+.ds-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem}
+.ds-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.6rem}
+.ds-row{display:flex;gap:5px;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto}
+.ds-cell{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px}
+.ds-cell .dc-idx{font-family:var(--mono);font-size:10px;color:#5c6189}
+.ds-cell .dc-box{width:42px;height:38px;border-radius:7px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--mono);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .25s;color:var(--muted)}
+.ds-cell .dc-box.filled{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.ds-cell .dc-box.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(108,143,255,.3);transform:scale(1.1)}
+.ds-cell .dc-box.visited{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.ds-cell .dc-box.processing{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);box-shadow:0 0 14px rgba(251,191,36,.25)}
+.op-panel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.op-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.7rem}
+.op-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:500px){.op-row{grid-template-columns:1fr}}
+.op-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem}
+.op-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}
+.op-card .val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--teal)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+@media(max-width:500px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem}
+.stat-box .lbl{font-size:10px;color:var(--muted);margin-bottom:2px}
+.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono)}
+.stat-box .sub{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-box.teal .val{color:var(--teal)}
+.stat-box.amber .val{color:var(--amber)}
+.stat-box.green .val{color:var(--green)}
+.stat-box.red .val{color:var(--red)}
+.stat-box.acc .val{color:var(--accent)}
+.stat-box.purple .val{color:var(--purple)}
+.step-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .25s ease;width:0%}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--muted);min-height:58px;margin-bottom:1rem;line-height:1.7}
+.log-box .hi{color:var(--text);font-weight:600}
+.log-box .pos{color:var(--green);font-weight:600}
+.log-box .neg{color:var(--red);font-weight:600}
+.log-box .acc{color:var(--accent);font-weight:600}
+.log-box .amb{color:var(--amber);font-weight:600}
+.log-box .tea{color:var(--teal);font-weight:600}
+.log-box .pur{color:var(--purple);font-weight:600}
+.log-box .ora{color:var(--orange);font-weight:600}
+.manual-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.manual-row .m-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);width:100%;margin-bottom:2px}
+.num-input{width:80px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.num-input:focus{border-color:var(--teal)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--border);border-color:var(--muted)}
+.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.btn.primary:hover{background:#0f3330}
+.btn.green{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.btn.red{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.btn.purple{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+.btn.acc{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}
+input[type=range]{width:80px;accent-color:var(--teal)}
+.result-pill{border-radius:20px;font-size:13px;font-weight:700;padding:5px 16px;display:none;letter-spacing:.04em;background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.walkthrough{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.walkthrough h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.tbl-wrap{overflow-x:auto}
+.step-table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+.step-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.step-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted);white-space:nowrap}
+.step-table tr.highlighted td{background:var(--surface2);color:var(--text)}
+.ca{color:var(--accent)} .cg{color:var(--green)} .cr{color:var(--red)}
+.cam{color:var(--amber)} .ct{color:var(--teal)} .cp{color:var(--purple)} .co{color:var(--orange)}
+.ai-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.ai-section h3{font-size:.95rem;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.ai-q-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.ai-q-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+.ai-q-btn:hover{color:var(--text);border-color:var(--teal)}
+.ai-custom{flex:1;min-width:180px;padding:7px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;font-family:var(--sans);outline:none}
+.ai-custom:focus{border-color:var(--teal)}
+.ai-send{padding:7px 16px;border-radius:7px;border:1px solid var(--teal);background:var(--teal-bg);color:var(--teal);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s;font-weight:600}
+.ai-send:hover{background:#0f3330}
+.ai-send:disabled{opacity:.5;cursor:not-allowed}
+.ai-answer{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;font-size:13px;color:var(--muted);line-height:1.75;min-height:60px;white-space:pre-wrap;font-family:var(--sans)}
+.ai-answer .ai-loading{color:var(--teal);font-style:italic}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+.code-header span{font-size:12px;color:var(--muted);font-weight:500}
+.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--muted)}
+pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.kw{color:var(--purple)} .fn{color:var(--accent)} .cm{color:var(--muted);font-style:italic}
+.nm{color:var(--amber)} .st{color:var(--green)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.type-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}
+.type-card:hover{border-color:var(--teal)}
+.type-card .tc-icon{font-size:20px;margin-bottom:6px}
+.type-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.type-card .tc-def{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+.type-card .tc-use{font-size:11px;color:var(--teal);line-height:1.5}
+.type-card .tc-cx{font-size:11px;color:var(--amber);margin-top:4px;font-family:var(--mono)}
+.algo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:800px){.algo-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.algo-grid{grid-template-columns:1fr}}
+.algo-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s;cursor:pointer}
+.algo-card:hover{border-color:var(--accent);background:var(--accent-bg)}
+.algo-card .ac-name{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:4px;font-family:var(--mono)}
+.algo-card .ac-purpose{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+.algo-card .ac-cx{font-size:11px;color:var(--teal);font-family:var(--mono);margin-bottom:4px}
+.algo-card .ac-app{font-size:11px;color:var(--muted);line-height:1.5}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:640px){.int-grid{grid-template-columns:1fr}}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.int-card .ic-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.int-card .ic-a{font-size:12px;color:var(--muted);line-height:1.6}
+.int-card .ic-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-top:6px}
+.tag-bfs{background:var(--teal-bg);color:var(--teal);border:1px solid #0e3d38}
+.tag-dfs{background:var(--purple-bg);color:var(--purple);border:1px solid #3a1a52}
+.tag-sp{background:var(--accent-bg);color:var(--accent);border:1px solid #2a3875}
+.tag-rep{background:var(--amber-bg);color:var(--amber);border:1px solid #4a3a00}
+.tag-cyc{background:var(--red-bg);color:var(--red);border:1px solid #5a2020}
+.tag-topo{background:var(--green-bg);color:var(--green);border:1px solid #1a4a2e}
+.rep-viz{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.rep-viz{grid-template-columns:1fr}}
+.rep-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.rep-card .rv-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.rep-card .rv-mat{display:grid;gap:2px;margin-bottom:8px}
+.rep-card .rv-cell{width:28px;height:28px;border-radius:4px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700}
+.rv-cell.on{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.rv-cell.off{background:var(--surface2);color:#5c6189}
+.rv-cell.diag{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.rep-card .rv-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:700px){.app-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.app-grid{grid-template-columns:1fr}}
+.app-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;transition:all .15s}
+.app-card:hover{border-color:var(--accent)}
+.app-card .ap-icon{font-size:22px;margin-bottom:6px}
+.app-card .ap-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.app-card .ap-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.node-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+.node-legend span{display:flex;align-items:center;gap:5px}
+.n-dot{width:14px;height:14px;border-radius:50%;border:2px solid;flex-shrink:0}
+.takeaway-list{display:flex;flex-direction:column;gap:8px}
+.takeaway-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.6;padding:8px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.takeaway-item .tk-icon{font-size:16px;flex-shrink:0}
+.takeaway-item .tk-text strong{color:var(--text)}
+</style>
+<base target="_blank">
+</head>
+<body>
+<header>
+  <div>
+    <div class="badges">
+      <span class="badge b-ds">Data Structure</span>
+      <span class="badge b-gt">Graph Theory</span>
+      <span class="badge b-cpp">C++ STL</span>
+      <span class="badge b-stl">DSA</span>
+      <span class="badge b-alg">Algorithms</span>
+    </div>
+    <h1>Graphs &mdash; Complete DSA Graph Theory</h1>
+    <p>Interactive visualization of graph structures, traversals, representations, and graph algorithms.</p>
+  </div>
+</header>
+
+<main>
+
+<!-- THEORY -->
+<p class="section-label">Theory</p>
+
+<div class="concept">
+  <div>
+    <h2>What is a Graph?</h2>
+    <p>A <strong style="color:var(--text)">Graph</strong> is a non-linear data structure consisting of a finite set of <strong style="color:var(--teal)">vertices (nodes)</strong> connected by <strong style="color:var(--accent)">edges</strong>. Unlike trees, graphs have no hierarchical structure &mdash; any node can connect to any other.</p>
+    <p>Formally, a graph <code style="color:var(--teal)">G = (V, E)</code> where <code style="color:var(--teal)">V</code> is the set of vertices and <code style="color:var(--teal)">E</code> is the set of edges. Graphs model relationships between objects, making them one of the most versatile data structures in computer science.</p>
+  </div>
+  <div>
+    <h2>Memory representation</h2>
+    <div class="formula">
+      <span class="cm">// Graph G = (V, E)</span><br>
+      V = {0, 1, 2, 3, 4}       <span class="cm">// vertices</span><br>
+      E = {(0,1), (1,2), (2,3)} <span class="cm">// edges</span><br><br>
+      <span class="cm">// Adjacency List (most common)</span><br>
+      vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; adj(V);<br>
+      adj[u].<span class="fn">push_back</span>(v);     <span class="cm">// add edge u &rarr; v</span>
+    </div>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>Why Graphs?</strong> Because real-world relationships are rarely linear or hierarchical. Social networks, road maps, dependency systems, and the entire web are all graphs. A graph can represent any pairwise relationship between entities.
+</div>
+
+<p class="section-label">Terminology</p>
+<div class="card-grid">
+  <div class="info-card"><div class="ic-title">Vertex (Node)</div><div class="ic-desc">A fundamental unit of a graph. Represents an entity or data point. Denoted as V in G = (V, E).</div></div>
+  <div class="info-card"><div class="ic-title">Edge</div><div class="ic-desc">A connection between two vertices. Can be directed (one-way) or undirected (two-way). Denoted as E in G = (V, E).</div></div>
+  <div class="info-card"><div class="ic-title">Directed Graph</div><div class="ic-desc">Edges have direction &mdash; an edge from u to v does not imply an edge from v to u. Represented with arrows.</div></div>
+  <div class="info-card"><div class="ic-title">Undirected Graph</div><div class="ic-desc">Edges have no direction &mdash; if (u,v) exists, then (v,u) also exists implicitly. Represented with lines.</div></div>
+  <div class="info-card"><div class="ic-title">Weighted Graph</div><div class="ic-desc">Each edge has an associated weight or cost. Used for shortest path, minimum spanning tree, and network flow problems.</div></div>
+  <div class="info-card"><div class="ic-title">Unweighted Graph</div><div class="ic-desc">All edges are treated equally (weight = 1). BFS naturally finds shortest paths in unweighted graphs.</div></div>
+  <div class="info-card"><div class="ic-title">Connected Graph</div><div class="ic-desc">There is a path between every pair of vertices. A disconnected graph has at least two components with no path between them.</div></div>
+  <div class="info-card"><div class="ic-title">Disconnected Graph</div><div class="ic-desc">At least one pair of vertices has no path connecting them. The graph consists of multiple connected components.</div></div>
+  <div class="info-card"><div class="ic-title">Cyclic Graph</div><div class="ic-desc">Contains at least one cycle &mdash; a path that starts and ends at the same vertex with no repeated edges.</div></div>
+  <div class="info-card"><div class="ic-title">Acyclic Graph</div><div class="ic-desc">Contains no cycles. A Directed Acyclic Graph (DAG) is essential for topological sorting and scheduling.</div></div>
+  <div class="info-card"><div class="ic-title">Degree</div><div class="ic-desc">Number of edges incident to a vertex. In directed graphs: Indegree (incoming) and Outdegree (outgoing).</div></div>
+  <div class="info-card"><div class="ic-title">Path</div><div class="ic-desc">A sequence of vertices where each consecutive pair is connected by an edge. A simple path has no repeated vertices.</div></div>
+  <div class="info-card"><div class="ic-title">Cycle</div><div class="ic-desc">A path that starts and ends at the same vertex. Simple cycle has no repeated vertices except start/end.</div></div>
+  <div class="info-card"><div class="ic-title">Tree as a Graph</div><div class="ic-desc">A tree is a connected acyclic undirected graph with exactly V-1 edges. Every tree is a graph, but not vice versa.</div></div>
+  <div class="info-card"><div class="ic-title">Graph Density</div><div class="ic-desc">Ratio of actual edges to maximum possible edges. Sparse: E ~ O(V). Dense: E ~ O(V^2).</div></div>
+</div>
+
+<p class="section-label">Real-world examples</p>
+<div class="card-grid">
+  <div class="info-card"><div class="ic-title">Social Networks</div><div class="ic-desc">Users are vertices; friendships/follows are edges. Facebook (undirected), Twitter/X (directed), LinkedIn (weighted by connection strength).</div></div>
+  <div class="info-card"><div class="ic-title">Google Maps</div><div class="ic-desc">Intersections are vertices; roads are weighted edges (distance/time). Shortest path algorithms find optimal routes.</div></div>
+  <div class="info-card"><div class="ic-title">Computer Networks</div><div class="ic-desc">Routers/switches are vertices; network links are edges. Routing protocols use graph algorithms to find best paths.</div></div>
+  <div class="info-card"><div class="ic-title">Flight Networks</div><div class="ic-desc">Airports are vertices; flights are weighted edges (cost, duration). Used for finding cheapest/fastest routes.</div></div>
+  <div class="info-card"><div class="ic-title">Recommendation Systems</div><div class="ic-desc">Users and items are vertices; interactions are edges. Collaborative filtering traverses user-item graphs.</div></div>
+  <div class="info-card"><div class="ic-title">Web Page Linking</div><div class="ic-desc">Web pages are vertices; hyperlinks are directed edges. Google's PageRank models the web as a massive directed graph.</div></div>
+  <div class="info-card"><div class="ic-title">Dependency Graphs</div><div class="ic-desc">Packages/tasks are vertices; dependencies are directed edges. Package managers and build systems use DAGs to determine order.</div></div>
+</div>
+
+<!-- GRAPH REPRESENTATION -->
+<hr class="divider">
+<p class="section-label">Graph Representation</p>
+
+<div class="concept">
+  <div>
+    <h2>Adjacency Matrix</h2>
+    <p>A <strong style="color:var(--text)">V x V</strong> matrix where <code style="color:var(--teal)">adj[i][j] = 1</code> (or weight) if edge (i,j) exists, else 0. Simple and fast for edge existence checks.</p>
+    <p><strong style="color:var(--green)">Space:</strong> O(V^2) &mdash; wasteful for sparse graphs. <strong style="color:var(--green)">Check edge:</strong> O(1). <strong style="color:var(--red)">Add edge:</strong> O(1). <strong style="color:var(--red)">Neighbors:</strong> O(V) to scan entire row.</p>
+  </div>
+  <div>
+    <h2>Adjacency List</h2>
+    <p>An array of lists where <code style="color:var(--teal)">adj[i]</code> stores all neighbors of vertex i. The most common and efficient representation for sparse graphs.</p>
+    <p><strong style="color:var(--green)">Space:</strong> O(V + E). <strong style="color:var(--green)">Check edge:</strong> O(degree(v)). <strong style="color:var(--green)">Add edge:</strong> O(1). <strong style="color:var(--green)">Neighbors:</strong> O(degree(v)).</p>
+  </div>
+</div>
+
+<div class="rep-viz">
+  <div class="rep-card">
+    <div class="rv-title">Adjacency Matrix (Undirected)</div>
+    <div class="rv-mat" style="grid-template-columns:repeat(5,1fr)">
+      <div class="rv-cell diag">0</div><div class="rv-cell on">1</div><div class="rv-cell on">1</div><div class="rv-cell off">0</div><div class="rv-cell off">0</div>
+      <div class="rv-cell on">1</div><div class="rv-cell diag">0</div><div class="rv-cell on">1</div><div class="rv-cell off">0</div><div class="rv-cell off">0</div>
+      <div class="rv-cell on">1</div><div class="rv-cell on">1</div><div class="rv-cell diag">0</div><div class="rv-cell on">1</div><div class="rv-cell off">0</div>
+      <div class="rv-cell off">0</div><div class="rv-cell off">0</div><div class="rv-cell on">1</div><div class="rv-cell diag">0</div><div class="rv-cell on">1</div>
+      <div class="rv-cell off">0</div><div class="rv-cell off">0</div><div class="rv-cell off">0</div><div class="rv-cell on">1</div><div class="rv-cell diag">0</div>
+    </div>
+    <div class="rv-desc">Symmetric matrix. Diagonal = 0 (no self-loops). Space: O(V^2) = O(25) for V=5.</div>
+  </div>
+  <div class="rep-card">
+    <div class="rv-title">Adjacency List</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--teal);line-height:1.8">
+      0 &rarr; [1, 2]<br>
+      1 &rarr; [0, 2]<br>
+      2 &rarr; [0, 1, 3]<br>
+      3 &rarr; [2, 4]<br>
+      4 &rarr; [3]
+    </div>
+    <div class="rv-desc">Each vertex stores only its neighbors. Space: O(V + E) = O(5 + 6) = O(11). Much more efficient for sparse graphs.</div>
+  </div>
+  <div class="rep-card">
+    <div class="rv-title">Edge List</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--accent);line-height:1.8">
+      (0, 1)<br>
+      (0, 2)<br>
+      (1, 2)<br>
+      (2, 3)<br>
+      (3, 4)
+    </div>
+    <div class="rv-desc">Simple list of all edges. Space: O(E). Good for Kruskal's MST (sort edges by weight). Slow for neighbor lookup.</div>
+  </div>
+</div>
+
+<div class="insight amber">
+  <strong>Representation choice matters:</strong> For sparse graphs (E ~ V), adjacency list uses O(V + E) vs matrix O(V^2). For dense graphs (E ~ V^2), the matrix can be faster due to cache locality. Most real-world graphs are sparse &mdash; adjacency list is the default choice.
+</div>
+
+<!-- INTERNAL WORKING -->
+<hr class="divider">
+<p class="section-label">Internal Working Visualization</p>
+
+<div class="diagram-panel">
+  <h3>Graph structure &mdash; nodes, edges, and relationships</h3>
+  <div class="graph-canvas-wrap">
+    <canvas id="structure-canvas" width="600" height="280"></canvas>
+  </div>
+  <div class="step-strip">
+    <div class="step-item"><span class="num">1</span><span><strong style="color:var(--text)">Nodes (Vertices):</strong> The fundamental data points. Each node can store a value, color, or any payload. In C++, often represented as indices 0 to V-1.</span></div>
+    <div class="step-item"><span class="num">2</span><span><strong style="color:var(--text)">Edges:</strong> Connections between nodes. Undirected edges are bidirectional; directed edges have a specific direction from source to destination.</span></div>
+    <div class="step-item"><span class="num">3</span><span><strong style="color:var(--text)">Neighbors:</strong> All vertices directly reachable from a given vertex via one edge. In adjacency list: <code style="color:var(--teal)">adj[u]</code> contains all neighbors of u.</span></div>
+    <div class="step-item"><span class="num">4</span><span><strong style="color:var(--text)">Degree:</strong> For undirected: count of edges incident to a vertex. For directed: Indegree (incoming edges) + Outdegree (outgoing edges) = total degree.</span></div>
+    <div class="step-item"><span class="num">5</span><span><strong style="color:var(--text)">Path &amp; Cycle:</strong> A path is a sequence of connected vertices. A cycle is a path that starts and ends at the same vertex. Self-loops (u,u) and parallel edges (multiple edges between same pair) are special cases.</span></div>
+    <div class="step-item"><span class="num">6</span><span><strong style="color:var(--text)">Connected Components:</strong> Maximal subgraphs where every pair of vertices is connected by a path. A disconnected graph has multiple components.</span></div>
+  </div>
+</div>
+
+<!-- COMPLEXITY -->
+<hr class="divider">
+<p class="section-label">Complexity Summary</p>
+<div class="cx-grid">
+  <div class="cx-card"><div class="lbl">Adjacency Matrix Space</div><div class="big">O(V^2)</div><p>Fixed VxV matrix regardless of edge count. Wasteful for sparse graphs.</p></div>
+  <div class="cx-card"><div class="lbl">Adjacency List Space</div><div class="big">O(V + E)</div><p>Only stores existing edges. Optimal for sparse real-world graphs.</p></div>
+  <div class="cx-card"><div class="lbl">Add Edge</div><div class="big">O(1)</div><p>Push to adjacency list or set matrix cell. Both are constant time.</p></div>
+  <div class="cx-card"><div class="lbl">Remove Edge</div><div class="big">O(V) / O(E)</div><p>Matrix: O(1) to clear cell. List: O(degree) to find and erase from vector.</p></div>
+  <div class="cx-card"><div class="lbl">Check Edge Exists</div><div class="big">O(1) / O(V)</div><p>Matrix: direct lookup O(1). List: scan neighbors O(degree), worst O(V).</p></div>
+  <div class="cx-card"><div class="lbl">Traverse Graph (BFS/DFS)</div><div class="big">O(V + E)</div><p>Visit every vertex and edge exactly once with adjacency list.</p></div>
+  <div class="cx-card"><div class="lbl">BFS Time</div><div class="big">O(V + E)</div><p>Each vertex enqueued once, each edge examined once. Queue operations O(1).</p></div>
+  <div class="cx-card"><div class="lbl">DFS Time</div><div class="big">O(V + E)</div><p>Each vertex visited once, each edge examined once. Recursion stack O(V).</p></div>
+  <div class="cx-card"><div class="lbl">BFS Space</div><div class="big">O(V)</div><p>Queue holds at most V vertices. Visited array of size V. Total O(V).</p></div>
+</div>
+
+<!-- GRAPH TYPES -->
+<hr class="divider">
+<p class="section-label">Graph Types</p>
+<div class="type-grid">
+  <div class="type-card">
+    <div class="tc-name">Undirected Graph</div>
+    <div class="tc-def">Edges have no direction. If (u,v) exists, traversal is possible both ways. Symmetric adjacency matrix.</div>
+    <div class="tc-use">Use: Social networks, road maps, molecular structures</div>
+    <div class="tc-cx">Space: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Directed Graph</div>
+    <div class="tc-def">Edges have direction u &rarr; v. Not necessarily symmetric. Strongly connected if path exists both ways for all pairs.</div>
+    <div class="tc-use">Use: Web pages, dependency graphs, one-way streets</div>
+    <div class="tc-cx">Space: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Weighted Graph</div>
+    <div class="tc-def">Each edge has a weight/cost. Can be directed or undirected. Adjacency list stores (neighbor, weight) pairs.</div>
+    <div class="tc-use">Use: GPS routing, network bandwidth, flight costs</div>
+    <div class="tc-cx">Space: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Unweighted Graph</div>
+    <div class="tc-def">All edges have equal weight (implicitly 1). BFS finds shortest path by edge count. Simpler to implement.</div>
+    <div class="tc-use">Use: Maze solving, social reach, web crawling</div>
+    <div class="tc-cx">Space: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">DAG</div>
+    <div class="tc-def">Directed Acyclic Graph &mdash; no directed cycles. Essential for topological sorting. Every DAG has at least one topological order.</div>
+    <div class="tc-use">Use: Task scheduling, expression trees, build systems</div>
+    <div class="tc-cx">Detect cycle: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Tree</div>
+    <div class="tc-def">Connected acyclic undirected graph with exactly V-1 edges. Has a unique simple path between any two vertices.</div>
+    <div class="tc-use">Use: File systems, DOM, hierarchical data, MST results</div>
+    <div class="tc-cx">Edges: always V - 1</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Forest</div>
+    <div class="tc-def">A collection of disjoint trees. Disconnected acyclic undirected graph. Each component is a tree.</div>
+    <div class="tc-use">Use: Disjoint sets, hierarchical clustering</div>
+    <div class="tc-cx">Components: each is a tree</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Complete Graph</div>
+    <div class="tc-def">Every pair of distinct vertices is connected by a unique edge. K_n has n(n-1)/2 edges (undirected).</div>
+    <div class="tc-use">Use: Tournament scheduling, fully connected networks</div>
+    <div class="tc-cx">Edges: V(V-1)/2</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Bipartite Graph</div>
+    <div class="tc-def">Vertices can be divided into two disjoint sets such that no two vertices within the same set are adjacent.</div>
+    <div class="tc-use">Use: Matching problems, job assignment, chessboard coloring</div>
+    <div class="tc-cx">Check: BFS with two colors O(V+E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Cyclic Graph</div>
+    <div class="tc-def">Contains at least one cycle. Can be directed or undirected. Cycle detection is a fundamental graph problem.</div>
+    <div class="tc-use">Use: Deadlock detection, currency arbitrage, game theory</div>
+    <div class="tc-cx">Detect: O(V + E)</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Acyclic Graph</div>
+    <div class="tc-def">Contains no cycles. Undirected acyclic = forest. Directed acyclic = DAG. Simpler algorithms often apply.</div>
+    <div class="tc-use">Use: Expression evaluation, Bayesian networks</div>
+    <div class="tc-cx">Tree is always acyclic</div>
+  </div>
+  <div class="type-card">
+    <div class="tc-name">Connected Graph</div>
+    <div class="tc-def">A path exists between every pair of vertices. For directed: strongly connected requires paths in both directions.</div>
+    <div class="tc-use">Use: Network reliability, communication networks</div>
+    <div class="tc-cx">Check: BFS/DFS from any node O(V+E)</div>
+  </div>
+</div>
+
+<!-- TRAVERSAL THEORY -->
+<hr class="divider">
+<p class="section-label">Graph Traversal Theory</p>
+
+<div class="concept">
+  <div>
+    <h2>Breadth First Search (BFS)</h2>
+    <p>Explores vertices <strong style="color:var(--text)">level by level</strong>, starting from a source node. Uses a <strong style="color:var(--teal)">Queue</strong> (FIFO) to track which node to visit next.</p>
+    <p>BFS finds the <strong style="color:var(--green)">shortest path</strong> in an unweighted graph because it explores all nodes at distance k before any node at distance k+1.</p>
+    <div class="formula" style="margin-top:10px">
+      <span class="cm">// BFS pseudocode</span><br>
+      queue q; q.<span class="fn">push</span>(src);<br>
+      visited[src] = <span class="kw">true</span>;<br>
+      <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {<br>
+      &nbsp;&nbsp;u = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();<br>
+      &nbsp;&nbsp;<span class="kw">for</span> (v : adj[u])<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (!visited[v])<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited[v] = <span class="kw">true</span>, q.<span class="fn">push</span>(v);<br>
+      }
+    </div>
+  </div>
+  <div>
+    <h2>Depth First Search (DFS)</h2>
+    <p>Explores as <strong style="color:var(--text)">deep as possible</strong> along each branch before backtracking. Uses a <strong style="color:var(--purple)">Stack</strong> (or recursion) to track the path.</p>
+    <p>DFS is simpler to implement recursively and is ideal for <strong style="color:var(--accent)">cycle detection</strong>, <strong style="color:var(--accent)">topological sort</strong>, and <strong style="color:var(--accent)">connected components</strong>.</p>
+    <div class="formula" style="margin-top:10px">
+      <span class="cm">// DFS pseudocode</span><br>
+      <span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> u) {<br>
+      &nbsp;&nbsp;visited[u] = <span class="kw">true</span>;<br>
+      &nbsp;&nbsp;<span class="kw">for</span> (v : adj[u])<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (!visited[v])<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">dfs</span>(v);<br>
+      }<br>
+      <span class="cm">// Call: dfs(src);</span>
+    </div>
+  </div>
+</div>
+
+<div class="insight purple">
+  <strong>Why BFS uses Queue, DFS uses Stack:</strong> BFS needs to explore all neighbors at the current depth before going deeper &mdash; FIFO order ensures this. DFS needs to go as deep as possible before exploring siblings &mdash; LIFO order (stack) naturally supports this backtracking behavior. Recursion implicitly uses the call stack.
+</div>
+
+<!-- BFS vs DFS -->
+<hr class="divider">
+<p class="section-label">BFS vs DFS Comparison</p>
+<div class="cmp-wrap">
+  <table class="cmp-table">
+    <thead><tr><th>Aspect</th><th>BFS</th><th>DFS</th></tr></thead>
+    <tbody>
+      <tr><td>Traversal Structure</td><td class="qcol">Level by level (breadth-first)</td><td class="scol">Deep as possible (depth-first)</td></tr>
+      <tr><td>Data Structure</td><td class="qcol">Queue (FIFO)</td><td class="scol">Stack (LIFO) or Recursion</td></tr>
+      <tr><td>Shortest Path (unweighted)</td><td class="qcol">Finds shortest path</td><td class="scol">Does not guarantee shortest</td></tr>
+      <tr><td>Memory Usage</td><td class="qcol">O(V) &mdash; queue holds frontier</td><td class="scol">O(V) &mdash; recursion stack</td></tr>
+      <tr><td>Implementation</td><td class="qcol">Iterative with queue</td><td class="scol">Recursive or iterative with stack</td></tr>
+      <tr><td>Applications</td><td class="qcol">Shortest path, level-order, bipartite check</td><td class="scol">Cycle detection, topo sort, SCC, maze</td></tr>
+      <tr><td>Time Complexity</td><td class="qcol">O(V + E)</td><td class="scol">O(V + E)</td></tr>
+      <tr><td>Space Complexity</td><td class="qcol">O(V)</td><td class="scol">O(V)</td></tr>
+      <tr><td>Advantages</td><td class="qcol">Optimal for shortest path; natural level order</td><td class="scol">Simpler code; less memory for deep graphs</td></tr>
+      <tr><td>Disadvantages</td><td class="qcol">More memory for wide graphs</td><td class="scol">Can overflow stack on deep graphs; no shortest path</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- INTERACTIVE VISUALIZATION -->
+<hr class="divider">
+<p class="section-label">Example Scenarios</p>
+<div class="tabs">
+  <button class="tab active" onclick="loadEx(0,this)">Simple Graph<span class="tag-s">basic</span></button>
+  <button class="tab" onclick="loadEx(1,this)">Connected Graph<span class="tag-g">connected</span></button>
+  <button class="tab" onclick="loadEx(2,this)">Disconnected Graph<span class="tag-e">disconnected</span></button>
+  <button class="tab" onclick="loadEx(3,this)">BFS Traversal<span class="tag-s">BFS</span></button>
+  <button class="tab" onclick="loadEx(4,this)">DFS Traversal<span class="tag-s">DFS</span></button>
+  <button class="tab" onclick="loadEx(5,this)">Cycle Graph<span class="tag-e">cycle</span></button>
+  <button class="tab" onclick="loadEx(6,this)">Tree Graph<span class="tag-g">tree</span></button>
+  <button class="tab" onclick="loadEx(7,this)">Weighted Graph<span class="tag-s">weighted</span></button>
+</div>
+
+<div id="ex-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+<div class="anim-panel pinned" id="anim-panel">
+  <div class="anim-head">
+    <span class="title" id="anim-title">Interactive Graph Visualization</span>
+    <button class="pin-btn active" id="pin-btn" onclick="togglePin()">Pinned while scrolling</button>
+  </div>
+
+  <div class="node-legend">
+    <span><span class="n-dot" style="background:var(--surface2);border-color:var(--border2)"></span>Unvisited</span>
+    <span><span class="n-dot" style="background:var(--accent-bg);border-color:var(--accent)"></span>Current</span>
+    <span><span class="n-dot" style="background:var(--amber-bg);border-color:var(--amber)"></span>Processing</span>
+    <span><span class="n-dot" style="background:var(--green-bg);border-color:var(--green)"></span>Visited</span>
+    <span><span class="n-dot" style="background:var(--red-bg);border-color:var(--red)"></span>Back Edge (Cycle)</span>
+  </div>
+
+  <div id="phase-badge" class="phase-badge idle">Waiting to start</div>
+
+  <div class="graph-canvas-wrap">
+    <canvas id="graph-viz-canvas" width="700" height="320"></canvas>
+  </div>
+
+  <div class="ds-wrap">
+    <div class="ds-title" id="ds-title">Data Structure State</div>
+    <div class="ds-row" id="ds-row"></div>
+  </div>
+
+  <div class="op-panel">
+    <div class="op-panel-title">Current operation details</div>
+    <div class="op-row">
+      <div class="op-card"><div class="lbl">Current Node</div><div class="val" id="op-node">&mdash;</div></div>
+      <div class="op-card"><div class="lbl">Operation</div><div class="val" id="op-name">&mdash;</div></div>
+      <div class="op-card"><div class="lbl">Distance</div><div class="val" id="op-dist">&mdash;</div></div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box teal"><div class="lbl">Visited</div><div class="val" id="s-visited">0</div><div class="sub">nodes</div></div>
+    <div class="stat-box acc"><div class="lbl">Current</div><div class="val" id="s-current">&mdash;</div><div class="sub">active node</div></div>
+    <div class="stat-box amber"><div class="lbl">Queue/Stack</div><div class="val" id="s-ds">0</div><div class="sub">pending nodes</div></div>
+    <div class="stat-box purple"><div class="lbl">Edges</div><div class="val" id="s-edges">0</div><div class="sub">examined</div></div>
+  </div>
+
+  <div class="step-label" id="step-label">Step &mdash; of &mdash;</div>
+  <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+  <div class="log-box" id="log">Select an example scenario, or use the manual controls below, then press <strong style="color:var(--text)">Play</strong>.</div>
+
+  <div class="manual-row">
+    <div class="m-label">Manual controls &mdash; build your own graph traversal</div>
+    <select class="num-input" id="trav-type" style="width:100px;font-family:var(--sans)">
+      <option value="bfs">BFS</option>
+      <option value="dfs">DFS</option>
+    </select>
+    <input class="num-input" id="start-node" type="number" placeholder="start" min="0" max="9" value="0">
+    <button class="btn primary" onclick="manualTraverse()">Traverse</button>
+    <button class="btn green" onclick="manualReset()">Reset Graph</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="btn-play" onclick="playPause()">Play</button>
+    <button class="btn" onclick="stepBack()">Step back</button>
+    <button class="btn" onclick="stepForward()">Step forward</button>
+    <button class="btn" onclick="resetAnim()">Reset</button>
+    <span id="result-pill" class="result-pill">Done</span>
+    <div class="speed-wrap">
+      <span>Speed</span>
+      <input type="range" id="speed" min="1" max="5" value="3">
+      <span id="spd-lbl" style="min-width:50px">Medium</span>
+    </div>
+  </div>
+</div>
+
+<!-- WALKTHROUGH TABLE -->
+<div class="walkthrough">
+  <h3>Step-by-step traversal log</h3>
+  <div class="tbl-wrap">
+    <table class="step-table">
+      <thead>
+        <tr><th>Step</th><th>Current Node</th><th>Visited Set</th><th>Queue/Stack</th><th>Parent</th><th>Traversal Order</th><th>Action</th></tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GRAPH APPLICATIONS -->
+<hr class="divider">
+<p class="section-label">Graph Applications</p>
+<div class="app-grid">
+  <div class="app-card">
+    <div class="ap-name">Google Maps Routing</div>
+    <div class="ap-desc">Roads as edges, intersections as vertices. Dijkstra and A* find shortest/fastest routes in real-time using weighted directed graphs.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Social Networks</div>
+    <div class="ap-desc">Friend recommendation via mutual friends (common neighbors), influence propagation, and community detection using graph clustering.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Web Crawlers</div>
+    <div class="ap-desc">The entire web is a directed graph. Crawlers use BFS/DFS to discover pages, and PageRank uses the graph structure for ranking.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Recommendation Engines</div>
+    <div class="ap-desc">User-item bipartite graphs enable collaborative filtering. "Users who bought X also bought Y" traverses the graph to find similar items.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Network Routing</div>
+    <div class="ap-desc">OSPF and BGP protocols model the internet as a graph. Shortest path algorithms determine optimal packet forwarding paths.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Compiler Dependencies</div>
+    <div class="ap-desc">Source files and headers form a DAG. Topological sort determines compilation order so dependencies are built before dependents.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">AI Knowledge Graphs</div>
+    <div class="ap-desc">Entities and relationships form graphs powering question answering, semantic search, and reasoning in modern LLM systems.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Game Pathfinding</div>
+    <div class="ap-desc">Game maps are grid graphs. A* search with heuristics finds optimal paths for NPCs while avoiding obstacles in real-time.</div>
+  </div>
+  <div class="app-card">
+    <div class="ap-name">Operating Systems</div>
+    <div class="ap-desc">Resource allocation graphs detect deadlocks. If a cycle exists in the wait-for graph, the system is in a deadlock state.</div>
+  </div>
+</div>
+
+<!-- ADVANTAGES & DISADVANTAGES -->
+<hr class="divider">
+<p class="section-label">Advantages &amp; Disadvantages</p>
+<div class="twocol">
+  <div class="pane good">
+    <h3>Advantages</h3>
+    <ul>
+      <li>Models real-world relationships naturally and flexibly.</li>
+      <li>Extremely versatile structure supporting many algorithms.</li>
+      <li>Powerful representation for networks, maps, and dependencies.</li>
+      <li>Foundation of advanced DSA: shortest path, MST, flow, matching.</li>
+      <li>Adjacency list provides O(1) edge addition and O(V+E) traversal.</li>
+      <li>Graph databases (Neo4j) scale relationship queries efficiently.</li>
+    </ul>
+  </div>
+  <div class="pane bad">
+    <h3>Disadvantages</h3>
+    <ul>
+      <li>Can become memory intensive for dense graphs (O(V^2) matrix).</li>
+      <li>Many graph algorithms have high theoretical complexity.</li>
+      <li>Difficult visualization and debugging for huge graphs.</li>
+      <li>Dense graph storage overhead with adjacency matrix.</li>
+      <li>Cycle detection and pathfinding can be computationally expensive.</li>
+      <li>Recursive DFS risks stack overflow on deep graphs.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- C++ STL GRAPH IMPLEMENTATION -->
+<hr class="divider">
+<p class="section-label">C++ STL Graph Implementation</p>
+
+<div class="code-section">
+  <div class="code-header"><span>graph_adjlist.cpp &middot; Adjacency List</span><button class="copy-btn" onclick="copyCode('code-adjlist')">Copy</button></div>
+  <pre id="code-adjlist"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Adjacency List representation (most common)</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> V = <span class="nm">5</span>, E = <span class="nm">4</span>;
+    vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; <span class="fn">adj</span>(V);
+
+    <span class="cm">// Undirected graph: add edge both ways</span>
+    adj[<span class="nm">0</span>].<span class="fn">push_back</span>(<span class="nm">1</span>); adj[<span class="nm">1</span>].<span class="fn">push_back</span>(<span class="nm">0</span>);
+    adj[<span class="nm">0</span>].<span class="fn">push_back</span>(<span class="nm">2</span>); adj[<span class="nm">2</span>].<span class="fn">push_back</span>(<span class="nm">0</span>);
+    adj[<span class="nm">1</span>].<span class="fn">push_back</span>(<span class="nm">2</span>); adj[<span class="nm">2</span>].<span class="fn">push_back</span>(<span class="nm">1</span>);
+    adj[<span class="nm">2</span>].<span class="fn">push_back</span>(<span class="nm">3</span>); adj[<span class="nm">3</span>].<span class="fn">push_back</span>(<span class="nm">2</span>);
+
+    <span class="cm">// Print adjacency list</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; V; i++) {
+        cout &lt;&lt; i &lt;&lt; <span class="st">" -&gt; "</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> v : adj[i]) cout &lt;&lt; v &lt;&lt; <span class="st">" "</span>;
+        cout &lt;&lt; <span class="st">"\n"</span>;
+    }
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>graph_adjmatrix.cpp &middot; Adjacency Matrix</span><button class="copy-btn" onclick="copyCode('code-adjmat')">Copy</button></div>
+  <pre id="code-adjmat"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Adjacency Matrix representation</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> V = <span class="nm">5</span>;
+    vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; <span class="fn">adj</span>(V, vector&lt;<span class="kw">int</span>&gt;(V, <span class="nm">0</span>));
+
+    <span class="cm">// Add edges (undirected)</span>
+    adj[<span class="nm">0</span>][<span class="nm">1</span>] = adj[<span class="nm">1</span>][<span class="nm">0</span>] = <span class="nm">1</span>;
+    adj[<span class="nm">0</span>][<span class="nm">2</span>] = adj[<span class="nm">2</span>][<span class="nm">0</span>] = <span class="nm">1</span>;
+    adj[<span class="nm">1</span>][<span class="nm">2</span>] = adj[<span class="nm">2</span>][<span class="nm">1</span>] = <span class="nm">1</span>;
+    adj[<span class="nm">2</span>][<span class="nm">3</span>] = adj[<span class="nm">3</span>][<span class="nm">2</span>] = <span class="nm">1</span>;
+
+    <span class="cm">// Check if edge (0,1) exists: O(1)</span>
+    <span class="kw">if</span> (adj[<span class="nm">0</span>][<span class="nm">1</span>]) cout &lt;&lt; <span class="st">"Edge exists\n"</span>;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>bfs.cpp &middot; Breadth First Search</span><button class="copy-btn" onclick="copyCode('code-bfs')">Copy</button></div>
+  <pre id="code-bfs"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">bfs</span>(<span class="kw">int</span> src, vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj) {
+    <span class="kw">int</span> V = adj.<span class="fn">size</span>();
+    vector&lt;<span class="kw">bool</span>&gt; <span class="fn">visited</span>(V, <span class="kw">false</span>);
+    vector&lt;<span class="kw">int</span>&gt; <span class="fn">dist</span>(V, -<span class="nm">1</span>);
+    queue&lt;<span class="kw">int</span>&gt; q;
+
+    visited[src] = <span class="kw">true</span>;
+    dist[src] = <span class="nm">0</span>;
+    q.<span class="fn">push</span>(src);
+
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="kw">int</span> u = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+        cout &lt;&lt; u &lt;&lt; <span class="st">" "</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> v : adj[u]) {
+            <span class="kw">if</span> (!visited[v]) {
+                visited[v] = <span class="kw">true</span>;
+                dist[v] = dist[u] + <span class="nm">1</span>;
+                q.<span class="fn">push</span>(v);
+            }
+        }
+    }
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>dfs.cpp &middot; Depth First Search</span><button class="copy-btn" onclick="copyCode('code-dfs')">Copy</button></div>
+  <pre id="code-dfs"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> u, vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj,
+         vector&lt;<span class="kw">bool</span>&gt;&amp; visited) {
+    visited[u] = <span class="kw">true</span>;
+    cout &lt;&lt; u &lt;&lt; <span class="st">" "</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> v : adj[u])
+        <span class="kw">if</span> (!visited[v])
+            <span class="fn">dfs</span>(v, adj, visited);
+}
+
+<span class="cm">// Iterative DFS using explicit stack</span>
+<span class="kw">void</span> <span class="fn">dfsIterative</span>(<span class="kw">int</span> src, vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj) {
+    <span class="kw">int</span> V = adj.<span class="fn">size</span>();
+    vector&lt;<span class="kw">bool</span>&gt; <span class="fn">visited</span>(V, <span class="kw">false</span>);
+    stack&lt;<span class="kw">int</span>&gt; st;
+    st.<span class="fn">push</span>(src);
+
+    <span class="kw">while</span> (!st.<span class="fn">empty</span>()) {
+        <span class="kw">int</span> u = st.<span class="fn">top</span>(); st.<span class="fn">pop</span>();
+        <span class="kw">if</span> (visited[u]) <span class="kw">continue</span>;
+        visited[u] = <span class="kw">true</span>;
+        cout &lt;&lt; u &lt;&lt; <span class="st">" "</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> v : adj[u])
+            <span class="kw">if</span> (!visited[v]) st.<span class="fn">push</span>(v);
+    }
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>connected_components.cpp &middot; Connected Components</span><button class="copy-btn" onclick="copyCode('code-cc')">Copy</button></div>
+  <pre id="code-cc"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> u, vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj,
+         vector&lt;<span class="kw">bool</span>&gt;&amp; vis, vector&lt;<span class="kw">int</span>&gt;&amp; comp) {
+    vis[u] = <span class="kw">true</span>;
+    comp.<span class="fn">push_back</span>(u);
+    <span class="kw">for</span> (<span class="kw">int</span> v : adj[u])
+        <span class="kw">if</span> (!vis[v]) <span class="fn">dfs</span>(v, adj, vis, comp);
+}
+
+<span class="kw">int</span> <span class="fn">countComponents</span>(vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj) {
+    <span class="kw">int</span> V = adj.<span class="fn">size</span>(), count = <span class="nm">0</span>;
+    vector&lt;<span class="kw">bool</span>&gt; <span class="fn">vis</span>(V, <span class="kw">false</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; V; i++) {
+        <span class="kw">if</span> (!vis[i]) {
+            vector&lt;<span class="kw">int</span>&gt; comp;
+            <span class="fn">dfs</span>(i, adj, vis, comp);
+            count++;
+            <span class="cm">// comp now holds one connected component</span>
+        }
+    }
+    <span class="kw">return</span> count;  <span class="cm">// number of components</span>
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>cycle_detection.cpp &middot; Cycle Detection (Undirected)</span><button class="copy-btn" onclick="copyCode('code-cycle')">Copy</button></div>
+  <pre id="code-cycle"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">bool</span> <span class="fn">hasCycle</span>(<span class="kw">int</span> u, <span class="kw">int</span> parent,
+              vector&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; adj,
+              vector&lt;<span class="kw">bool</span>&gt;&amp; vis) {
+    vis[u] = <span class="kw">true</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> v : adj[u]) {
+        <span class="kw">if</span> (!vis[v]) {
+            <span class="kw">if</span> (<span class="fn">hasCycle</span>(v, u, adj, vis))
+                <span class="kw">return</span> <span class="kw">true</span>;
+        } <span class="kw">else if</span> (v != parent)
+            <span class="kw">return</span> <span class="kw">true</span>;  <span class="cm">// back edge found</span>
+    }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}</pre>
+</div>
+
+<div class="code-section">
+  <div class="code-header"><span>weighted_graph.cpp &middot; Weighted Graph (Dijkstra)</span><button class="copy-btn" onclick="copyCode('code-dijk')">Copy</button></div>
+  <pre id="code-dijk"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">typedef</span> pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt; pii;
+
+<span class="cm">// Dijkstra: shortest path in weighted graph</span>
+vector&lt;<span class="kw">int</span>&gt; <span class="fn">dijkstra</span>(<span class="kw">int</span> src,
+    vector&lt;<span class="kw">vector</span>&lt;pii&gt;&gt;&amp; adj) {
+    <span class="kw">int</span> V = adj.<span class="fn">size</span>();
+    vector&lt;<span class="kw">int</span>&gt; <span class="fn">dist</span>(V, INT_MAX);
+    priority_queue&lt;pii, vector&lt;pii&gt;,
+                   greater&lt;pii&gt;&gt; pq;
+
+    dist[src] = <span class="nm">0</span>;
+    pq.<span class="fn">push</span>({<span class="nm">0</span>, src});
+
+    <span class="kw">while</span> (!pq.<span class="fn">empty</span>()) {
+        <span class="kw">auto</span> [d, u] = pq.<span class="fn">top</span>(); pq.<span class="fn">pop</span>();
+        <span class="kw">if</span> (d &gt; dist[u]) <span class="kw">continue</span>;
+        <span class="kw">for</span> (<span class="kw">auto</span>&amp; [v, w] : adj[u])
+            <span class="kw">if</span> (dist[u] + w &lt; dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.<span class="fn">push</span>({dist[v], v});
+            }
+    }
+    <span class="kw">return</span> dist;
+}
+
+<span class="cm">// Weighted adjacency list: adj[u].push_back({v, weight})</span></pre>
+</div>
+
+<!-- GRAPH ALGORITHMS OVERVIEW -->
+<hr class="divider">
+<p class="section-label">Graph Algorithms Overview</p>
+<div class="algo-grid">
+  <div class="algo-card">
+    <div class="ac-name">BFS</div>
+    <div class="ac-purpose">Level-order traversal. Finds shortest path in unweighted graphs.</div>
+    <div class="ac-cx">Time: O(V+E) | Space: O(V)</div>
+    <div class="ac-app">Social reach, web crawling, bipartite check</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">DFS</div>
+    <div class="ac-purpose">Deep traversal. Detects cycles, finds connected components.</div>
+    <div class="ac-cx">Time: O(V+E) | Space: O(V)</div>
+    <div class="ac-app">Topo sort, maze solving, SCC (Kosaraju/Tarjan)</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Dijkstra</div>
+    <div class="ac-purpose">Shortest path from source to all vertices. Greedy approach.</div>
+    <div class="ac-cx">Time: O((V+E)logV) | Space: O(V)</div>
+    <div class="ac-app">GPS routing, network routing, game AI</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Bellman-Ford</div>
+    <div class="ac-purpose">Shortest path with negative weights. Detects negative cycles.</div>
+    <div class="ac-cx">Time: O(VE) | Space: O(V)</div>
+    <div class="ac-app">Currency arbitrage, network flow with costs</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Floyd-Warshall</div>
+    <div class="ac-purpose">All-pairs shortest path. Dynamic programming approach.</div>
+    <div class="ac-cx">Time: O(V^3) | Space: O(V^2)</div>
+    <div class="ac-app">Transitive closure, network diameter</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Topological Sort</div>
+    <div class="ac-purpose">Linear ordering of DAG vertices respecting dependencies.</div>
+    <div class="ac-cx">Time: O(V+E) | Space: O(V)</div>
+    <div class="ac-app">Task scheduling, course prerequisites, build systems</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Kruskal</div>
+    <div class="ac-purpose">Minimum Spanning Tree using Union-Find. Sorts edges by weight.</div>
+    <div class="ac-cx">Time: O(E log E) | Space: O(V)</div>
+    <div class="ac-app">Network design, clustering, approximate TSP</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Prim</div>
+    <div class="ac-purpose">Minimum Spanning Tree using priority queue. Grows tree from source.</div>
+    <div class="ac-cx">Time: O((V+E)logV) | Space: O(V)</div>
+    <div class="ac-app">Network design, road construction, clustering</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Union Find</div>
+    <div class="ac-purpose">Disjoint Set Union with path compression and union by rank.</div>
+    <div class="ac-cx">Time: O(alpha(V)) ~ O(1) | Space: O(V)</div>
+    <div class="ac-app">Kruskal, cycle detection, connected components</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Kosaraju</div>
+    <div class="ac-purpose">Finds strongly connected components in directed graphs.</div>
+    <div class="ac-cx">Time: O(V+E) | Space: O(V)</div>
+    <div class="ac-app">Social circles, web page groups, 2-SAT</div>
+  </div>
+  <div class="algo-card">
+    <div class="ac-name">Tarjan</div>
+    <div class="ac-purpose">Single-pass SCC algorithm using low-link values. More efficient.</div>
+    <div class="ac-cx">Time: O(V+E) | Space: O(V)</div>
+    <div class="ac-app">SCC, articulation points, bridges</div>
+  </div>
+</div>
+
+<!-- AI EXPLAIN -->
+<hr class="divider">
+<p class="section-label">Ask AI — Graph Theory</p>
+<div class="ai-section">
+  <h3>Ask AI — Explain any Graph concept</h3>
+  <div class="ai-q-row">
+    <button class="ai-q-btn" onclick="askAI('What is a graph in DSA?')">What is a graph in DSA?</button>
+    <button class="ai-q-btn" onclick="askAI('Difference between BFS and DFS?')">BFS vs DFS?</button>
+    <button class="ai-q-btn" onclick="askAI('Why use adjacency list over matrix?')">Why adjacency list?</button>
+    <button class="ai-q-btn" onclick="askAI('What is a DAG and why is it important?')">What is a DAG?</button>
+    <button class="ai-q-btn" onclick="askAI('How does Dijkstra algorithm work?')">How Dijkstra works?</button>
+    <button class="ai-q-btn" onclick="askAI('When should I use BFS over DFS?')">When to use BFS?</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <input class="ai-custom" id="ai-input" type="text" placeholder="Ask your own question about graphs..." onkeydown="if(event.key==='Enter')askAI()"/>
+    <button class="ai-send" id="ai-send-btn" onclick="askAI()">Ask</button>
+  </div>
+  <div class="ai-answer" id="ai-answer">Ask a question above to get an AI explanation of any Graph Theory concept.</div>
+</div>
+
+<!-- INTERVIEW PREPARATION -->
+<hr class="divider">
+<p class="section-label">Interview Preparation</p>
+<div class="int-grid">
+  <div class="int-card">
+    <div class="ic-q">Detect cycle in an undirected graph</div>
+    <div class="ic-a">Use DFS with a parent parameter. If you visit a node that is already visited and is NOT the parent, a cycle exists. Time: O(V+E).</div>
+    <span class="ic-tag tag-cyc">Cycle</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Find shortest path in unweighted graph</div>
+    <div class="ic-a">BFS naturally finds the shortest path by edge count. Maintain a distance array updated when each node is first visited. Time: O(V+E).</div>
+    <span class="ic-tag tag-bfs">BFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Number of islands (connected components)</div>
+    <div class="ic-a">Traverse the grid. When you find an unvisited land cell, run DFS/BFS to mark the entire island. Increment count. Time: O(V+E) = O(m*n).</div>
+    <span class="ic-tag tag-dfs">DFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Topological sort of a DAG</div>
+    <div class="ic-a">Use DFS: push node to stack after exploring all neighbors. Reverse the stack. Or use Kahn's algorithm: repeatedly remove nodes with indegree 0. Time: O(V+E).</div>
+    <span class="ic-tag tag-topo">Topo Sort</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Check if graph is bipartite</div>
+    <div class="ic-a">Use BFS with two colors. Start coloring from any node. If you find a neighbor with the same color, the graph is not bipartite. Time: O(V+E).</div>
+    <span class="ic-tag tag-bfs">BFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Clone a graph (deep copy)</div>
+    <div class="ic-a">Use DFS/BFS with a hash map to track cloned nodes. For each original node, create a clone if not exists, then recursively clone neighbors. Time: O(V+E).</div>
+    <span class="ic-tag tag-dfs">DFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Find all paths from source to target</div>
+    <div class="ic-a">Use DFS with backtracking. Maintain a current path list. When target is reached, add path to results. Backtrack by removing the last node. Time: O(2^V) worst case.</div>
+    <span class="ic-tag tag-dfs">DFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Word ladder (shortest transformation)</div>
+    <div class="ic-a">Model as a graph where edges connect words differing by one letter. Use BFS from beginWord to find shortest path to endWord. Time: O(N * L^2 * 26).</div>
+    <span class="ic-tag tag-bfs">BFS</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Course schedule (prerequisites)</div>
+    <div class="ic-a">Build a directed graph of courses and prerequisites. Use topological sort (Kahn's or DFS). If all courses can be ordered, return true. Detect cycle = impossible.</div>
+    <span class="ic-tag tag-topo">Topo Sort</span>
+  </div>
+  <div class="int-card">
+    <div class="ic-q">Critical connections (bridges)</div>
+    <div class="ic-a">Use Tarjan's algorithm. Track discovery times and low-link values. An edge (u,v) is a bridge if low[v] > disc[u]. Time: O(V+E).</div>
+    <span class="ic-tag tag-dfs">DFS</span>
+  </div>
+</div>
+
+<!-- KEY TAKEAWAYS -->
+<hr class="divider">
+<p class="section-label">Key Takeaways</p>
+<div class="takeaway-list">
+  <div class="takeaway-item">
+    <div class="tk-icon">&#128200;</div>
+    <div class="tk-text"><strong>Graph fundamentals:</strong> A graph G=(V,E) models pairwise relationships. Vertices are entities, edges are connections. Understanding directed vs undirected, weighted vs unweighted is essential.</div>
+  </div>
+  <div class="takeaway-item">
+    <div class="tk-icon">&#128221;</div>
+    <div class="tk-text"><strong>Representations:</strong> Adjacency list (O(V+E)) is preferred for sparse graphs. Adjacency matrix (O(V^2)) works for dense graphs or when fast edge lookup is needed. Edge list is best for Kruskal.</div>
+  </div>
+  <div class="takeaway-item">
+    <div class="tk-icon">&#128640;</div>
+    <div class="tk-text"><strong>Traversals:</strong> BFS uses a queue for level-order exploration and shortest paths in unweighted graphs. DFS uses recursion/stack for deep exploration, cycle detection, and topological sort. Both are O(V+E).</div>
+  </div>
+  <div class="takeaway-item">
+    <div class="tk-icon">&#9201;</div>
+    <div class="tk-text"><strong>Complexities:</strong> Most graph algorithms run in O(V+E) time with O(V) space. Dijkstra is O((V+E)logV). Floyd-Warshall is O(V^3). Always choose the right algorithm for the graph type.</div>
+  </div>
+  <div class="takeaway-item">
+    <div class="tk-icon">&#127775;</div>
+    <div class="tk-text"><strong>Algorithms:</strong> Master BFS, DFS, Dijkstra, topological sort, and Union-Find. These form the foundation for solving 80% of graph interview problems. Understand when to apply each.</div>
+  </div>
+  <div class="takeaway-item">
+    <div class="tk-icon">&#128188;</div>
+    <div class="tk-text"><strong>Interview importance:</strong> Graph problems are extremely common in FAANG interviews. Practice detecting cycles, finding shortest paths, topological sorting, and connected components. These are the building blocks.</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ============================================================
+   GRAPH THEORY INTERACTIVE VISUALIZATION ENGINE
+   Vanilla JavaScript - No external dependencies
+   ============================================================ */
+
+/* ---- GRAPH DATASETS ---- */
+const GRAPHS = {
+  simple: {
+    nodes: 5,
+    edges: [[0,1],[0,2],[1,2],[2,3],[3,4]],
+    directed: false,
+    weighted: false,
+    positions: [[100,160],[250,80],[250,240],[400,160],[550,160]]
+  },
+  connected: {
+    nodes: 6,
+    edges: [[0,1],[0,2],[1,3],[2,3],[2,4],[3,5],[4,5]],
+    directed: false,
+    weighted: false,
+    positions: [[80,160],[220,80],[220,240],[360,80],[360,240],[500,160]]
+  },
+  disconnected: {
+    nodes: 7,
+    edges: [[0,1],[1,2],[2,0],[3,4],[4,5],[5,3]],
+    directed: false,
+    weighted: false,
+    positions: [[100,100],[200,60],[200,140],[400,100],[500,60],[500,140],[300,220]]
+  },
+  bfs: {
+    nodes: 7,
+    edges: [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]],
+    directed: false,
+    weighted: false,
+    positions: [[350,50],[200,140],[500,140],[120,240],[280,240],[420,240],[580,240]]
+  },
+  dfs: {
+    nodes: 7,
+    edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[2,5]],
+    directed: false,
+    weighted: false,
+    positions: [[80,160],[180,160],[280,160],[380,160],[480,160],[580,160],[680,160]]
+  },
+  cycle: {
+    nodes: 5,
+    edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,2]],
+    directed: false,
+    weighted: false,
+    positions: [[350,60],[550,140],[480,280],[220,280],[150,140]]
+  },
+  tree: {
+    nodes: 7,
+    edges: [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]],
+    directed: false,
+    weighted: false,
+    positions: [[350,40],[200,140],[500,140],[120,240],[280,240],[420,240],[580,240]]
+  },
+  weighted: {
+    nodes: 5,
+    edges: [[0,1,4],[0,2,1],[1,2,2],[1,3,5],[2,3,3],[3,4,2]],
+    directed: false,
+    weighted: true,
+    positions: [[100,160],[250,80],[250,240],[400,160],[550,160]]
+  }
+};
+
+const EXAMPLES = [
+  { key:'simple', desc:'<strong style="color:var(--text)">Simple undirected graph.</strong> 5 vertices connected in a path-like structure with a triangle at the start. This is the most basic graph form.' },
+  { key:'connected', desc:'<strong style="color:var(--text)">Connected graph.</strong> All 6 vertices are reachable from any starting point. There are multiple paths between nodes, creating redundancy.' },
+  { key:'disconnected', desc:'<strong style="color:var(--text)">Disconnected graph.</strong> Contains two separate components: a triangle (0-1-2) and another triangle (3-4-5), plus an isolated vertex (6). No path exists between components.' },
+  { key:'bfs', desc:'<strong style="color:var(--text)">BFS traversal demonstration.</strong> A tree-like structure perfect for showing level-order traversal. BFS from node 0 visits: 0, then 1&2, then 3&4&5&6.' },
+  { key:'dfs', desc:'<strong style="color:var(--text)">DFS traversal demonstration.</strong> A linear chain with one cross-edge (2-5). DFS from node 0 goes deep: 0->1->2->3->4->5->6, then backtracks.' },
+  { key:'cycle', desc:'<strong style="color:var(--text)">Cyclic graph.</strong> Contains a cycle 0-1-2-3-4-0 (pentagon) plus a diagonal 0-2. Cycle detection algorithms would find multiple cycles here.' },
+  { key:'tree', desc:'<strong style="color:var(--text)">Tree graph.</strong> Connected acyclic undirected graph with exactly V-1 = 6 edges. Has a unique path between any two vertices. No cycles exist.' },
+  { key:'weighted', desc:'<strong style="color:var(--text)">Weighted graph.</strong> Each edge has a numerical weight. Dijkstra would find the shortest path from 0 to 4 as 0->2->3->4 with total weight 1+3+2=6.' }
+];
+
+/* ---- STATE ---- */
+let currentGraph = null;
+let currentGraphKey = 'simple';
+let traversalSteps = [];
+let stepCursor = -1;
+let isPlaying = false;
+let playTimer = null;
+let traversalType = 'bfs';
+const SPEEDS = [1800, 1200, 700, 320, 120];
+const SPEED_NAMES = ['Slow', 'Slower', 'Medium', 'Fast', 'Fastest'];
+
+/* ---- CANVAS DRAWING ---- */
+function drawGraph(canvasId, graph, stepData) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const nodeStates = stepData ? stepData.nodeStates : new Array(graph.nodes).fill('unvisited');
+  const edgeHighlights = stepData ? stepData.edgeHighlights : [];
+
+  // Draw edges
+  for (let i = 0; i < graph.edges.length; i++) {
+    const [u, v, w] = graph.edges[i];
+    const [x1, y1] = graph.positions[u];
+    const [x2, y2] = graph.positions[v];
+
+    let edgeColor = '#3d4266';
+    let edgeWidth = 1.5;
+
+    if (edgeHighlights.includes(i)) {
+      edgeColor = '#6c8fff';
+      edgeWidth = 2.5;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = edgeColor;
+    ctx.lineWidth = edgeWidth;
+    ctx.stroke();
+
+    // Weight label
+    if (graph.weighted && w !== undefined) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(w), mx, my - 8);
+    }
+  }
+
+  // Draw nodes
+  for (let i = 0; i < graph.nodes; i++) {
+    const [x, y] = graph.positions[i];
+    const state = nodeStates[i];
+
+    let fill = '#1a1d27', stroke = '#3d4266', textColor = '#8b90b8';
+    if (state === 'current') { fill = '#1a2140'; stroke = '#6c8fff'; textColor = '#6c8fff'; }
+    else if (state === 'visited') { fill = '#0d2318'; stroke = '#4ade80'; textColor = '#4ade80'; }
+    else if (state === 'processing') { fill = '#2a1e06'; stroke = '#fbbf24'; textColor = '#fbbf24'; }
+    else if (state === 'backedge') { fill = '#2a1111'; stroke = '#f87171'; textColor = '#f87171'; }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Node label
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(i), x, y);
+  }
+}
+
+/* ---- BUILD TRAVERSAL STEPS ---- */
+function buildTraversalSteps(graph, type, startNode) {
+  const steps = [];
+  const V = graph.nodes;
+  const adj = Array.from({length: V}, () => []);
+
+  for (const e of graph.edges) {
+    const [u, v] = e;
+    adj[u].push(v);
+    if (!graph.directed) adj[v].push(u);
+  }
+
+  // Sort neighbors for deterministic traversal
+  for (let i = 0; i < V; i++) adj[i].sort((a, b) => a - b);
+
+  steps.push({
+    type: 'init',
+    nodeStates: new Array(V).fill('unvisited'),
+    ds: [],
+    current: null,
+    visited: [],
+    parent: new Array(V).fill(-1),
+    dist: new Array(V).fill(-1),
+    edgesExamined: 0,
+    note: `Initialize. Start node = ${startNode}. All nodes unvisited.`,
+    edgeHighlights: []
+  });
+
+  if (type === 'bfs') {
+    const visited = new Array(V).fill(false);
+    const dist = new Array(V).fill(-1);
+    const parent = new Array(V).fill(-1);
+    const queue = [startNode];
+    const order = [];
+    let edgesExamined = 0;
+
+    visited[startNode] = true;
+    dist[startNode] = 0;
+
+    steps.push({
+      type: 'enqueue',
+      nodeStates: visited.map((v, i) => i === startNode ? 'processing' : 'unvisited'),
+      ds: [...queue],
+      current: startNode,
+      visited: [...order],
+      parent: [...parent],
+      dist: [...dist],
+      edgesExamined,
+      note: `Enqueue start node ${startNode}. dist[${startNode}] = 0.`,
+      edgeHighlights: []
+    });
+
+    while (queue.length > 0) {
+      const u = queue.shift();
+      order.push(u);
+
+      steps.push({
+        type: 'visit',
+        nodeStates: visited.map((v, i) => {
+          if (i === u) return 'current';
+          if (v) return 'visited';
+          if (queue.includes(i)) return 'processing';
+          return 'unvisited';
+        }),
+        ds: [...queue],
+        current: u,
+        visited: [...order],
+        parent: [...parent],
+        dist: [...dist],
+        edgesExamined,
+        note: `Visit node ${u}. dist = ${dist[u]}. Examining ${adj[u].length} neighbors.`,
+        edgeHighlights: []
+      });
+
+      for (const v of adj[u]) {
+        edgesExamined++;
+        if (!visited[v]) {
+          visited[v] = true;
+          dist[v] = dist[u] + 1;
+          parent[v] = u;
+          queue.push(v);
+
+          steps.push({
+            type: 'enqueue',
+            nodeStates: visited.map((vis, i) => {
+              if (i === u) return 'current';
+              if (vis && i !== u) return 'visited';
+              if (queue.includes(i)) return 'processing';
+              return 'unvisited';
+            }),
+            ds: [...queue],
+            current: u,
+            visited: [...order],
+            parent: [...parent],
+            dist: [...dist],
+            edgesExamined,
+            note: `Edge (${u},${v}): unvisited. Enqueue ${v}, dist[${v}] = ${dist[v]}.`,
+            edgeHighlights: [graph.edges.findIndex(e => (e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u))]
+          });
+        } else {
+          steps.push({
+            type: 'skip',
+            nodeStates: visited.map((vis, i) => {
+              if (i === u) return 'current';
+              if (vis) return 'visited';
+              if (queue.includes(i)) return 'processing';
+              return 'unvisited';
+            }),
+            ds: [...queue],
+            current: u,
+            visited: [...order],
+            parent: [...parent],
+            dist: [...dist],
+            edgesExamined,
+            note: `Edge (${u},${v}): already visited. Skip.`,
+            edgeHighlights: [graph.edges.findIndex(e => (e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u))]
+          });
+        }
+      }
+
+      steps.push({
+        type: 'done_node',
+        nodeStates: visited.map((vis, i) => {
+          if (vis) return 'visited';
+          if (queue.includes(i)) return 'processing';
+          return 'unvisited';
+        }),
+        ds: [...queue],
+        current: null,
+        visited: [...order],
+        parent: [...parent],
+        dist: [...dist],
+        edgesExamined,
+        note: `Node ${u} fully processed. Marked visited.`,
+        edgeHighlights: []
+      });
+    }
+  } else {
+    // DFS
+    const visited = new Array(V).fill(false);
+    const dist = new Array(V).fill(-1);
+    const parent = new Array(V).fill(-1);
+    const stack = [startNode];
+    const order = [];
+    let edgesExamined = 0;
+
+    dist[startNode] = 0;
+
+    steps.push({
+      type: 'push',
+      nodeStates: new Array(V).fill('unvisited').map((s, i) => i === startNode ? 'processing' : s),
+      ds: [...stack],
+      current: startNode,
+      visited: [...order],
+      parent: [...parent],
+      dist: [...dist],
+      edgesExamined,
+      note: `Push start node ${startNode} onto stack.`,
+      edgeHighlights: []
+    });
+
+    while (stack.length > 0) {
+      const u = stack.pop();
+      if (visited[u]) continue;
+
+      visited[u] = true;
+      order.push(u);
+
+      steps.push({
+        type: 'visit',
+        nodeStates: visited.map((vis, i) => {
+          if (i === u) return 'current';
+          if (vis) return 'visited';
+          if (stack.includes(i)) return 'processing';
+          return 'unvisited';
+        }),
+        ds: [...stack],
+        current: u,
+        visited: [...order],
+        parent: [...parent],
+        dist: [...dist],
+        edgesExamined,
+        note: `Pop and visit node ${u}. dist = ${dist[u]}.`,
+        edgeHighlights: []
+      });
+
+      // Push neighbors in reverse for left-to-right order
+      const rev = [...adj[u]].reverse();
+      for (const v of rev) {
+        edgesExamined++;
+        if (!visited[v]) {
+          parent[v] = u;
+          dist[v] = dist[u] + 1;
+          stack.push(v);
+
+          steps.push({
+            type: 'push',
+            nodeStates: visited.map((vis, i) => {
+              if (i === u) return 'current';
+              if (vis) return 'visited';
+              if (stack.includes(i)) return 'processing';
+              return 'unvisited';
+            }),
+            ds: [...stack],
+            current: u,
+            visited: [...order],
+            parent: [...parent],
+            dist: [...dist],
+            edgesExamined,
+            note: `Edge (${u},${v}): unvisited. Push ${v} to stack.`,
+            edgeHighlights: [graph.edges.findIndex(e => (e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u))]
+          });
+        } else {
+          steps.push({
+            type: 'skip',
+            nodeStates: visited.map((vis, i) => {
+              if (i === u) return 'current';
+              if (vis) return 'visited';
+              if (stack.includes(i)) return 'processing';
+              return 'unvisited';
+            }),
+            ds: [...stack],
+            current: u,
+            visited: [...order],
+            parent: [...parent],
+            dist: [...dist],
+            edgesExamined,
+            note: `Edge (${u},${v}): already visited. Skip.`,
+            edgeHighlights: [graph.edges.findIndex(e => (e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u))]
+          });
+        }
+      }
+
+      steps.push({
+        type: 'done_node',
+        nodeStates: visited.map((vis, i) => {
+          if (vis) return 'visited';
+          if (stack.includes(i)) return 'processing';
+          return 'unvisited';
+        }),
+        ds: [...stack],
+        current: null,
+        visited: [...order],
+        parent: [...parent],
+        dist: [...dist],
+        edgesExamined,
+        note: `Node ${u} fully processed. Backtracking.`,
+        edgeHighlights: []
+      });
+    }
+  }
+
+  steps.push({
+    type: 'done',
+    nodeStates: new Array(V).fill('visited'),
+    ds: [],
+    current: null,
+    visited: [...(steps[steps.length-1]?.visited || [])],
+    parent: [...(steps[steps.length-1]?.parent || [])],
+    dist: [...(steps[steps.length-1]?.dist || [])],
+    edgesExamined: steps[steps.length-1]?.edgesExamined || 0,
+    note: `Traversal complete. Visited ${V} nodes. Order: ${(steps[steps.length-1]?.visited || []).join(' -> ')}`,
+    edgeHighlights: []
+  });
+
+  return steps;
+}
+
+/* ---- UI UPDATE ---- */
+function applyStep(idx) {
+  if (idx < 0) {
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('step-label').textContent = 'Step -- of --';
+    document.getElementById('s-visited').textContent = '0';
+    document.getElementById('s-current').textContent = '--';
+    document.getElementById('s-ds').textContent = '0';
+    document.getElementById('s-edges').textContent = '0';
+    document.getElementById('op-node').textContent = '--';
+    document.getElementById('op-name').textContent = '--';
+    document.getElementById('op-dist').textContent = '--';
+    document.getElementById('ds-row').innerHTML = '<span style="color:var(--border2);font-size:12px">Empty</span>';
+    document.getElementById('log').innerHTML = 'Press <strong style="color:var(--text)">Play</strong> to begin traversal.';
+    setPhase('idle');
+    document.getElementById('result-pill').style.display = 'none';
+    if (currentGraph) drawGraph('graph-viz-canvas', currentGraph, null);
+    return;
+  }
+
+  const s = traversalSteps[idx];
+  const total = traversalSteps.length;
+
+  document.getElementById('pbar').style.width = ((idx + 1) / total * 100).toFixed(1) + '%';
+  document.getElementById('step-label').textContent = `Step ${idx + 1} of ${total}`;
+  document.getElementById('s-visited').textContent = s.visited.length;
+  document.getElementById('s-current').textContent = s.current !== null ? s.current : '--';
+  document.getElementById('s-ds').textContent = s.ds.length;
+  document.getElementById('s-edges').textContent = s.edgesExamined;
+  document.getElementById('op-node').textContent = s.current !== null ? s.current : '--';
+  document.getElementById('op-name').textContent = s.type;
+  document.getElementById('op-dist').textContent = s.current !== null && s.dist[s.current] >= 0 ? s.dist[s.current] : '--';
+
+  // DS visualization
+  const dsTitle = traversalType === 'bfs' ? 'Queue (FIFO)' : 'Stack (LIFO)';
+  document.getElementById('ds-title').textContent = dsTitle + ' State';
+  const dsRow = document.getElementById('ds-row');
+  if (s.ds.length === 0) {
+    dsRow.innerHTML = '<span style="color:var(--border2);font-size:12px">Empty</span>';
+  } else {
+    dsRow.innerHTML = s.ds.map((v, i) => {
+      let cls = 'dc-box filled';
+      if (i === 0 && traversalType === 'bfs') cls = 'dc-box active';
+      if (i === s.ds.length - 1 && traversalType === 'dfs') cls = 'dc-box active';
+      return `<div class="ds-cell"><div class="dc-idx">[${i}]</div><div class="${cls}">${v}</div></div>`;
+    }).join('');
+  }
+
+  // Log
+  const sp = `<span class="hi">Step ${idx + 1}.</span> `;
+  document.getElementById('log').innerHTML = sp + s.note;
+
+  // Phase
+  const phaseMap = { init:'idle', enqueue:'traversing', push:'traversing', visit:'visiting', 
+                     skip:'traversing', done_node:'traversing', done:'done' };
+  setPhase(phaseMap[s.type] || 'traversing');
+
+  if (s.type === 'done') {
+    document.getElementById('result-pill').style.display = 'inline-block';
+    document.getElementById('result-pill').textContent = `Done: ${s.visited.length} nodes`;
+  } else {
+    document.getElementById('result-pill').style.display = 'none';
+  }
+
+  // Highlight table row
+  document.querySelectorAll('.step-table tr').forEach(tr => tr.classList.remove('highlighted'));
+  const tr = document.getElementById('tr-' + idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+
+  // Draw graph
+  drawGraph('graph-viz-canvas', currentGraph, s);
+}
+
+function setPhase(type) {
+  const b = document.getElementById('phase-badge');
+  b.className = 'phase-badge ' + type;
+  const labels = {
+    traversing: traversalType === 'bfs' ? 'Traversing (BFS)' : 'Traversing (DFS)',
+    visiting: 'Visiting node',
+    done: 'Traversal complete',
+    idle: 'Waiting to start'
+  };
+  b.textContent = labels[type] || 'Waiting';
+}
+
+/* ---- BUILD WALK TABLE ---- */
+function buildWalkTable() {
+  const tbody = document.getElementById('step-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = traversalSteps.map((s, i) => {
+    let actionColor = 'ct';
+    if (s.type === 'visit') actionColor = 'ca';
+    else if (s.type === 'skip') actionColor = 'cr';
+    else if (s.type === 'done') actionColor = 'cg';
+
+    const dsLabel = traversalType === 'bfs' ? 'Queue' : 'Stack';
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td>
+      <td class="ca">${s.current !== null ? s.current : '--'}</td>
+      <td style="font-size:11px">[${s.visited.join(',')}]</td>
+      <td style="font-size:11px">[${s.ds.join(',')}]</td>
+      <td style="font-size:11px">${s.parent.map((p,j) => p>=0 ? `${j}:${p}` : '').filter(Boolean).join(', ') || '--'}</td>
+      <td class="ct">${s.visited.join(' -> ')}</td>
+      <td class="${actionColor}">${s.type}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- EXAMPLE LOADING ---- */
+function loadEx(n, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const ex = EXAMPLES[n];
+  document.getElementById('ex-desc').innerHTML = ex.desc;
+  currentGraphKey = ex.key;
+  currentGraph = JSON.parse(JSON.stringify(GRAPHS[ex.key]));
+
+  // For static views (first 3 examples), just show the graph without traversal
+  if (n < 3) {
+    traversalSteps = [];
+    stepCursor = -1;
+    document.getElementById('step-tbody').innerHTML = '';
+    document.getElementById('anim-title').textContent = 'Graph Visualization';
+    applyStep(-1);
+    drawGraph('graph-viz-canvas', currentGraph, null);
+    document.getElementById('log').innerHTML = 'Static graph view. Select BFS or DFS traversal examples to see animated traversal.';
+    return;
+  }
+
+  // For traversal examples
+  traversalType = (n === 3 || n === 5 || n === 6 || n === 7) ? 'bfs' : 'dfs';
+  if (n === 4) traversalType = 'dfs';
+  document.getElementById('trav-type').value = traversalType;
+
+  const startNode = 0;
+  traversalSteps = buildTraversalSteps(currentGraph, traversalType, startNode);
+  buildWalkTable();
+  stepCursor = -1;
+  document.getElementById('anim-title').textContent = `${traversalType.toUpperCase()} Traversal Visualization`;
+  applyStep(-1);
+}
+
+/* ---- MANUAL CONTROLS ---- */
+function manualTraverse() {
+  stopPlay();
+  const type = document.getElementById('trav-type').value;
+  const start = parseInt(document.getElementById('start-node').value, 10) || 0;
+  if (!currentGraph || start >= currentGraph.nodes) {
+    document.getElementById('log').innerHTML = '<span class="neg">Invalid start node.</span>';
+    return;
+  }
+  traversalType = type;
+  traversalSteps = buildTraversalSteps(currentGraph, type, start);
+  buildWalkTable();
+  stepCursor = -1;
+  document.getElementById('anim-title').textContent = `${type.toUpperCase()} Traversal from node ${start}`;
+  applyStep(-1);
+}
+
+function manualReset() {
+  stopPlay();
+  if (currentGraphKey) {
+    currentGraph = JSON.parse(JSON.stringify(GRAPHS[currentGraphKey]));
+    traversalSteps = [];
+    stepCursor = -1;
+    document.getElementById('step-tbody').innerHTML = '';
+    applyStep(-1);
+    drawGraph('graph-viz-canvas', currentGraph, null);
+  }
+}
+
+/* ---- PLAYBACK CONTROLS ---- */
+function playPause() {
+  if (isPlaying) { stopPlay(); return; }
+  if (traversalSteps.length === 0) return;
+  if (stepCursor >= traversalSteps.length - 1) { stepCursor = -1; applyStep(-1); }
+  isPlaying = true;
+  document.getElementById('btn-play').textContent = 'Pause';
+  tick();
+}
+
+function tick() {
+  if (!isPlaying) return;
+  if (stepCursor >= traversalSteps.length - 1) { stopPlay(); return; }
+  stepCursor++;
+  applyStep(stepCursor);
+  playTimer = setTimeout(tick, SPEEDS[document.getElementById('speed').value - 1]);
+}
+
+function stopPlay() {
+  isPlaying = false;
+  clearTimeout(playTimer);
+  document.getElementById('btn-play').textContent = 'Play';
+}
+
+function stepForward() {
+  if (stepCursor < traversalSteps.length - 1) { stepCursor++; applyStep(stepCursor); }
+}
+
+function stepBack() {
+  if (stepCursor > 0) { stepCursor--; applyStep(stepCursor); }
+  else if (stepCursor === 0) { stepCursor = -1; applyStep(-1); }
+}
+
+function resetAnim() {
+  stopPlay();
+  stepCursor = -1;
+  applyStep(-1);
+}
+
+function togglePin() {
+  const panel = document.getElementById('anim-panel');
+  const btn = document.getElementById('pin-btn');
+  const p = panel.classList.toggle('pinned');
+  btn.classList.toggle('active', p);
+  btn.textContent = p ? 'Pinned while scrolling' : 'Pin while scrolling';
+}
+
+/* ---- AI EXPLAIN ---- */
+function askAI(preset) {
+  const input = document.getElementById('ai-input');
+  const question = preset || input.value.trim();
+  if (!question) return;
+  if (!preset) input.value = '';
+
+  const ansEl = document.getElementById('ai-answer');
+  const btn = document.getElementById('ai-send-btn');
+
+  // Local responses for common questions
+  const responses = {
+    'What is a graph in DSA?': 'A graph is a non-linear data structure consisting of vertices (nodes) and edges that connect them. Unlike trees, graphs have no hierarchy - any node can connect to any other. Formally G=(V,E). Graphs model real-world relationships like social networks, road maps, and web pages.',
+    'Difference between BFS and DFS?': 'BFS explores level by level using a queue (FIFO), making it ideal for shortest paths in unweighted graphs. DFS explores as deep as possible using a stack/recursion (LIFO), making it better for cycle detection, topological sort, and connected components. Both run in O(V+E) time.',
+    'Why use adjacency list?': 'Adjacency list uses O(V+E) space vs O(V^2) for matrix. For sparse graphs (most real-world graphs), this is dramatically more efficient. Adding edges is O(1), and traversing neighbors is O(degree). The matrix only wins for dense graphs or when O(1) edge lookup is critical.',
+    'What is a DAG and why is it important?': 'A Directed Acyclic Graph (DAG) is a directed graph with no cycles. It is crucial because every DAG has at least one topological ordering. DAGs model task dependencies, build systems, and expression trees. Many algorithms simplify on DAGs.',
+    'How does Dijkstra algorithm work?': 'Dijkstra finds shortest paths from a source in weighted graphs with non-negative edges. It uses a greedy approach with a priority queue: always expand the unvisited node with the smallest known distance. Time: O((V+E)logV) with binary heap.',
+    'When should I use BFS?': 'Use BFS when: (1) You need the shortest path in an unweighted graph, (2) You want level-order traversal, (3) Checking bipartiteness, (4) Finding minimum steps in puzzles. BFS guarantees shortest path by edge count because it explores all nodes at distance k before k+1.'
+  };
+
+  ansEl.innerHTML = '<span class="ai-loading">Thinking...</span>';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    const text = responses[question] || 'That is a great question about graph theory! In general, graphs are fundamental to computer science because they can model any pairwise relationship. The key is choosing the right representation (adjacency list vs matrix) and the right algorithm (BFS for shortest path, DFS for cycles, Dijkstra for weighted shortest path) based on your specific problem constraints.';
+    ansEl.textContent = text;
+    btn.disabled = false;
+  }, 600);
+}
+
+/* ---- COPY CODE ---- */
+function copyCode(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => { if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy', 1500); } });
+  });
+}
+
+/* ---- STRUCTURE CANVAS ---- */
+function drawStructureCanvas() {
+  const canvas = document.getElementById('structure-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const nodes = [
+    {x:120, y:140, label:'0', color:'#2dd4bf'},
+    {x:240, y:80, label:'1', color:'#6c8fff'},
+    {x:240, y:200, label:'2', color:'#fbbf24'},
+    {x:360, y:140, label:'3', color:'#c084fc'},
+    {x:480, y:140, label:'4', color:'#f472b6'}
+  ];
+  const edges = [[0,1],[0,2],[1,2],[2,3],[3,4]];
+
+  for (const [u, v] of edges) {
+    const n1 = nodes[u], n2 = nodes[v];
+    ctx.beginPath();
+    ctx.moveTo(n1.x, n1.y);
+    ctx.lineTo(n2.x, n2.y);
+    ctx.strokeStyle = '#3d4266';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  for (const n of nodes) {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a1d27';
+    ctx.fill();
+    ctx.strokeStyle = n.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = n.color;
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n.label, n.x, n.y);
+  }
+
+  // Labels
+  ctx.fillStyle = '#8b90b8';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Undirected Graph: G = (V, E)', W/2, H - 15);
+}
+
+/* ---- INIT ---- */
+document.getElementById('speed').addEventListener('input', function() {
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value - 1];
+});
+
+window.addEventListener('resize', () => {
+  if (currentGraph) drawGraph('graph-viz-canvas', currentGraph, stepCursor >= 0 ? traversalSteps[stepCursor] : null);
+});
+
+// Initialize
+loadEx(0, document.querySelector('.tab.active'));
+drawStructureCanvas();
+</script>
+</body>
+</html>

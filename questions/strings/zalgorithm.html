@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Z-Algorithm — Linear Pattern Matching</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --muted2: #5c6189;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --accent-dim: #3a4a7a;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.med  { background: var(--amber-bg); color: var(--amber); border: 1px solid #5a4410; }
+  .badge.pm   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid #0f3530; }
+  .badge.lc   { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--teal-bg); color: var(--teal); border: 1px solid #0f3530; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+  /* ── CONCAT STRING TRACK ── */
+  .grid-wrap { margin-bottom: 1.1rem; }
+  .grid-label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .grid-label .k { font-family: var(--mono); text-transform: none; letter-spacing: 0; color: var(--teal); }
+  .grid-outer {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .grid-row { display: flex; gap: 4px; align-items: flex-end; min-width: max-content; }
+  .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .ptr-slot { height: 15px; display: flex; gap: 3px; align-items: center; font-size: 10px; font-weight: 700; font-family: var(--mono); }
+  .ptr-slot .pi { color: var(--amber); }
+  .ptr-slot .pl { color: var(--teal); }
+  .ptr-slot .pr { color: var(--red); }
+  .zcell {
+    width: 32px; height: 38px; border-radius: 6px;
+    border: 1.5px solid var(--border2); background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; font-family: var(--mono); color: var(--text);
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+  }
+  .zcell.dim      { color: var(--muted); }
+  .zcell.prefix   { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .zcell.sep      { background: var(--surface); border-color: var(--border2); color: var(--muted2); }
+  .zcell.zbox     { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .zcell.cur-i    { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.18); }
+  .zcell.compare-a { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); box-shadow: 0 0 0 3px rgba(192,132,252,.20); }
+  .zcell.compare-b { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.20); }
+  .zcell.match    { background: var(--green-bg); border-color: var(--green); color: var(--green); box-shadow: 0 0 0 3px rgba(74,222,128,.20); }
+  .cell-idx { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  .cell-z   { font-size: 10px; font-weight: 700; font-family: var(--mono); color: var(--muted); }
+  .cell-z.set { color: var(--teal); }
+
+  /* ── L/R WINDOW BAR ── */
+  .lr-bar { position: relative; height: 8px; margin: 4px 0 2px; }
+  .lr-fill {
+    position: absolute; height: 8px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--purple));
+    opacity: .55; transition: left .25s ease, width .25s ease;
+  }
+
+  /* ── COMPARISON CARDS ── */
+  .alloc-section { margin-bottom: 1.1rem; }
+  .alloc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 8px; }
+  .alloc-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alloc-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: .6rem .9rem; font-size: 12px; font-family: var(--mono);
+    display: flex; flex-direction: column; gap: 3px; min-width: 116px;
+  }
+  .alloc-card .ac-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.05em; }
+  .alloc-card .ac-books { color: var(--text); }
+  .alloc-card .ac-sum  { font-weight: 700; }
+  .alloc-card.over { border-color: var(--red);    background: var(--red-bg); }
+  .alloc-card.over .ac-sum { color: var(--red); }
+  .alloc-card.ok   { border-color: var(--green);  background: var(--green-bg); }
+  .alloc-card.ok   .ac-sum { color: var(--green); }
+  .alloc-card.active-card { border-color: var(--amber); background: var(--amber-bg); }
+  .alloc-card.active-card .ac-sum { color: var(--amber); }
+  .alloc-card.info { border-color: var(--accent); background: var(--accent-bg); }
+  .alloc-card.info .ac-sum { color: var(--accent); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-lo  { color: var(--amber); }
+  .tp-hi  { color: var(--teal); }
+  .tp-mid { color: var(--red); }
+  .tp-ans { color: var(--purple); }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--teal), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber); }
+  .stat-box.teal   .val { color: var(--teal); }
+  .stat-box.red    .val { color: var(--red); }
+  .stat-box.purple .val { color: var(--purple); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .btn.primary:hover { background: #0f3530; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--teal); }
+  .done-pill {
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid #3a2155; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* CASE BADGE */
+  .case-note {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-family: var(--mono); padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--border2); background: var(--surface2); color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .case-note.outside { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .case-note.inside  { border-color: var(--teal);  color: var(--teal);  background: var(--teal-bg); }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 360px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--teal); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ===== NOTES CSS ===== */
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+
+  /* ===== LEETCODE LINK ===== */
+  .lc-banner{
+    display:flex; align-items:center; gap:.75rem;
+    background:linear-gradient(135deg,#1a2140,#0c2624);
+    border:1px solid #343a57; border-radius:12px;
+    padding:1rem 1.25rem; margin:1.5rem 0;
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  }
+  .lc-banner .lc-icon{
+    width:36px; height:36px; border-radius:8px;
+    background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+  }
+  .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+  .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+  .lc-banner .lc-btn{
+    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+    font-weight:600; font-size:13px; text-decoration:none;
+    transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  @media(max-width:640px){
+    .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+    .lc-banner .lc-btn{width:100%; justify-content:center;}
+  }
+
+  /* ===== BOOKMARK BUTTON ===== */
+  .algo-bookmark{
+    position:fixed; bottom:2rem; right:2rem; z-index:100;
+    width:48px; height:48px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border2);
+    color:var(--muted2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .2s ease; font-size:18px;
+  }
+  .algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+  .algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LeetCode / Classic</span>
+      <span class="badge pm">Pattern Matching</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>Z-Algorithm</h1>
+    <div class="lc-banner" id="lcBanner">
+      <div class="lc-icon">LC</div>
+      <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+      <a href="https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/" target="_blank" rel="noopener" class="lc-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Problem
+      </a>
+    </div>
+    <p>For each position, how long does the prefix repeat here? The Z-array answers that in one linear pass — O(N + M) time</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>The <strong style="color:var(--teal)">Z-array</strong> of a string gives, for every index <code style="color:var(--accent)">i</code>, the length of the longest substring starting at <code style="color:var(--accent)">i</code> that is also a <strong style="color:var(--text)">prefix</strong> of the whole string. To find a pattern, build the Z-array of <code style="color:var(--accent)">P + separator + T</code>.</p>
+      <p style="margin-top:.75rem"><strong style="color:var(--text)">Key insight:</strong> maintain the rightmost <strong style="color:var(--teal)">Z-box</strong> [L, R], the interval matching a prefix that extends furthest right. Inside the box, reuse the already-known Z-value of the mirror index instead of recomputing. Wherever <code style="color:var(--accent)">Z[i] == |P|</code> in the search phase, the pattern occurs. Everything is <strong style="color:var(--teal)">O(N + M)</strong>.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// [L,R] = rightmost Z-box</span><br>
+        <span class="keyword">for</span> i = 1..n-1:<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> i &lt; R: z[i] = min(R-i, z[i-L])<br>
+        &nbsp;&nbsp;<span class="keyword">while</span> i+z[i]&lt;n and s[z[i]]==s[i+z[i]]:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;z[i]++<br>
+        &nbsp;&nbsp;<span class="keyword">if</span> i+z[i] &gt; R: L=i, R=i+z[i]
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N + M)</div>
+      <p>The R pointer only ever moves forward across the concatenated string, so the total work of the inner while-loop is linear.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(N + M)</div>
+      <p>One Z-value per character of the concatenation P + separator + T. No other structures scale with the input.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">T="ABABAAB", P="ABA" <span class="tag tag-classic">classic</span></button>
+    <button class="tab" onclick="loadExample(1,this)">T="AABAAAB", P="AAB" <span class="tag tag-classic">multi-hit</span></button>
+    <button class="tab" onclick="loadExample(2,this)">T="AAAAA", P="AA" <span class="tag tag-edge">overlaps</span></button>
+    <button class="tab" onclick="loadExample(3,this)">T="ABCDE", P="CD" <span class="tag tag-edge">single hit</span></button>
+    <button class="tab" onclick="loadExample(4,this)">T="ABCABC", P="XYZ" <span class="tag tag-edge">no match</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — build the Z-array of P + $ + T</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> prefix reference</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> current index i</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> Z-box [L,R]</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> characters matching</span>
+      <span><span class="dot" style="background:var(--surface);border-color:var(--border2)"></span> separator $</span>
+    </div>
+
+    <div class="case-note" id="case-note">Press Play to start</div>
+
+    <!-- CONCAT STRING TRACK -->
+    <div class="grid-wrap">
+      <div class="grid-label">
+        Concatenation <span class="k" id="concat-label">P $ T</span>
+      </div>
+      <div class="grid-outer">
+        <div class="lr-bar" id="lr-bar"><div class="lr-fill" id="lr-fill" style="display:none"></div></div>
+        <div class="grid-row" id="z-row"></div>
+      </div>
+    </div>
+
+    <!-- COMPARISON CARDS -->
+    <div class="alloc-section">
+      <div class="alloc-label" id="need-label">Current step detail</div>
+      <div class="alloc-row" id="need-row"></div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-lo"  id="pill-lo">i = —</span>
+      <span class="tracker-pill tp-hi"  id="pill-hi">L = —</span>
+      <span class="tracker-pill tp-mid" id="pill-mid">R = —</span>
+      <span class="tracker-pill tp-ans" id="pill-ans">matches = —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">index i</div>
+        <div class="val" id="s-lo">—</div>
+        <div class="sub">position in concat</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">Z[i]</div>
+        <div class="val" id="s-hi">—</div>
+        <div class="sub" id="s-hi-sub">prefix length</div>
+      </div>
+      <div class="stat-box red">
+        <div class="lbl">Z-box R</div>
+        <div class="val" id="s-mid">—</div>
+        <div class="sub" id="s-mid-sub">rightmost reach</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">matches found</div>
+        <div class="val" id="s-ans">—</div>
+        <div class="sub" id="s-ans-sub">where Z[i]=|P|</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Done</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>i</th>
+          <th>Case</th>
+          <th>L</th>
+          <th>R</th>
+          <th>Z[i]</th>
+          <th>Action</th>
+          <th>Match?</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>z_algorithm.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Z[i] = length of the longest substring from i that is also a prefix of s</span>
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">zArray</span>(<span class="kw">const string</span>&amp; s) {
+    <span class="kw">int</span> n = s.size();
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; z(n, <span class="nm">0</span>);
+    z[<span class="nm">0</span>] = n;                          <span class="cm">// whole string is its own prefix</span>
+    <span class="kw">int</span> L = <span class="nm">0</span>, R = <span class="nm">0</span>;                 <span class="cm">// rightmost Z-box</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; n; i++) {
+        <span class="kw">if</span> (i &lt; R)
+            z[i] = min(R - i, z[i - L]);   <span class="cm">// reuse the mirror value</span>
+        <span class="kw">while</span> (i + z[i] &lt; n &amp;&amp; s[z[i]] == s[i + z[i]])
+            z[i]++;                        <span class="cm">// extend by explicit comparison</span>
+        <span class="kw">if</span> (i + z[i] &gt; R) {                 <span class="cm">// grew the box → update [L,R]</span>
+            L = i;
+            R = i + z[i];
+        }
+    }
+    <span class="kw">return</span> z;
+}
+
+<span class="cm">// Find all occurrences of p in t using P + '$' + T</span>
+<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; <span class="fn">zSearch</span>(<span class="kw">const string</span>&amp; t, <span class="kw">const string</span>&amp; p) {
+    <span class="kw">string</span> s = p + <span class="st">"$"</span> + t;
+    <span class="kw">auto</span> z = <span class="fn">zArray</span>(s);
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; res;
+    <span class="kw">int</span> m = p.size();
+    <span class="kw">for</span> (<span class="kw">int</span> i = m + <span class="nm">1</span>; i &lt; (<span class="kw">int</span>)s.size(); i++)
+        <span class="kw">if</span> (z[i] == m) res.push_back(i - m - <span class="nm">1</span>); <span class="cm">// map back to t</span>
+    <span class="kw">return</span> res;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">auto</span> hits = <span class="fn">zSearch</span>(<span class="st">"ABABAAB"</span>, <span class="st">"ABA"</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> x : hits) cout &lt;&lt; x &lt;&lt; <span class="st">" "</span>; <span class="cm">// 0 2</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <p class="section-label">Practice this problem</p>
+  <div id="practice-arena" data-problem-slug="zalgorithm"></div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  EXAMPLES
+// ─────────────────────────────────────────────
+const SEP = '$';
+const EXAMPLES = [
+  {
+    t: "ABABAAB", p: "ABA",
+    desc: `<strong style="color:var(--text)">T="ABABAAB", P="ABA".</strong> Build Z of "ABA$ABABAAB". Wherever Z[i] equals |P|=3, the pattern occurs. Matches at text indices <strong style="color:var(--purple)">0 and 2</strong>. Watch the Z-box let index 2 reuse a mirror value.`
+  },
+  {
+    t: "AABAAAB", p: "AAB",
+    desc: `<strong style="color:var(--text)">T="AABAAAB", P="AAB" — multiple hits.</strong> Z of "AAB$AABAAAB". Z hits |P|=3 at text indices <strong style="color:var(--purple)">0 and 4</strong>. Good look at how the box slides forward.`
+  },
+  {
+    t: "AAAAA", p: "AA",
+    desc: `<strong style="color:var(--text)">T="AAAAA", P="AA" — dense overlaps.</strong> Z of "AA$AAAAA". Every window matches, so Z reaches |P|=2 at text indices <strong style="color:var(--purple)">0, 1, 2, 3</strong>. The Z-box keeps extending, showcasing linear reuse.`
+  },
+  {
+    t: "ABCDE", p: "CD",
+    desc: `<strong style="color:var(--text)">T="ABCDE", P="CD" — single hit.</strong> Z of "CD$ABCDE". Only text index <strong style="color:var(--purple)">2</strong> gives Z[i]=|P|=2. Most positions get Z=0, so the box rarely opens.`
+  },
+  {
+    t: "ABCABC", p: "XYZ",
+    desc: `<strong style="color:var(--text)">T="ABCABC", P="XYZ" — no match.</strong> Z of "XYZ$ABCABC". No index reaches Z=|P|=3. Result: <strong style="color:var(--purple)">no occurrences</strong>.`
+  }
+];
+
+const SPEEDS = [1600,1000,600,300,120];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+let S = "", P = "", T = "", M = 0, SEP_IDX = 0;
+let steps = [], cursor = -1, playing = false, timer = null;
+
+// ─────────────────────────────────────────────
+//  BUILD STEPS — Z-array computation with narration
+// ─────────────────────────────────────────────
+function buildSteps(pat, txt) {
+  P = pat; T = txt; M = pat.length;
+  S = pat + SEP + txt;
+  SEP_IDX = M;
+  const n = S.length;
+  const z = new Array(n).fill(0);
+  const stps = [];
+  const matches = [];
+
+  z[0] = n;
+  stps.push({
+    kind:'init', i:0, L:0, R:0, z:[...z], caseType:null, cmpA:null, cmpB:null, matches:[],
+    msg:`<span class="hi">Concatenate P + '${SEP}' + T = "${S}".</span> Z[0] = ${n} by definition (the whole string is trivially its own prefix). The separator '${SEP}' can't appear in P or T, so no false match spans it. Start scanning from i = 1.`
+  });
+
+  let L = 0, R = 0;
+  for (let i = 1; i < n; i++) {
+    let caseType, initZ;
+    if (i < R) {
+      const mirror = z[i - L];
+      initZ = Math.min(R - i, mirror);
+      z[i] = initZ;
+      caseType = 'inside';
+      stps.push({
+        kind:'reuse', i, L, R, z:[...z], caseType, cmpA:null, cmpB:null, matches:[...matches], mirror,
+        msg:`<span class="hi">i=${i} is inside the Z-box [${L}, ${R}).</span> <span class="tl">Reuse</span> the mirror: z[i-L]=z[${i-L}]=${mirror}. Set Z[${i}] = min(R-i, mirror) = min(${R-i}, ${mirror}) = <span class="tl">${initZ}</span>, then try to extend past R.`
+      });
+    } else {
+      initZ = 0;
+      z[i] = 0;
+      caseType = 'outside';
+      stps.push({
+        kind:'fresh', i, L, R, z:[...z], caseType, cmpA:null, cmpB:null, matches:[...matches],
+        msg:`<span class="hi">i=${i} is outside any Z-box (i ≥ R=${R}).</span> No mirror to reuse — start Z[${i}] at <span class="amb">0</span> and match explicitly from the prefix.`
+      });
+    }
+
+    // extend
+    let extended = 0;
+    while (i + z[i] < n && S[z[i]] === S[i + z[i]]) {
+      const pa = z[i], pb = i + z[i];
+      z[i]++;
+      extended++;
+      stps.push({
+        kind:'extend', i, L, R, z:[...z], caseType, cmpA:pa, cmpB:pb, matches:[...matches],
+        msg:`<span class="hi">Compare prefix S[${pa}]='<span class="sol">${S[pa]}</span>' with S[${pb}]='<span class="amb">${S[pb]}</span>'.</span> <span class="pos">Match</span> — extend Z[${i}] to <span class="tl">${z[i]}</span>.`
+      });
+    }
+    // mismatch / stop
+    if (i + z[i] < n) {
+      stps.push({
+        kind:'stop', i, L, R, z:[...z], caseType, cmpA:z[i], cmpB:i+z[i], matches:[...matches],
+        msg:`<span class="hi">Compare S[${z[i]}]='<span class="sol">${S[z[i]]}</span>' with S[${i+z[i]}]='<span class="amb">${S[i+z[i]]}</span>'.</span> <span class="neg">Mismatch</span> — Z[${i}] stays <span class="tl">${z[i]}</span>.`
+      });
+    }
+
+    // update box
+    if (i + z[i] > R) {
+      const oldL = L, oldR = R;
+      L = i; R = i + z[i];
+      stps.push({
+        kind:'box', i, L, R, z:[...z], caseType, cmpA:null, cmpB:null, matches:[...matches],
+        msg:`<span class="hi">i + Z[i] = ${R} &gt; old R = ${oldR}.</span> This match reaches furthest right — update the Z-box to <span class="tl">[${L}, ${R})</span>.`
+      });
+    }
+
+    // match check (only for positions after the separator)
+    if (i > SEP_IDX && z[i] === M) {
+      const textIdx = i - (M + 1);
+      matches.push(textIdx);
+      stps.push({
+        kind:'match', i, L, R, z:[...z], caseType, cmpA:null, cmpB:null, matches:[...matches], textIdx,
+        msg:`<span class="hi">Z[${i}] = ${z[i]} = |P|.</span> <span class="pos">Full pattern match!</span> Concat index ${i} maps to text index ${i} − (|P|+1) = <span class="sol">${textIdx}</span>.`
+      });
+    }
+  }
+
+  stps.push({
+    kind:'done', i:n-1, L, R, z:[...z], caseType:null, cmpA:null, cmpB:null, matches:[...matches],
+    msg: matches.length
+      ? `<span class="hi">Z-array complete: [${z.join(', ')}].</span> <span class="pos">${matches.length} match(es)</span> at text index/indices <span class="sol">${matches.join(', ')}</span> (every position where Z hit |P|=${M}).`
+      : `<span class="hi">Z-array complete: [${z.join(', ')}].</span> <span class="neg">No index reached Z = |P| = ${M}</span>, so the pattern does not occur.`
+  });
+
+  return { stps, z };
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx) => {
+    let action, caseStr, matchStr='—';
+    if (s.kind==='init')        { action='z[0]=n; L=R=0'; caseStr='—'; }
+    else if(s.kind==='reuse')   { action='z[i]=min(R-i,z[i-L])'; caseStr=`<span style="color:var(--teal)">inside</span>`; }
+    else if(s.kind==='fresh')   { action='z[i]=0'; caseStr=`<span style="color:var(--amber)">outside</span>`; }
+    else if(s.kind==='extend')  { action='z[i]++ (match)'; caseStr= s.caseType==='inside'?`<span style="color:var(--teal)">inside</span>`:`<span style="color:var(--amber)">outside</span>`; }
+    else if(s.kind==='stop')    { action='stop (mismatch)'; caseStr= s.caseType==='inside'?`<span style="color:var(--teal)">inside</span>`:`<span style="color:var(--amber)">outside</span>`; }
+    else if(s.kind==='box')     { action='L=i; R=i+z[i]'; caseStr='—'; }
+    else if(s.kind==='match')   { action='record match'; caseStr='—'; matchStr=`<span style="color:var(--green)">idx ${s.textIdx}</span>`; }
+    else                        { action='return z'; caseStr='—'; }
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td style="color:var(--amber)">${s.i}</td>
+      <td>${caseStr}</td>
+      <td style="color:var(--teal)">${s.L}</td>
+      <td style="color:var(--red)">${s.R}</td>
+      <td style="color:var(--teal);font-weight:600">${s.z[s.i]}</td>
+      <td style="color:var(--muted)">${action}</td>
+      <td>${matchStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  RENDER CONCAT TRACK
+// ─────────────────────────────────────────────
+function renderTrack(st) {
+  const row = document.getElementById('z-row');
+  const n = S.length;
+  let html = '';
+  for (let k = 0; k < n; k++) {
+    const ch = S[k] === SEP ? '$' : S[k];
+    let cls = 'zcell';
+    const inBox = st.R > st.L && k >= st.L && k < st.R;
+    const isPrefixRef = k < st.z[st.i] && (st.kind === 'extend' || st.kind === 'stop');
+
+    if (k === SEP_IDX)                              cls += ' sep';
+    else if (st.cmpA === k)                         cls += ' compare-a';
+    else if (st.cmpB === k)                         cls += ' compare-b';
+    else if (st.kind === 'match' && k >= st.i && k < st.i + M) cls += ' match';
+    else if (k === st.i && st.kind !== 'init' && st.kind !== 'done') cls += ' cur-i';
+    else if (k < M)                                 cls += ' prefix';
+    else if (inBox)                                 cls += ' zbox';
+    else                                            cls += ' dim';
+
+    // pointer row
+    let ptr = '';
+    if (k === st.i && st.kind !== 'init' && st.kind !== 'done') ptr += '<span class="pi">i</span>';
+    if (k === st.L && st.R > st.L) ptr += '<span class="pl">L</span>';
+    if (k === st.R && st.R > st.L) ptr += '<span class="pr">R</span>';
+
+    const zval = st.z[k];
+    const zSet = (k === 0) || (k <= st.i && zval > 0) || (st.kind==='done');
+    html += `<div class="cell-wrap">
+      <div class="ptr-slot">${ptr}</div>
+      <div class="${cls}">${ch}</div>
+      <div class="cell-idx">${k}</div>
+      <div class="cell-z ${zSet?'set':''}">${k===0?zval:(zSet?zval:'·')}</div>
+    </div>`;
+  }
+  row.innerHTML = html;
+
+  // L/R window bar
+  const fill = document.getElementById('lr-fill');
+  if (st.R > st.L) {
+    const cellW = 32 + 4; // width + gap
+    fill.style.display = 'block';
+    fill.style.left = (st.L * cellW) + 'px';
+    fill.style.width = ((st.R - st.L) * cellW - 4) + 'px';
+  } else {
+    fill.style.display = 'none';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RENDER DETAIL CARDS
+// ─────────────────────────────────────────────
+function renderNeed(st) {
+  const row = document.getElementById('need-row');
+  if (st.kind === 'init') {
+    row.innerHTML = `<div class="alloc-card info"><div class="ac-head">concat</div><div class="ac-books">"${S}"</div><div class="ac-sum">len ${S.length}</div></div>
+      <div class="alloc-card info"><div class="ac-head">pattern |P|</div><div class="ac-books">"${P}"</div><div class="ac-sum">target Z = ${M}</div></div>`;
+    return;
+  }
+  if (st.kind === 'done') {
+    row.innerHTML = `<div class="alloc-card ${st.matches.length?'ok':'over'}"><div class="ac-head">result</div><div class="ac-books">${st.matches.length?'['+st.matches.join(', ')+']':'no match'}</div><div class="ac-sum">${st.matches.length?st.matches.length+' found ✓':'0 found ✗'}</div></div>`;
+    return;
+  }
+  if (st.kind === 'match') {
+    row.innerHTML = `<div class="alloc-card ok"><div class="ac-head">Z[${st.i}]</div><div class="ac-books">= |P| = ${M}</div><div class="ac-sum">match ✓</div></div>
+      <div class="alloc-card info"><div class="ac-head">maps to</div><div class="ac-books">text index ${st.textIdx}</div><div class="ac-sum">i − (|P|+1)</div></div>`;
+    return;
+  }
+  const caseCard = st.caseType === 'inside'
+    ? `<div class="alloc-card ok"><div class="ac-head">case</div><div class="ac-books">i inside box</div><div class="ac-sum">reuse mirror ✓</div></div>`
+    : st.caseType === 'outside'
+      ? `<div class="alloc-card active-card"><div class="ac-head">case</div><div class="ac-books">i outside box</div><div class="ac-sum">match fresh</div></div>`
+      : `<div class="alloc-card info"><div class="ac-head">box update</div><div class="ac-books">[${st.L}, ${st.R})</div><div class="ac-sum">extended →</div></div>`;
+
+  let cmpCard = '';
+  if (st.cmpA !== null && st.cmpB !== null) {
+    const eq = (st.kind === 'extend');
+    cmpCard = `<div class="alloc-card active-card"><div class="ac-head">prefix S[${st.cmpA}]</div><div class="ac-books">'${S[st.cmpA]==='$'?'$':S[st.cmpA]}'</div><div class="ac-sum">reference</div></div>
+      <div class="alloc-card active-card"><div class="ac-head">S[${st.cmpB}]</div><div class="ac-books">'${S[st.cmpB]==='$'?'$':S[st.cmpB]}'</div><div class="ac-sum">at i+Z</div></div>
+      <div class="alloc-card ${eq?'ok':'over'}"><div class="ac-head">compare</div><div class="ac-books">${eq?'equal':'differ'}</div><div class="ac-sum">${eq?'extend ✓':'stop ✗'}</div></div>`;
+  }
+  const zCard = `<div class="alloc-card info"><div class="ac-head">Z[${st.i}]</div><div class="ac-books">= ${st.z[st.i]}</div><div class="ac-sum">${st.z[st.i]===M?'= |P| ✓':'of '+M}</div></div>`;
+  row.innerHTML = caseCard + cmpCard + zCard;
+}
+
+// ─────────────────────────────────────────────
+//  APPLY STATE
+// ─────────────────────────────────────────────
+function applyState(idx) {
+  steps.forEach((_,i) => {
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+  document.getElementById('done-pill').style.display = 'none';
+  const caseNote = document.getElementById('case-note');
+
+  if (idx < 0) {
+    const seed = { kind:'idle', i:0, L:0, R:0, z:new Array(S.length).fill(0), cmpA:null, cmpB:null, matches:[] };
+    seed.z[0] = S.length;
+    renderTrack(seed); renderNeed({ kind:'init', matches:[] });
+    caseNote.className = 'case-note'; caseNote.textContent = 'Press Play to start';
+    document.getElementById('pill-lo').textContent  = 'i = —';
+    document.getElementById('pill-hi').textContent  = 'L = 0';
+    document.getElementById('pill-mid').textContent = 'R = 0';
+    document.getElementById('pill-ans').textContent = 'matches = 0';
+    document.getElementById('s-lo').textContent = '—';
+    document.getElementById('s-hi').textContent = '—';
+    document.getElementById('s-mid').textContent = '0';
+    document.getElementById('s-ans').textContent = '0';
+    document.getElementById('s-hi-sub').textContent = 'prefix length';
+    document.getElementById('s-mid-sub').textContent = 'rightmost reach';
+    document.getElementById('s-ans-sub').textContent = 'where Z[i]=|P|';
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('log').innerHTML = 'Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s = steps[idx];
+  renderTrack(s); renderNeed(s);
+
+  if (s.caseType === 'inside')      { caseNote.className = 'case-note inside';  caseNote.textContent = 'CASE: i inside Z-box → reuse mirror value'; }
+  else if (s.caseType === 'outside'){ caseNote.className = 'case-note outside'; caseNote.textContent = 'CASE: i outside Z-box → match from scratch'; }
+  else if (s.kind === 'done')       { caseNote.className = 'case-note inside';  caseNote.textContent = 'Z-array complete'; }
+  else if (s.kind === 'match')      { caseNote.className = 'case-note inside';  caseNote.textContent = 'MATCH: Z[i] reached |P|'; }
+  else                              { caseNote.className = 'case-note';         caseNote.textContent = s.kind === 'init' ? 'Initialise: Z[0] = n' : 'Z-box update'; }
+
+  document.getElementById('pill-lo').textContent  = `i = ${s.kind==='init'||s.kind==='done'?'—':s.i}`;
+  document.getElementById('pill-hi').textContent  = `L = ${s.L}`;
+  document.getElementById('pill-mid').textContent = `R = ${s.R}`;
+  document.getElementById('pill-ans').textContent = `matches = ${s.matches.length}`;
+
+  document.getElementById('s-lo').textContent = s.kind==='init'||s.kind==='done' ? '—' : s.i;
+  document.getElementById('s-hi').textContent = s.kind==='init' ? '—' : s.z[s.i];
+  document.getElementById('s-hi-sub').textContent = (s.z[s.i]===M && s.kind!=='init') ? '= |P| ✓' : 'prefix length';
+  document.getElementById('s-mid').textContent = s.R;
+  document.getElementById('s-mid-sub').textContent = s.R>s.L ? `box [${s.L},${s.R})` : 'no active box';
+  document.getElementById('s-ans').textContent = s.matches.length;
+  document.getElementById('s-ans-sub').textContent = s.matches.length ? 'at ['+s.matches.join(',')+']' : 'where Z[i]=|P|';
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+  document.getElementById('log').innerHTML = s.msg;
+
+  if (s.kind === 'done') {
+    const pill = document.getElementById('done-pill');
+    pill.textContent = s.matches.length ? `✓ Matches: ${s.matches.join(', ')}` : '✓ No match';
+    pill.style.display = 'inline-block';
+  }
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+// ─────────────────────────────────────────────
+//  LOAD EXAMPLE
+// ─────────────────────────────────────────────
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[i];
+  const r = buildSteps(ex.p, ex.t);
+  steps = r.stps;
+  document.getElementById('concat-label').textContent = `"${S}"  ·  |P| = ${M}`;
+  document.getElementById('example-desc').innerHTML = ex.desc;
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+
+<!-- ===== ACTIVE-TIME AUTO-SAVE ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  window.addEventListener('beforeunload', () => saveTime());
+
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+  <!-- ALGOCRUX-PRACTICE-ARENA -->
+  <script src="../practice/config.js"></script>
+  <script src="../practice/languages.js"></script>
+  <script src="../practice/practice.js" defer></script>
+</body>
+</html>

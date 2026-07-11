@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peak Index in a Mountain Array — Binary Search</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #062825;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+  }
+  .badge {
+    background: var(--purple-bg);
+    color: var(--purple);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #3a2155;
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── LAYOUT ── */
+  main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .75rem;
+  }
+
+  /* ── CONCEPT CARD ── */
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--purple);
+    line-height: 1.9;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+  .formula .num { color: var(--amber); }
+
+  /* ── EXAMPLE TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  .tab .tag {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag-edge { background: var(--amber-bg); color: var(--amber); }
+  .tag-classic { background: var(--accent-bg); color: var(--accent); }
+
+  /* ── ANIMATION PANEL ── */
+  .anim-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky;
+    top: 12px;
+    z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+  @media(max-width:700px){
+    .anim-panel.pinned{ top: 8px; max-height: calc(100vh - 16px); }
+  }
+  .anim-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .anim-panel-head .title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pin-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+
+  /* bars (mountain visualization) */
+  .bars-wrap { overflow-x: auto; padding-bottom: .5rem; }
+  .bars-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    justify-content: center;
+    min-width: max-content;
+    margin: 0 auto;
+    height: 190px;
+    padding-top: 28px;
+  }
+  .bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+    width: 44px;
+  }
+  .bar-val {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .bar {
+    width: 40px;
+    border-radius: 6px 6px 2px 2px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border2);
+    transition: background .25s, border-color .25s, box-shadow .25s, opacity .25s, transform .2s;
+  }
+  .bar-idx {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+  .peak-marker {
+    position: absolute;
+    top: -24px;
+    font-size: 16px;
+    animation: bouncep .5s ease;
+  }
+  @keyframes bouncep {
+    0%{transform:translateY(-6px); opacity:0}
+    100%{transform:translateY(0); opacity:1}
+  }
+  .bar-col.state-out .bar { opacity: .22; }
+  .bar-col.state-active .bar { background: var(--accent-bg); border-color: var(--accent); }
+  .bar-col.state-eliminated .bar { background: var(--amber-bg); border-color: #4a3a0a; opacity: .55; }
+  .bar-col.state-mid .bar { border-color: var(--purple); box-shadow: 0 6px 18px rgba(192,132,252,.3); transform: translateY(-4px); }
+  .bar-col.state-mid-next .bar { border-color: var(--teal); box-shadow: 0 6px 18px rgba(45,212,191,.3); }
+  .bar-col.state-peak .bar { background: var(--green-bg); border-color: var(--green); box-shadow: 0 0 16px rgba(74,222,128,.5); transform: translateY(-4px); }
+
+  /* progress */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 4px;
+    background: linear-gradient(90deg, var(--purple), var(--teal));
+    border-radius: 2px;
+    transition: width .3s ease;
+    width: 0%;
+  }
+
+  /* stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem .9rem;
+  }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val {
+    font-size: 17px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    transition: color .2s;
+  }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+  .stat-box.purple .val { color: var(--purple); }
+  .stat-box.teal .val { color: var(--teal); }
+  .stat-box.green .val { color: var(--green); }
+
+  /* log */
+  .log-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .85rem 1rem;
+    font-size: 13.5px;
+    color: var(--muted);
+    min-height: 52px;
+    margin-bottom: 1.25rem;
+    line-height: 1.65;
+    transition: all .2s;
+  }
+  .log-box .hi { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .tl { color: var(--teal); font-weight: 600; }
+  .log-box .sel { color: var(--purple); font-weight: 600; }
+
+  /* controls */
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .btn.primary:hover { background: #341f4d; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--purple); }
+  .done-pill {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid #1a4a2e;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    display: none;
+  }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── WALKTHROUGH ── */
+  .walkthrough {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; }
+  .step-table th {
+    text-align: left;
+    padding: 6px 10px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .step-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+  .step-table .win { color: var(--purple); }
+  .step-table .mid-col { color: var(--text); font-weight: 600; }
+  .step-table .done-col { color: var(--green); }
+
+  /* ── CODE ── */
+  .code-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  /* ── COMPLEXITY ── */
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--purple); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px">
+      <span class="badge">Binary Search</span>
+      <h1>Peak Index in a Mountain Array</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/peak-index-in-a-mountain-array/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    </div>
+    <p>Find the peak of a strictly increasing-then-decreasing array — O(log n) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONCEPT -->
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>A <strong style="color:var(--text)">mountain array</strong> strictly increases to a single peak, then strictly decreases. Given one, find the <strong style="color:var(--text)">index of the peak</strong> — the top of the mountain — without scanning every element.</p>
+      <p style="margin-top:.75rem">Because the shape is predictable, comparing any element to its neighbor tells you instantly which side of the peak you're on — that's enough to binary search.</p>
+    </div>
+    <div>
+      <h2>The core idea</h2>
+      <div class="formula">
+        <span class="comment">// while the window has more than one index:</span><br>
+        mid = (lo + hi) / 2<br>
+        <span class="keyword">if</span> a[mid] &lt; a[mid+1]:<br>
+        &nbsp;&nbsp;<span class="comment">// still climbing — peak is further right</span><br>
+        &nbsp;&nbsp;lo = mid + 1<br>
+        <span class="keyword">else</span>:<br>
+        &nbsp;&nbsp;<span class="comment">// descending — peak is here or to the left</span><br>
+        &nbsp;&nbsp;hi = mid
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLEXITY -->
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(log n)</div>
+      <p>Binary search — the window halves every comparison, just like a sorted array.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Just two pointers, lo and hi — no extra memory needed.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TABS -->
+  <p class="section-label">Examples & edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">Classic mountain <span class="tag tag-classic">standard</span></button>
+    <button class="tab" onclick="loadExample(1,this)">Peak near the start <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(2,this)">Peak near the end <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(3,this)">Smallest possible (n=3) <span class="tag tag-edge">edge</span></button>
+    <button class="tab" onclick="loadExample(4,this)">Longer mountain <span class="tag tag-edge">edge</span></button>
+  </div>
+
+  <!-- EXAMPLE DESCRIPTION -->
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> mid</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> mid+1</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> kept (active window)</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:#4a3a0a"></span> eliminated this step</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> peak</span>
+    </div>
+
+    <div class="bars-wrap">
+      <div class="bars-row" id="bars-row"></div>
+    </div>
+
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box purple">
+        <div class="lbl">Window [lo..hi]</div>
+        <div class="val" id="s-window" style="font-size:16px">—</div>
+        <div class="sub" id="s-window-sub">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">mid</div>
+        <div class="val" id="s-mid">—</div>
+        <div class="sub" id="s-mid-sub">—</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">Direction</div>
+        <div class="val" id="s-dir" style="font-size:14px">—</div>
+        <div class="sub" id="s-dir-sub">—</div>
+      </div>
+      <div class="stat-box green">
+        <div class="lbl">Step</div>
+        <div class="val" id="s-step">—</div>
+        <div class="sub" id="s-step-of">—</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Complete</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Window</th>
+          <th>mid</th>
+          <th>a[mid]</th>
+          <th>a[mid+1]</th>
+          <th>Decision</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>peak_index_mountain_array.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">#include</span> <span class="st">&lt;bits/stdc++.h&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">peakIndexInMountainArray</span>(<span class="fn">vector</span>&lt;<span class="kw">int</span>&gt;&amp; arr) {
+    <span class="kw">int</span> lo = <span class="nm">0</span>, hi = arr.size() - <span class="nm">1</span>;
+
+    <span class="kw">while</span> (lo &lt; hi) {
+        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+
+        <span class="kw">if</span> (arr[mid] &lt; arr[mid + <span class="nm">1</span>]) {
+            <span class="cm">// still climbing -&gt; peak is to the right of mid</span>
+            lo = mid + <span class="nm">1</span>;
+        } <span class="kw">else</span> {
+            <span class="cm">// descending (or exactly at the peak) -&gt; peak is mid or to the left</span>
+            hi = mid;
+        }
+    }
+    <span class="kw">return</span> lo; <span class="cm">// lo == hi, the peak index</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">vector</span>&lt;<span class="kw">int</span>&gt; arr = {<span class="nm">1</span>, <span class="nm">3</span>, <span class="nm">5</span>, <span class="nm">4</span>, <span class="nm">2</span>};
+    cout &lt;&lt; <span class="st">"Peak index: "</span> &lt;&lt; <span class="fn">peakIndexInMountainArray</span>(arr) &lt;&lt; <span class="st">"\n"</span>;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = [
+  {
+    label: "Classic mountain",
+    arr: [1,3,5,4,2],
+    desc: `<strong style="color:var(--text)">Classic example.</strong> A simple symmetric mountain — climbs to <code style="color:var(--green)">5</code> at index 2, then descends. Binary search reaches the peak in just 2 comparisons instead of scanning all 5 elements.`
+  },
+  {
+    label: "Peak near the start",
+    arr: [1,5,4,3,2],
+    desc: `<strong style="color:var(--text)">Edge case: the shortest possible ascending side.</strong> The peak is at index <code style="color:var(--purple)">1</code> — right after a single climbing step. The algorithm still needs the same logic, just resolving toward "go left" almost immediately.`
+  },
+  {
+    label: "Peak near the end",
+    arr: [1,2,3,4,5,2],
+    desc: `<strong style="color:var(--text)">Edge case: the shortest possible descending side.</strong> The peak is at index <code style="color:var(--purple)">4</code>, with just one descending step after it. Most comparisons resolve as "still climbing — go right."`
+  },
+  {
+    label: "Smallest possible (n=3)",
+    arr: [1,3,2],
+    desc: `<strong style="color:var(--text)">Edge case: the minimum valid mountain array.</strong> With just 3 elements, there's exactly one ascending step and one descending step. Peak is at index <code style="color:var(--purple)">1</code>, found in a single comparison.`
+  },
+  {
+    label: "Longer mountain",
+    arr: [1,2,3,4,5,6,7,6,5,4,3],
+    desc: `<strong style="color:var(--text)">Edge case: a taller, longer mountain.</strong> With 11 elements, the search takes a few more halvings to converge — a good demonstration of how binary search scales logarithmically even as the array grows. Peak is at index <code style="color:var(--purple)">6</code>, value 7.`
+  }
+];
+
+const SPEEDS = [1800,1200,700,380,180];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+
+let arr = [];
+let steps = [];
+let cursor = -1;
+let playing = false;
+let timer = null;
+
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+function buildSteps(a) {
+  const steps = [];
+  let lo = 0, hi = a.length - 1;
+  steps.push({ type:'init', lo, hi });
+
+  while (lo < hi) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    steps.push({ type:'compare', lo, hi, mid });
+
+    if (a[mid] < a[mid+1]) {
+      steps.push({ type:'narrow', lo, hi, mid, action:'go-right', newLo:mid+1, newHi:hi });
+      lo = mid + 1;
+    } else {
+      steps.push({ type:'narrow', lo, hi, mid, action:'go-left', newLo:lo, newHi:mid });
+      hi = mid;
+    }
+  }
+  steps.push({ type:'done', lo, hi, peak:lo });
+  return steps;
+}
+
+function buildTableRows(stps, a) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,idx)=>{
+    let win='—', mid='—', mv='—', mv2='—', decision='—';
+    if (s.type==='init') { win=`[${s.lo}..${s.hi}]`; decision='start search'; }
+    else if (s.type==='compare') { win=`[${s.lo}..${s.hi}]`; mid=s.mid; mv=a[s.mid]; mv2=a[s.mid+1]; decision=`compare a[${s.mid}] to a[${s.mid+1}]`; }
+    else if (s.type==='narrow') {
+      win=`[${s.lo}..${s.hi}]`; mid=s.mid; mv=a[s.mid]; mv2=a[s.mid+1];
+      decision = s.action==='go-right'
+        ? `still climbing → go right: [${s.newLo}..${s.newHi}]`
+        : `descending → go left: [${s.newLo}..${s.newHi}]`;
+    }
+    else if (s.type==='done') { win=`[${s.lo}..${s.hi}]`; decision=`<span class="done-col">lo == hi — peak found at index ${s.peak}</span>`; }
+    return `<tr id="tr-${idx}">
+      <td>${idx+1}</td>
+      <td class="win">${win}</td>
+      <td>${mid}</td>
+      <td class="mid-col">${mv}</td>
+      <td>${mv2}</td>
+      <td>${decision}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBars(a) {
+  const max = Math.max(...a);
+  const row = document.getElementById('bars-row');
+  row.innerHTML = a.map((v,i)=>{
+    const h = Math.round(20 + (v / max) * 120);
+    return `<div class="bar-col" id="bc${i}">
+      <span class="bar-val">${v}</span>
+      <div class="bar" id="bar${i}" style="height:${h}px"></div>
+      <span class="bar-idx">${i}</span>
+    </div>`;
+  }).join('');
+}
+
+function applyState(idx) {
+  const n = arr.length;
+  for (let i=0;i<n;i++){
+    const c = document.getElementById('bc'+i);
+    if (c) { c.className='bar-col'; const m = c.querySelector('.peak-marker'); if (m) m.remove(); }
+  }
+  steps.forEach((_,i)=>{
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+
+  if (idx < 0) {
+    document.getElementById('s-window').textContent='—';
+    document.getElementById('s-window-sub').textContent='—';
+    document.getElementById('s-mid').textContent='—';
+    document.getElementById('s-mid-sub').textContent='—';
+    document.getElementById('s-dir').textContent='—';
+    document.getElementById('s-dir-sub').textContent='—';
+    document.getElementById('s-step').textContent='—';
+    document.getElementById('s-step-of').textContent='—';
+    document.getElementById('step-label').textContent='Step — of —';
+    document.getElementById('pbar').style.width='0%';
+    document.getElementById('log').innerHTML='Press <strong style="color:var(--text)">Play</strong> to start the animation.';
+    document.getElementById('done-pill').style.display='none';
+    return;
+  }
+
+  const s = steps[idx];
+
+  for (let i=0;i<n;i++){
+    if (i < s.lo || i > s.hi) {
+      const c = document.getElementById('bc'+i);
+      if (c) c.classList.add('state-out');
+    }
+  }
+
+  let msg = '';
+  let dirText='—', dirSub='—';
+
+  if (s.type==='init') {
+    msg = `<span class="hi">Step 1 — Start.</span> Searching for the peak in window [${s.lo}..${s.hi}].`;
+  } else if (s.type==='compare') {
+    const c1 = document.getElementById('bc'+s.mid);
+    const c2 = document.getElementById('bc'+(s.mid+1));
+    if (c1) c1.classList.add('state-mid');
+    if (c2) c2.classList.add('state-mid-next');
+    msg = `<span class="hi">Step ${idx+1} — mid = ${s.mid}.</span> Comparing a[${s.mid}]=<span class="sel">${arr[s.mid]}</span> to a[${s.mid+1}]=<span class="tl">${arr[s.mid+1]}</span>.`;
+  } else if (s.type==='narrow') {
+    const c1 = document.getElementById('bc'+s.mid);
+    const c2 = document.getElementById('bc'+(s.mid+1));
+    if (c1) c1.classList.add('state-mid');
+    if (c2) c2.classList.add('state-mid-next');
+
+    const newRange = [s.newLo, s.newHi];
+    const oldRange = [s.lo, s.hi];
+    for (let i=oldRange[0]; i<=oldRange[1]; i++){
+      const c = document.getElementById('bc'+i);
+      if (!c) continue;
+      if (i >= newRange[0] && i <= newRange[1]) c.classList.add('state-active');
+      else c.classList.add('state-eliminated');
+    }
+
+    if (s.action==='go-right') {
+      dirText='Climbing →'; dirSub=`a[${s.mid}] < a[${s.mid+1}]`;
+      msg = `<span class="hi">Step ${idx+1} — Still climbing.</span> a[${s.mid}]=${arr[s.mid]} &lt; a[${s.mid+1}]=${arr[s.mid+1]}, so the peak must be further right. <span class="acc">New window: [${s.newLo}..${s.newHi}]</span>.`;
+    } else {
+      dirText='Descending ←'; dirSub=`a[${s.mid}] ≥ a[${s.mid+1}]`;
+      msg = `<span class="hi">Step ${idx+1} — Descending.</span> a[${s.mid}]=${arr[s.mid]} ≥ a[${s.mid+1}]=${arr[s.mid+1]}, so the peak is at mid or to the left. <span class="acc">New window: [${s.newLo}..${s.newHi}]</span>.`;
+    }
+  } else if (s.type==='done') {
+    const c = document.getElementById('bc'+s.peak);
+    if (c) {
+      c.classList.add('state-peak');
+      const marker = document.createElement('span');
+      marker.className = 'peak-marker';
+      marker.textContent = '⛰';
+      c.appendChild(marker);
+    }
+    msg = `<span class="pos">Peak found!</span> lo == hi == <strong style="color:var(--text)">${s.peak}</strong>. Peak value = ${arr[s.peak]} at index ${s.peak}.`;
+    dirText='Done'; dirSub='lo == hi';
+  }
+
+  document.getElementById('log').innerHTML = msg;
+  document.getElementById('s-window').textContent = `[${s.lo}..${s.hi}]`;
+  document.getElementById('s-window-sub').textContent = `size ${s.hi-s.lo+1}`;
+  document.getElementById('s-mid').textContent = s.mid!==undefined ? s.mid : '—';
+  document.getElementById('s-mid-sub').textContent = s.mid!==undefined ? `value ${arr[s.mid]}` : '—';
+  document.getElementById('s-dir').textContent = dirText;
+  document.getElementById('s-dir-sub').textContent = dirSub;
+  document.getElementById('s-step').textContent = idx+1;
+  document.getElementById('s-step-of').textContent = `of ${steps.length}`;
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  document.getElementById('done-pill').style.display = (idx===steps.length-1) ? 'inline-block' : 'none';
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) {
+    tr.classList.add('highlighted');
+    tr.scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+}
+
+function loadExample(n, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  arr = [...EXAMPLES[n].arr];
+  document.getElementById('example-desc').innerHTML = EXAMPLES[n].desc;
+  steps = buildSteps(arr);
+  renderBars(arr);
+  buildTableRows(steps, arr);
+  cursor = -1;
+  applyState(-1);
+}
+
+function stepForward(){
+  if (cursor < steps.length-1){ cursor++; applyState(cursor); }
+}
+function stepBack(){
+  if (cursor > 0){ cursor--; applyState(cursor); }
+  else if (cursor===0){ cursor=-1; applyState(-1); }
+}
+function resetAnim(){
+  stopPlay(); cursor=-1; applyState(-1);
+}
+function stopPlay(){
+  playing=false; clearTimeout(timer);
+  document.getElementById('btn-play').textContent='▶ Play';
+}
+function playPause(){
+  if (playing){ stopPlay(); return; }
+  if (cursor>=steps.length-1){ cursor=-1; applyState(-1); }
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick(){
+  if (!playing) return;
+  if (cursor>=steps.length-1){ stopPlay(); return; }
+  cursor++;
+  applyState(cursor);
+  const spd = SPEEDS[document.getElementById('speed').value-1];
+  timer = setTimeout(tick, spd);
+}
+
+function togglePin(){
+  const panel = document.getElementById('anim-panel');
+  const btn = document.getElementById('pin-btn');
+  const isPinned = panel.classList.toggle('pinned');
+  btn.classList.toggle('active', isPinned);
+  btn.textContent = isPinned ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+
+function copyCode(){
+  const code = document.getElementById('code-block').innerText;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+// init
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>

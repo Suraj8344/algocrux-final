@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../premium-guard.js"></script>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<style>.design-ui-credit{position:fixed;bottom:12px;right:12px;font:11px/1 system-ui,sans-serif;color:rgba(128,128,128,0.5);pointer-events:none;z-index:2147483647;transition:opacity .4s ease;user-select:none;letter-spacing:.02em}@media(hover:none){.design-ui-credit{display:none}}@media print{*{transition:none!important;animation:none!important;box-shadow:none!important}.design-ui-credit{display:none!important}}</style>
+<script>(function(){function m(){document.body.classList.add('artifact-editable')}function c(){if(!matchMedia('(hover:hover)').matches)return;var d=document.createElement('div');d.className='design-ui-credit';d.setAttribute('aria-hidden','true');d.innerHTML='\u{1F49C} by ClickUp Brain';document.body.appendChild(d);var t=null,f=function(o){d.style.opacity=o?'0':''};f(true);var s=function(){f(false);clearTimeout(t);t=setTimeout(function(){f(true)},3000)};document.addEventListener('mousemove',s);s()}function i(){m();c()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',i);else i()})();</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Activity Selection — Greedy Interval Scheduling</title>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;--border2:#3d4266;--text:#e8eaf6;--muted:#8b90b8;--muted2:#5c6189;--accent:#6c8fff;--accent-bg:#1a2140;--green:#4ade80;--green-bg:#0d2318;--red:#f87171;--red-bg:#2a1111;--amber:#fbbf24;--amber-bg:#2a1e06;--purple:#c084fc;--purple-bg:#1e0f33;--teal:#2dd4bf;--teal-bg:#0d2522;--mono:'Fira Code','Cascadia Code','Consolas',monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;background:var(--surface)}.badge-row{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}.badge{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}.badge.gfg{background:var(--accent-bg);color:var(--accent);border:1px solid #1a2a60}.badge.px{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155}.badge.med{background:var(--amber-bg);color:var(--amber);border:1px solid #5c4a1a}header h1{font-size:1.25rem;font-weight:600}header p{font-size:13px;color:var(--muted);margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}@media(max-width:640px){.concept{grid-template-columns:1fr}}.concept h2{font-size:1rem;font-weight:600;margin-bottom:.5rem}.concept p{font-size:13px;color:var(--muted);line-height:1.7}
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:12.5px;color:var(--amber);line-height:2.1}.formula .comment{color:var(--muted);font-style:italic}.formula .keyword{color:var(--purple)}
+.anim-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem}.anim-panel.pinned{position:sticky;top:12px;z-index:30;box-shadow:0 14px 36px rgba(0,0,0,.5);max-height:calc(100vh - 24px);overflow-y:auto}.anim-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:1rem}.anim-panel-head .title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pin-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .15s}.pin-btn:hover{color:var(--text)}.pin-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:1.1rem;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:6px}.dot{width:12px;height:12px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+/* Timeline bars */
+.timeline-container{position:relative;margin:1rem 0 1.5rem;overflow-x:auto}
+.timeline-axis{height:30px;position:relative;border-bottom:1px solid var(--border);margin-bottom:8px}
+.timeline-tick{position:absolute;bottom:0;width:1px;height:8px;background:var(--border2)}.timeline-tick-label{position:absolute;bottom:10px;transform:translateX(-50%);font-size:9px;color:var(--muted2);font-family:var(--mono)}
+.timeline-rows{display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
+.timeline-bar{height:32px;border-radius:6px;position:absolute;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;transition:all .3s;cursor:default;border:1.5px solid}
+.timeline-bar.default{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.timeline-bar.considering{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.timeline-bar.selected{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.timeline-bar.rejected{background:var(--red-bg);border-color:rgba(248,113,113,.3);color:var(--red);opacity:.5}
+.timeline-bar.current{background:var(--purple-bg);border-color:var(--purple);color:var(--purple);transform:translateY(-2px)}
+.timeline-row{position:relative;height:38px}
+
+.step-label{font-size:11px;color:var(--muted);margin-bottom:6px}.progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}.progress-fill{height:4px;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width .3s ease;width:0%}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}@media(max-width:520px){.stats-row{grid-template-columns:repeat(2,1fr)}}.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem}.stat-box .lbl{font-size:11px;color:var(--muted);margin-bottom:3px}.stat-box .val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}.stat-box.purple .val{color:var(--purple)}.stat-box.amber .val{color:var(--amber)}.stat-box.teal .val{color:var(--teal)}.stat-box.green .val{color:var(--green)}
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:13.5px;color:var(--muted);min-height:52px;margin-bottom:1.25rem;line-height:1.65}.log-box .hi{color:var(--text);font-weight:500}.log-box .pos{color:var(--green);font-weight:600}.log-box .amb{color:var(--amber);font-weight:600}.log-box .sol{color:var(--purple);font-weight:600}.log-box .tl{color:var(--teal);font-weight:600}.log-box .neg{color:var(--red);font-weight:600}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s}.btn:hover{background:var(--border);border-color:var(--muted)}.btn.primary{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}.speed-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:auto}input[type=range]{width:80px;accent-color:var(--teal)}.done-pill{background:var(--purple-bg);color:var(--purple);border:1px solid #3a2155;border-radius:20px;font-size:12px;font-weight:600;padding:4px 12px;display:none}
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.code-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}.code-header span{font-size:12px;color:var(--muted);font-weight:500}.copy-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans)}.copy-btn:hover{color:var(--text)}pre{padding:1.25rem;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.8}.kw{color:var(--purple)}.fn{color:var(--accent)}.cm{color:var(--muted);font-style:italic}.nm{color:var(--amber)}
+.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem}@media(max-width:480px){.complexity-grid{grid-template-columns:1fr}}.complex-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}.complex-card .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}.complex-card .big{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)}.complex-card p{font-size:12px;color:var(--muted);margin-top:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}.notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}.notes-header:hover{background:var(--border)}.notes-header h3{font-size:.95rem;font-weight:600}.notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}.notes-header.open .toggle-icon{transform:rotate(180deg)}.notes-body{padding:1.25rem;display:none}.notes-body.open{display:block}.notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;resize:vertical;outline:none}
+.lc-banner{display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,#1a2140,#0c2624);border:1px solid #343a57;border-radius:12px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:14px}.lc-banner .lc-icon{width:36px;height:36px;border-radius:8px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;flex-shrink:0}.lc-banner .lc-text{flex:1;color:#8a8fb5;line-height:1.5}.lc-banner .lc-text b{color:#eef0fa;font-weight:600}.lc-banner .lc-btn{background:linear-gradient(135deg,#6c8fff,#2dd4bf);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;transition:all .2s ease;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}.lc-banner .lc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,143,255,.4)}@media(max-width:640px){.lc-banner{flex-direction:column;align-items:flex-start;gap:.6rem}.lc-banner .lc-btn{width:100%;justify-content:center}}
+/* Activity table */
+.act-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1rem}.act-table th{text-align:left;padding:6px 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}.act-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--muted)}.act-table tr.selected td{color:var(--green);background:var(--green-bg)}.act-table tr.rejected td{color:var(--red);opacity:.5}.act-table tr.current td{color:var(--purple);background:var(--purple-bg)}
+</style>
+<link rel="stylesheet" href="../practice/practice.css">
+</head>
+<body>
+<header><div><div class="badge-row"><span class="badge gfg">Greedy / Interval</span><span class="badge px">Activity Selection</span><span class="badge med">Medium</span></div><h1>Activity Selection — Maximize Non-Overlapping Activities</h1><p>Sort by end time, greedily pick the earliest-finishing activity that doesn't conflict. O(N log N).</p></div></header>
+<main>
+  <div class="lc-banner"><div class="lc-icon">GFG</div><div class="lc-text">Practice on <b>GeeksforGeeks: Activity Selection</b></div><a href="https://www.geeksforgeeks.org/activity-selection-problem-greedy-algo-1/" target="_blank" rel="noopener" class="lc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open Problem</a></div>
+
+  <div class="concept"><div><h2>Greedy Choice</h2><p>Always pick the activity that <strong style="color:var(--green)">finishes earliest</strong> and doesn't overlap with the last selected one. This leaves maximum room for future activities. Sort by end time first.</p></div><div><h2>The Algorithm</h2><div class="formula"><span class="keyword">sort</span> by end time<br><span class="keyword">select</span> first activity<br><span class="keyword">for</span> each remaining activity:<br>&nbsp;&nbsp;<span class="keyword">if</span> start >= lastEnd:<br>&nbsp;&nbsp;&nbsp;&nbsp;select it, update lastEnd</div></div></div>
+
+  <div class="anim-panel" id="panel"><div class="anim-panel-head"><span class="title">Interactive Visualization</span><button class="pin-btn" onclick="document.getElementById('panel').classList.toggle('pinned');this.classList.toggle('active')">📌 Pin</button></div>
+    <div class="legend"><span><div class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></div> Considering</span><span><div class="dot" style="background:var(--green-bg);border-color:var(--green)"></div> Selected</span><span><div class="dot" style="background:var(--red-bg);border-color:var(--red)"></div> Rejected (Overlap)</span></div>
+
+    <div class="timeline-container" id="timeline"></div>
+
+    <div style="overflow-x:auto;margin-bottom:1rem"><table class="act-table" id="act-table"><thead><tr><th>#</th><th>Start</th><th>End</th><th>Status</th></tr></thead><tbody id="act-tbody"></tbody></table></div>
+
+    <div class="step-label" id="step-label">Step 0 of 0</div><div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+    <div class="stats-row"><div class="stat-box purple"><div class="lbl">Considering</div><div class="val" id="s-cur">—</div></div><div class="stat-box amber"><div class="lbl">Last End</div><div class="val" id="s-end">—</div></div><div class="stat-box green"><div class="lbl">Selected</div><div class="val" id="s-sel">0</div></div><div class="stat-box teal"><div class="lbl">Total</div><div class="val" id="s-total">0</div></div></div>
+    <div class="log-box" id="log">Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.</div>
+    <div class="controls"><button class="btn" onclick="stepBack()">← Prev</button><button class="btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button><button class="btn" onclick="stepFwd()">Next →</button><button class="btn" onclick="reset()">↺ Reset</button><button class="btn" onclick="randData()">Random</button><span class="done-pill" id="done-pill">✓ Done</span><div class="speed-wrap"><span>Speed</span><input type="range" min="1" max="5" value="3" id="spd"></div></div>
+  </div>
+
+  <div class="code-section"><div class="code-header"><span>C++ — Activity Selection</span><button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div>
+<pre id="code"><span class="kw">int</span> <span class="fn">activitySelection</span>(<span class="kw">vector</span>&lt;<span class="kw">pair</span>&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt;&amp; acts) {
+    <span class="fn">sort</span>(acts.<span class="fn">begin</span>(), acts.<span class="fn">end</span>(),
+         [](<span class="kw">auto</span>&amp; a, <span class="kw">auto</span>&amp; b){ <span class="kw">return</span> a.second &lt; b.second; });
+
+    <span class="kw">int</span> count = <span class="nm">1</span>, lastEnd = acts[<span class="nm">0</span>].second;
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; acts.<span class="fn">size</span>(); i++) {
+        <span class="kw">if</span> (acts[i].first >= lastEnd) {
+            count++;
+            lastEnd = acts[i].second;
+        }
+    }
+    <span class="kw">return</span> count;
+}</pre></div>
+  <div class="section-label">Complexity</div>
+  <div class="complexity-grid"><div class="complex-card"><div class="lbl">Time</div><div class="big">O(N log N)</div><p>Sorting dominates. Greedy pass is O(N).</p></div><div class="complex-card"><div class="lbl">Space</div><div class="big">O(1)</div><p>In-place after sorting.</p></div></div>
+  <hr class="divider">
+  <div class="notes-section"><div class="notes-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')"><h3>📝 Notes</h3><span class="toggle-icon">▼</span></div><div class="notes-body"><textarea placeholder="Notes..."></textarea></div></div>
+</main>
+<script>
+let acts=[{s:1,e:2},{s:3,e:4},{s:0,e:6},{s:5,e:7},{s:8,e:9},{s:5,e:9},{s:6,e:10},{s:8,e:11},{s:2,e:14},{s:12,e:16}];
+const S={steps:[],idx:-1,playing:false,timer:null};
+function spd(){return[1800,1200,750,400,180][parseInt(document.getElementById('spd').value)-1]}
+function randData(){const n=6+Math.floor(Math.random()*5);acts=[];for(let i=0;i<n;i++){const s=Math.floor(Math.random()*12);acts.push({s,e:s+1+Math.floor(Math.random()*5)})}reset()}
+function gen(){const sorted=[...acts].sort((a,b)=>a.e-b.e);const n=sorted.length;const steps=[];const status=new Array(n).fill('default');
+steps.push({sorted:[...sorted],status:[...status],curIdx:-1,lastEnd:-1,sel:0,log:`<span class="hi">${n} activities</span> sorted by end time. Greedy: always pick earliest finish.`});
+status[0]='selected';let lastEnd=sorted[0].e,sel=1;
+steps.push({sorted:[...sorted],status:[...status],curIdx:0,lastEnd,sel,log:`Select A0 [<span class="pos">${sorted[0].s},${sorted[0].e}</span>]. First activity always selected. lastEnd = <span class="amb">${lastEnd}</span>.`});
+for(let i=1;i<n;i++){
+  steps.push({sorted:[...sorted],status:[...status],curIdx:i,lastEnd,sel,log:`Consider A${i} [<span class="sol">${sorted[i].s},${sorted[i].e}</span>]. Start ${sorted[i].s} ${sorted[i].s>=lastEnd?'≥':'<'} lastEnd ${lastEnd}.`});
+  if(sorted[i].s>=lastEnd){status[i]='selected';lastEnd=sorted[i].e;sel++;
+    steps.push({sorted:[...sorted],status:[...status],curIdx:i,lastEnd,sel,log:`<span class="pos">Selected!</span> A${i} [${sorted[i].s},${sorted[i].e}]. No overlap. lastEnd = <span class="amb">${lastEnd}</span>. Total: <span class="pos">${sel}</span>.`})}
+  else{status[i]='rejected';
+    steps.push({sorted:[...sorted],status:[...status],curIdx:i,lastEnd,sel,log:`<span class="neg">Rejected.</span> A${i} overlaps (start ${sorted[i].s} < lastEnd ${lastEnd}).`})}}
+steps.push({sorted:[...sorted],status:[...status],curIdx:-1,lastEnd,sel,log:`✓ <span class="pos">Done!</span> Maximum <span class="pos">${sel}</span> non-overlapping activities selected out of ${n}.`});
+return steps}
+
+function renderTimeline(s){const sorted=s.sorted;const maxE=Math.max(...sorted.map(a=>a.e));const W=Math.max(500,maxE*45);
+let h=`<div style="position:relative;min-width:${W}px">`;
+h+=`<div class="timeline-axis" style="width:${W}px">`;for(let t=0;t<=maxE;t++){const x=(t/maxE)*W;h+=`<div class="timeline-tick" style="left:${x}px"></div><div class="timeline-tick-label" style="left:${x}px">${t}</div>`}h+=`</div><div class="timeline-rows">`;
+for(let i=0;i<sorted.length;i++){const a=sorted[i];const left=(a.s/maxE)*W;const width=((a.e-a.s)/maxE)*W;let cls='timeline-bar ';
+if(s.curIdx===i&&s.status[i]==='default')cls+='current';else cls+=s.status[i];
+h+=`<div class="timeline-row"><div class="${cls}" style="left:${left}px;width:${Math.max(width,20)}px">A${i} [${a.s}-${a.e}]</div></div>`}
+h+=`</div></div>`;document.getElementById('timeline').innerHTML=h}
+
+function renderTable(s){let h='';for(let i=0;i<s.sorted.length;i++){const a=s.sorted[i];let cls='';if(s.curIdx===i&&s.status[i]==='default')cls='current';else if(s.status[i]==='selected')cls='selected';else if(s.status[i]==='rejected')cls='rejected';
+const st=s.status[i]==='selected'?'✓ Selected':s.status[i]==='rejected'?'✗ Rejected':s.curIdx===i?'→ Checking':'—';
+h+=`<tr class="${cls}"><td>A${i}</td><td>${a.s}</td><td>${a.e}</td><td>${st}</td></tr>`}document.getElementById('act-tbody').innerHTML=h}
+
+function render(){const s=S.steps[S.idx];if(!s)return;renderTimeline(s);renderTable(s);
+document.getElementById('s-cur').textContent=s.curIdx>=0?'A'+s.curIdx:'—';document.getElementById('s-end').textContent=s.lastEnd>=0?s.lastEnd:'—';document.getElementById('s-sel').textContent=s.sel;document.getElementById('s-total').textContent=s.sorted.length;
+document.getElementById('log').innerHTML=s.log;const t=S.steps.length-1;document.getElementById('pf').style.width=(t>0?(S.idx/t)*100:0)+'%';document.getElementById('step-label').textContent=`Step ${S.idx+1} of ${S.steps.length}`;document.getElementById('done-pill').style.display=S.idx===S.steps.length-1?'inline-block':'none'}
+function stepFwd(){if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx<S.steps.length-1){S.idx++;render()}}
+function stepBack(){if(S.idx>0){S.idx--;render()}}
+function togglePlay(){if(S.playing){S.playing=false;clearTimeout(S.timer);document.getElementById('play-btn').textContent='▶ Play';return}if(!S.steps.length){S.steps=gen();S.idx=-1}if(S.idx>=S.steps.length-1)S.idx=-1;S.playing=true;document.getElementById('play-btn').textContent='⏸ Pause';(function go(){if(!S.playing)return;if(S.idx>=S.steps.length-1){S.playing=false;document.getElementById('play-btn').textContent='▶ Play';return}S.idx++;render();S.timer=setTimeout(go,spd())})()}
+function reset(){S.playing=false;clearTimeout(S.timer);S.steps=[];S.idx=-1;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('done-pill').style.display='none';document.getElementById('timeline').innerHTML='<span style="font-size:12px;color:var(--muted2);font-family:var(--mono);padding:1rem;display:block;text-align:center">Press Play or Next to begin</span>';document.getElementById('act-tbody').innerHTML='';document.getElementById('pf').style.width='0%';document.getElementById('step-label').textContent='Step 0 of 0';document.getElementById('s-cur').textContent='—';document.getElementById('s-end').textContent='—';document.getElementById('s-sel').textContent='0';document.getElementById('s-total').textContent=acts.length;document.getElementById('log').innerHTML='Ready. Press <span class="tl">Play</span> or <span class="tl">Next</span> to start.'}
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight')stepFwd();if(e.key==='ArrowLeft')stepBack();if(e.key===' '){e.preventDefault();togglePlay()}if(e.key==='r')reset()});
+document.addEventListener('DOMContentLoaded',reset);
+</script></body></html>

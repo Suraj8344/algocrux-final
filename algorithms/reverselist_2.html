@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../premium-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 92 — Reverse Linked List II</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --border2: #3d4266;
+    --text: #e8eaf6;
+    --muted: #8b90b8;
+    --accent: #6c8fff;
+    --accent-bg: #1a2140;
+    --green: #4ade80;
+    --green-bg: #0d2318;
+    --red: #f87171;
+    --red-bg: #2a1111;
+    --amber: #fbbf24;
+    --amber-bg: #2a1e06;
+    --purple: #c084fc;
+    --purple-bg: #1e0f33;
+    --teal: #2dd4bf;
+    --teal-bg: #0d2522;
+    --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.6; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+  }
+  .badge-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge.med  { background: var(--amber-bg);  color: var(--amber);  border: 1px solid #4a3a0a; }
+  .badge.lc   { background: var(--accent-bg); color: var(--accent); border: 1px solid #1a2a60; }
+  .badge.ll   { background: var(--purple-bg); color: var(--purple); border: 1px solid #3a2155; }
+  header h1 { font-size: 1.25rem; font-weight: 600; color: var(--text); }
+  header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; }
+
+  .concept {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  @media(max-width:640px){ .concept{ grid-template-columns:1fr; } }
+  .concept h2 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+  .concept p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .formula {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: var(--mono); font-size: 13px; color: var(--amber); line-height: 2.2;
+  }
+  .formula .comment { color: var(--muted); font-style: italic; }
+  .formula .keyword { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 1.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0; padding: 6px 16px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all .15s; font-family: var(--sans); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a3a0a; }
+  .tab .tag {
+    display: inline-block; margin-left: 5px; font-size: 10px;
+    padding: 1px 6px; border-radius: 10px; font-weight: 600;
+  }
+  .tag-edge    { background: var(--purple-bg); color: var(--purple); }
+  .tag-classic { background: var(--teal-bg);   color: var(--teal); }
+
+  .anim-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .anim-panel.pinned {
+    position: sticky; top: 12px; z-index: 30;
+    box-shadow: 0 14px 36px rgba(0,0,0,.5);
+    max-height: calc(100vh - 24px); overflow-y: auto;
+  }
+  .anim-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem;
+  }
+  .anim-panel-head .title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pin-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    transition: all .15s; flex-shrink: 0;
+  }
+  .pin-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pin-btn.active { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+
+  /* ── CANVAS ── */
+  .canvas-wrap { overflow-x: auto; margin-bottom: 1.1rem; border-radius: 10px; }
+  canvas { display: block; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.1rem; font-size: 12px; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* TRACKER PILLS */
+  .tracker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tracker-pill {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-family: var(--mono);
+  }
+  .tp-prev  { color: var(--amber);  }
+  .tp-cur   { color: var(--accent); }
+  .tp-next  { color: var(--teal);   }
+  .tp-phase { color: var(--purple); }
+
+  /* PHASE BANNER */
+  .phase-banner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .6rem 1rem; margin-bottom: 1rem; font-size: 13px;
+  }
+  .phase-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .phase-name { font-weight: 600; }
+
+  /* PROGRESS */
+  .step-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill  { height: 4px; background: linear-gradient(90deg, var(--amber), var(--purple)); border-radius: 2px; transition: width .3s ease; width: 0%; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:520px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); transition: color .2s; }
+  .stat-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.amber  .val { color: var(--amber);  }
+  .stat-box.accent .val { color: var(--accent); }
+  .stat-box.teal   .val { color: var(--teal);   }
+  .stat-box.purple .val { color: var(--purple); }
+
+  .log-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: 13.5px; color: var(--muted); min-height: 52px;
+    margin-bottom: 1.25rem; line-height: 1.65;
+  }
+  .log-box .hi  { color: var(--text); font-weight: 500; }
+  .log-box .pos { color: var(--green); font-weight: 600; }
+  .log-box .neg { color: var(--red); font-weight: 600; }
+  .log-box .acc { color: var(--accent); font-weight: 600; }
+  .log-box .amb { color: var(--amber); font-weight: 600; }
+  .log-box .sol { color: var(--purple); font-weight: 600; }
+  .log-box .tl  { color: var(--teal); font-weight: 600; }
+
+  /* BEFORE / AFTER array row */
+  .arr-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  @media(max-width:540px){ .arr-compare{ grid-template-columns:1fr; } }
+  .arr-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .9rem; }
+  .arr-box .albl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; }
+  .arr-nodes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .arr-node {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 34px; border-radius: 6px; font-size: 14px; font-weight: 700;
+    font-family: var(--mono); border: 1.5px solid var(--border2); background: var(--surface);
+    color: var(--muted);
+  }
+  .arr-node.rev { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .arr-node.keep{ background: var(--surface); border-color: var(--border2); color: var(--text); }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); font-size: 13px;
+    font-family: var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--muted); }
+  .btn.primary { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .btn.primary:hover { background: #4a3a0a; }
+  .speed-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  input[type=range] { width: 80px; accent-color: var(--amber); }
+  .done-pill {
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid #1a4a2e; border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px; display: none;
+  }
+
+  /* STEP TABLE */
+  .walkthrough { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .walkthrough h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow: auto; display: block; max-height: 380px; }
+  .step-table th {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap;
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .step-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .step-table tr.highlighted td { background: var(--surface2); color: var(--text); }
+
+  /* CODE */
+  .code-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .code-header span { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .copy-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent; color: var(--muted);
+    cursor: pointer; font-family: var(--sans); transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  pre { padding: 1.25rem; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+  .kw { color: var(--purple); }
+  .fn { color: var(--accent); }
+  .cm { color: var(--muted); font-style: italic; }
+  .nm { color: var(--amber); }
+  .st { color: var(--green); }
+
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  @media(max-width:480px){ .complexity-grid{ grid-template-columns:1fr; } }
+  .complex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .complex-card .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing:.06em; text-transform:uppercase; }
+  .complex-card .big { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--amber); }
+  .complex-card p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+<!-- ===== NOTES CSS ===== -->
+<style>
+  .notes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+  .notes-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:background .15s}
+  .notes-header:hover{background:var(--border)}
+  .notes-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+  .notes-header .note-indicator{font-size:14px;opacity:0;transition:opacity .2s}
+  .notes-header .note-indicator.visible{opacity:1}
+  .notes-header .toggle-icon{transition:transform .2s;color:var(--muted)}
+  .notes-header.open .toggle-icon{transform:rotate(180deg)}
+  .notes-body{padding:1.25rem;display:none}
+  .notes-body.open{display:block}
+  .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea::placeholder{color:var(--muted2)}
+  .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
+  .notes-footer .save-status{display:flex;align-items:center;gap:6px}
+  .notes-footer .save-status.saved{color:var(--green)}
+  .notes-footer .save-status.saving{color:var(--amber)}
+  .notes-footer .save-status.error{color:var(--red)}
+  .notes-login-prompt{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+  .notes-login-prompt a{color:var(--accent);font-weight:600;text-decoration:none}
+  .notes-login-prompt a:hover{text-decoration:underline}
+</style>
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="badge-row">
+      <span class="badge lc">LC #92</span>
+      <span class="badge ll">Linked List</span>
+      <span class="badge med">Medium</span>
+    </div>
+    <h1>Reverse Linked List II</h1>
+<!-- ===== LEETCODE LINK ===== -->
+<style>
+.lc-banner{
+  display:flex; align-items:center; gap:.75rem;
+  background:linear-gradient(135deg,#1a2140,#0c2624);
+  border:1px solid #343a57; border-radius:12px;
+  padding:1rem 1.25rem; margin:1.5rem 0;
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+}
+.lc-banner .lc-icon{
+  width:36px; height:36px; border-radius:8px;
+  background:#f9f9f9; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#000; flex-shrink:0;
+}
+.lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
+.lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
+.lc-banner .lc-btn{
+  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  color:#fff; padding:.55rem 1.1rem; border-radius:10px;
+  font-weight:600; font-size:13px; text-decoration:none;
+  transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+@media(max-width:640px){
+  .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
+  .lc-banner .lc-btn{width:100%; justify-content:center;}
+}
+</style>
+<div class="lc-banner" id="lcBanner">
+  <div class="lc-icon">LC</div>
+  <div class="lc-text">Practice this algorithm on <b>LeetCode</b> to reinforce your understanding.</div>
+  <a href="https://leetcode.com/problems/reverse-linked-list-ii/" target="_blank" rel="noopener" class="lc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Problem
+  </a>
+</div>
+    <p>Reverse a sublist from position left to right in one pass — O(N) time · O(1) space</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="concept">
+    <div>
+      <h2>What does it solve?</h2>
+      <p>Given a linked list and two positions <code style="color:var(--accent)">left</code> and <code style="color:var(--accent)">right</code> (1-indexed), reverse only the nodes between those positions — leaving the rest of the list untouched — <strong style="color:var(--text)">in one pass</strong>.</p>
+      <p style="margin-top:.75rem">We use a <strong style="color:var(--amber)">dummy head</strong> trick so we never have to special-case reversing from the very start. We walk to the node just before <code>left</code> (call it <strong style="color:var(--amber)">prev</strong>), then use the <strong style="color:var(--text)">"front-insertion"</strong> technique to pull nodes one at a time from the sublist and insert them right after <code>prev</code>.</p>
+    </div>
+    <div>
+      <h2>The core idea (front-insertion)</h2>
+      <div class="formula">
+        <span class="comment">// dummy → ... → prev → curr → ...</span><br>
+        <span class="keyword">for</span> i = 0 <span class="keyword">to</span> right-left-1:<br>
+        &nbsp;&nbsp;nxt = curr.next<br>
+        &nbsp;&nbsp;curr.next = nxt.next &nbsp;<span class="comment">// detach nxt</span><br>
+        &nbsp;&nbsp;nxt.next = prev.next &nbsp;<span class="comment">// nxt points to sub-head</span><br>
+        &nbsp;&nbsp;prev.next = nxt &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// insert nxt after prev</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Complexity</p>
+  <div class="complexity-grid">
+    <div class="complex-card">
+      <div class="lbl">Time complexity</div>
+      <div class="big">O(N)</div>
+      <p>Walk to position <em>left</em> in O(left) and perform (right − left) front-insertions — total one pass through the list.</p>
+    </div>
+    <div class="complex-card">
+      <div class="lbl">Space complexity</div>
+      <div class="big">O(1)</div>
+      <p>Only a dummy node and three pointer variables. No extra memory needed regardless of list size.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">Examples &amp; edge cases</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="loadExample(0,this)">[1→2→3→4→5], L=2, R=4 <span class="tag tag-classic">LC example</span></button>
+    <button class="tab" onclick="loadExample(1,this)">[1→2→3→4→5], L=1, R=5 <span class="tag tag-classic">full reverse</span></button>
+    <button class="tab" onclick="loadExample(2,this)">[1→2→3→4→5], L=1, R=3 <span class="tag tag-edge">from head</span></button>
+    <button class="tab" onclick="loadExample(3,this)">[1→2→3→4→5], L=3, R=5 <span class="tag tag-edge">to tail</span></button>
+    <button class="tab" onclick="loadExample(4,this)">[5], L=1, R=1 <span class="tag tag-edge">single node</span></button>
+    <button class="tab" onclick="loadExample(5,this)">[1→2→3], L=2, R=2 <span class="tag tag-edge">single swap</span></button>
+  </div>
+
+  <div id="example-desc" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:13px;color:var(--muted);line-height:1.7"></div>
+
+  <!-- ANIMATION PANEL -->
+  <div class="anim-panel pinned" id="anim-panel">
+    <div class="anim-panel-head">
+      <span class="title">Live animation — front-insertion reversal</span>
+      <button class="pin-btn active" id="pin-btn" onclick="togglePin()">📌 Pinned while scrolling</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--surface2);border-color:var(--border2)"></span> Untouched node</span>
+      <span><span class="dot" style="background:var(--amber-bg);border-color:var(--amber)"></span> prev anchor</span>
+      <span><span class="dot" style="background:var(--accent-bg);border-color:var(--accent)"></span> curr (tail of reversed so far)</span>
+      <span><span class="dot" style="background:var(--teal-bg);border-color:var(--teal)"></span> nxt (being inserted)</span>
+      <span><span class="dot" style="background:var(--purple-bg);border-color:var(--purple)"></span> Reversed region</span>
+      <span><span class="dot" style="background:var(--green-bg);border-color:var(--green)"></span> Done</span>
+    </div>
+
+    <!-- PHASE BANNER -->
+    <div class="phase-banner" id="phase-banner">
+      <div class="phase-dot" id="phase-dot" style="background:var(--muted)"></div>
+      <span class="phase-name" id="phase-name" style="color:var(--muted)">—</span>
+      <span style="color:var(--muted);font-size:12px" id="phase-desc">—</span>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas-wrap">
+      <canvas id="ll-canvas" width="860" height="240"></canvas>
+    </div>
+
+    <!-- BEFORE / AFTER -->
+    <div class="arr-compare" id="arr-compare">
+      <div class="arr-box">
+        <div class="albl">Before</div>
+        <div class="arr-nodes" id="before-nodes"></div>
+      </div>
+      <div class="arr-box">
+        <div class="albl">After (so far)</div>
+        <div class="arr-nodes" id="after-nodes"></div>
+      </div>
+    </div>
+
+    <!-- TRACKER PILLS -->
+    <div class="tracker-row">
+      <span class="tracker-pill tp-prev"  id="pill-prev">prev → —</span>
+      <span class="tracker-pill tp-cur"   id="pill-curr">curr → —</span>
+      <span class="tracker-pill tp-next"  id="pill-nxt">nxt  → —</span>
+      <span class="tracker-pill tp-phase" id="pill-iter">iter: —</span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="step-label" id="step-label">Step — of —</div>
+    <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box amber">
+        <div class="lbl">prev (anchor)</div>
+        <div class="val" id="s-prev">—</div>
+        <div class="sub" id="s-prev-sub">val: —</div>
+      </div>
+      <div class="stat-box accent">
+        <div class="lbl">curr (tail)</div>
+        <div class="val" id="s-curr">—</div>
+        <div class="sub" id="s-curr-sub">val: —</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="lbl">nxt (inserting)</div>
+        <div class="val" id="s-nxt">—</div>
+        <div class="sub" id="s-nxt-sub">val: —</div>
+      </div>
+      <div class="stat-box purple">
+        <div class="lbl">Iteration</div>
+        <div class="val" id="s-iter">—</div>
+        <div class="sub" id="s-iter-sub">of —</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log">Select an example and press <strong style="color:var(--text)">Play</strong> to start.</div>
+
+    <div class="controls">
+      <button class="btn primary" id="btn-play" onclick="playPause()">▶ Play</button>
+      <button class="btn" onclick="stepBack()">← Step back</button>
+      <button class="btn" onclick="stepForward()">Step forward →</button>
+      <button class="btn" onclick="resetAnim()">↺ Reset</button>
+      <span id="done-pill" class="done-pill">✓ Reversed</span>
+      <div class="speed-wrap">
+        <span>Speed</span>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1">
+        <span id="spd-lbl" style="min-width:50px">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP TABLE -->
+  <div class="walkthrough">
+    <h3>Step-by-step table</h3>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Phase</th>
+          <th>prev idx</th>
+          <th>curr idx</th>
+          <th>nxt idx</th>
+          <th>Action</th>
+          <th>List state</th>
+        </tr>
+      </thead>
+      <tbody id="step-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CODE -->
+  <p class="section-label">C++ implementation</p>
+  <div class="code-section">
+    <div class="code-header">
+      <span>reverse_list_ii.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre id="code-block"><span class="kw">struct</span> ListNode {
+    <span class="kw">int</span> val;
+    ListNode* next;
+    ListNode(<span class="kw">int</span> x) : val(x), next(<span class="nm">nullptr</span>) {}
+};
+
+ListNode* <span class="fn">reverseBetween</span>(ListNode* head, <span class="kw">int</span> left, <span class="kw">int</span> right) {
+    ListNode dummy(<span class="nm">0</span>);
+    dummy.next = head;
+    ListNode* prev = &amp;dummy;
+
+    <span class="cm">// step 1: walk prev to node just before position left</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt; left; i++)
+        prev = prev-&gt;next;
+
+    ListNode* curr = prev-&gt;next; <span class="cm">// curr = node at position left</span>
+
+    <span class="cm">// step 2: front-insertion (right − left) times</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; right - left; i++) {
+        ListNode* nxt = curr-&gt;next;
+        curr-&gt;next = nxt-&gt;next;  <span class="cm">// detach nxt from chain</span>
+        nxt-&gt;next  = prev-&gt;next; <span class="cm">// nxt points to current sub-head</span>
+        prev-&gt;next = nxt;        <span class="cm">// nxt becomes new sub-head</span>
+    }
+
+    <span class="kw">return</span> dummy.next;
+}
+</pre>
+  </div>
+
+<!-- ===== NOTES SECTION ===== -->
+  <p class="section-label">My Notes</p>
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header" id="notesHeader">
+      <h3>
+        <span id="noteIcon">&#x1F4DD;</span>
+        <span>Notes</span>
+        <span class="note-indicator" id="noteIndicator">&#x2705;</span>
+      </h3>
+      <span class="toggle-icon" id="toggleIcon">&#x25BC;</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      <textarea id="notesTextarea" placeholder="Write your notes about this algorithm...&#10;&#10;Tips:&#10;- Key insights from the animation&#10;- Time/space complexity tricks&#10;- Similar problems to practice&#10;- Your own code variations"></textarea>
+      <div class="notes-footer">
+        <span class="save-status" id="saveStatus">
+          <span id="saveDot">&#x25CF;</span>
+          <span id="saveText">Start typing to save...</span>
+        </span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  EXAMPLES  (values, left, right are 1-indexed)
+// ─────────────────────────────────────────────
+const EXAMPLES = [
+  { values:[1,2,3,4,5], left:2, right:4,
+    desc:`<strong style="color:var(--text)">LC example — [1→2→3→4→5], left=2, right=4.</strong> Nodes 2,3,4 are reversed to give <strong style="color:var(--amber)">[1→4→3→2→5]</strong>. Watch <em>prev</em> anchor at node 1, then front-insertion pulls node 3, then node 4 in front of the reversed sub-list.` },
+  { values:[1,2,3,4,5], left:1, right:5,
+    desc:`<strong style="color:var(--text)">Full list reversed — left=1, right=5.</strong> The dummy head acts as <em>prev</em> so we can handle reversing from the very head without any special case. All 5 nodes get reversed: <strong style="color:var(--amber)">[5→4→3→2→1]</strong>.` },
+  { values:[1,2,3,4,5], left:1, right:3,
+    desc:`<strong style="color:var(--text)">Reverse from head — left=1, right=3.</strong> Only the first three nodes are reversed. <em>prev</em> stays at the dummy node. Result: <strong style="color:var(--amber)">[3→2→1→4→5]</strong>.` },
+  { values:[1,2,3,4,5], left:3, right:5,
+    desc:`<strong style="color:var(--text)">Reverse to tail — left=3, right=5.</strong> Walk <em>prev</em> to node at index 2 (value 2), then reverse nodes 3,4,5. Result: <strong style="color:var(--amber)">[1→2→5→4→3]</strong>.` },
+  { values:[5], left:1, right:1,
+    desc:`<strong style="color:var(--text)">Edge case: single node — L=R=1.</strong> No iterations are needed since right−left=0. The list is returned unchanged. Result: <strong style="color:var(--amber)">[5]</strong>.` },
+  { values:[1,2,3], left:2, right:2,
+    desc:`<strong style="color:var(--text)">Edge case: L=R — reverse a single node in the middle.</strong> No iterations needed. The node is trivially already "reversed". Result: <strong style="color:var(--amber)">[1→2→3]</strong> unchanged.` },
+];
+
+const SPEEDS = [1400,900,550,280,100];
+const SPEED_NAMES = ['Slow','Slower','Medium','Fast','Fastest'];
+document.getElementById('speed').addEventListener('input', function(){
+  document.getElementById('spd-lbl').textContent = SPEED_NAMES[this.value-1];
+});
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let ORIG_VALUES = [];
+let LEFT = 1, RIGHT = 1;
+let steps = [];
+let cursor = -1;
+let playing = false;
+let timer = null;
+
+// ─────────────────────────────────────────────
+//  BUILD STEPS
+//  list represented as a plain array (reordered)
+// ─────────────────────────────────────────────
+function buildSteps(values, left, right) {
+  const n = values.length;
+  // use an array of objects with idx to track identity
+  let list = values.map((v,i)=>({ id:i, val:v }));
+  const stps = [];
+  const total = right - left;
+
+  // helper: snapshot the current order
+  function snap() { return list.map(x=>({...x})); }
+
+  stps.push({ phase:'init', prevIdx:-1, currIdx:-1, nxtIdx:-1, iter:0, list:snap(),
+    action:'Init', detail:`dummy → head. Walk prev to node before position ${left}.` });
+
+  // Phase 1: walk to prev (node at left-2 in 0-based, or dummy=-1)
+  let prevPos = -1; // -1 means dummy
+  for (let i = 1; i < left; i++) {
+    prevPos++;
+    stps.push({ phase:'walk', prevIdx:prevPos, currIdx:prevPos+1, nxtIdx:-1, iter:0, list:snap(),
+      action:`Walk prev`, detail:`Move prev to node[${prevPos}] (val ${list[prevPos].val})` });
+  }
+  // curr is at prevPos+1
+  let currPos = prevPos + 1;
+
+  stps.push({ phase:'walk-done', prevIdx:prevPos, currIdx:currPos, nxtIdx:-1, iter:0, list:snap(),
+    action:'Reached position', detail:`prev at ${prevPos<0?'dummy':'['+prevPos+']'}, curr at [${currPos}] (val ${list[currPos].val}). Begin reversals.` });
+
+  // Phase 2: front-insertion
+  for (let i = 0; i < total; i++) {
+    // nxt is curr.next in the current list → position currPos+1 in the array
+    // BUT after each insertion, the element at currPos moves right in the logical list
+    // We simulate by manipulating the array
+    // nxt is always the element RIGHT AFTER curr in the current array
+    const nxtArrayPos = currPos + 1;
+
+    // snapshot before
+    stps.push({ phase:'detach', prevIdx:prevPos, currIdx:currPos, nxtIdx:nxtArrayPos, iter:i+1, list:snap(),
+      action:'Detach nxt', detail:`nxt = node[${nxtArrayPos}] (val ${list[nxtArrayPos].val}). curr.next = nxt.next.` });
+
+    // perform the splice: remove nxt from after curr and insert after prev
+    const [nxtNode] = list.splice(nxtArrayPos, 1);
+    const insertAt = prevPos + 1;
+    list.splice(insertAt, 0, nxtNode);
+    // after insertion, curr is now at insertAt+1
+    currPos = insertAt + 1;
+
+    stps.push({ phase:'insert', prevIdx:prevPos, currIdx:currPos, nxtIdx:insertAt, iter:i+1, list:snap(),
+      action:'Insert after prev', detail:`nxt.next = prev.next; prev.next = nxt. Inserted val ${nxtNode.val} at position ${insertAt+1}.` });
+  }
+
+  stps.push({ phase:'done', prevIdx:prevPos, currIdx:currPos, nxtIdx:-1, iter:total, list:snap(),
+    action:'Done', detail:`Reversed nodes ${left}–${right}. Return dummy.next.` });
+
+  return stps;
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function buildTableRows(stps) {
+  const tbody = document.getElementById('step-tbody');
+  tbody.innerHTML = stps.map((s,i) => {
+    const listStr = s.list.map(x=>x.val).join('→');
+    const p = s.prevIdx < 0 ? 'dummy' : `[${s.prevIdx}]`;
+    const c = s.currIdx >= 0 ? `[${s.currIdx}]` : '—';
+    const nx = s.nxtIdx >= 0 ? `[${s.nxtIdx}]` : '—';
+    let phaseLabel;
+    if (s.phase==='init')      phaseLabel=`<span style="color:var(--muted)">Init</span>`;
+    else if(s.phase==='walk')  phaseLabel=`<span style="color:var(--accent)">Walk</span>`;
+    else if(s.phase==='walk-done') phaseLabel=`<span style="color:var(--teal)">Ready</span>`;
+    else if(s.phase==='detach') phaseLabel=`<span style="color:var(--amber)">Detach</span>`;
+    else if(s.phase==='insert') phaseLabel=`<span style="color:var(--purple)">Insert</span>`;
+    else phaseLabel=`<span style="color:var(--green)">Done ✓</span>`;
+    return `<tr id="tr-${i}">
+      <td>${i+1}</td>
+      <td>${phaseLabel}</td>
+      <td style="color:var(--amber)">${p}</td>
+      <td style="color:var(--accent)">${c}</td>
+      <td style="color:var(--teal)">${nx}</td>
+      <td style="color:var(--muted)">${s.action}</td>
+      <td style="color:var(--text)">${listStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  CANVAS
+// ─────────────────────────────────────────────
+const NR = 26; // node radius
+const SPACING = 90;
+const START_X = 56;
+const ROW_Y = 110;
+const C = {
+  surface2:'#22263a', border2:'#3d4266', text:'#e8eaf6', muted:'#8b90b8',
+  amber:'#fbbf24', amberBg:'#2a1e06',
+  accent:'#6c8fff', accentBg:'#1a2140',
+  teal:'#2dd4bf',  tealBg:'#0d2522',
+  purple:'#c084fc',purpleBg:'#1e0f33',
+  green:'#4ade80', greenBg:'#0d2318',
+  red:'#f87171'
+};
+
+function nodeX(i) { return START_X + i * SPACING; }
+
+function drawArrowH(ctx, x1, y, x2, color) {
+  const headLen = 9;
+  const sx = x1 + NR + 4, ex = x2 - NR - 4;
+  if (sx >= ex) return;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(sx, y); ctx.lineTo(ex, y); ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(ex, y);
+  ctx.lineTo(ex - headLen*Math.cos(-0.4), y - headLen*Math.sin(-0.4));
+  ctx.lineTo(ex - headLen*Math.cos(0.4),  y - headLen*Math.sin(0.4));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawCanvas(s) {
+  const canvas = document.getElementById('ll-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const n = s.list.length;
+  const total = RIGHT - LEFT;
+  const reversedStart = s.prevIdx + 1; // positions in list that are "reversed so far"
+
+  // draw "dummy" placeholder
+  ctx.save();
+  ctx.strokeStyle = C.amberBg; ctx.fillStyle = '#0a0d14';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(8, ROW_Y - 16, 38, 32, 6) : ctx.rect(8, ROW_Y-16, 38, 32);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = C.amber; ctx.font = '10px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('D', 27, ROW_Y);
+  ctx.restore();
+
+  // arrow from dummy to node 0
+  drawArrowH(ctx, 8+38-NR-4, ROW_Y, nodeX(0), C.border2);
+
+  for (let i = 0; i < n; i++) {
+    const x = nodeX(i);
+    const isPrev = i === s.prevIdx;
+    const isCurr = i === s.currIdx;
+    const isNxt  = i === s.nxtIdx;
+    const isDone = s.phase === 'done';
+    const isRevRegion = i >= LEFT-1 && i <= RIGHT-1;
+
+    let fillColor = C.surface2, strokeColor = C.border2, textColor = C.text;
+
+    if (isDone && isRevRegion)         { fillColor = C.greenBg;  strokeColor = C.green;  textColor = C.green; }
+    else if (isNxt)                    { fillColor = C.tealBg;   strokeColor = C.teal;   textColor = C.teal; }
+    else if (isCurr)                   { fillColor = C.accentBg; strokeColor = C.accent; textColor = C.accent; }
+    else if (isPrev && s.prevIdx >= 0) { fillColor = C.amberBg;  strokeColor = C.amber;  textColor = C.amber; }
+    else if (isRevRegion && s.phase !== 'walk' && s.phase !== 'init')
+                                       { fillColor = C.purpleBg; strokeColor = C.purple; textColor = C.purple; }
+
+    // circle
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, ROW_Y, NR, 0, Math.PI*2);
+    ctx.fillStyle = fillColor; ctx.fill();
+    ctx.strokeStyle = strokeColor; ctx.lineWidth = isCurr||isPrev||isNxt ? 2.5 : 1.5;
+    ctx.stroke();
+    // value
+    ctx.fillStyle = textColor; ctx.font = 'bold 14px monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(s.list[i].val, x, ROW_Y);
+    // index label
+    ctx.fillStyle = C.muted; ctx.font = '10px monospace';
+    ctx.fillText(`[${i}]`, x, ROW_Y - NR - 10);
+    ctx.restore();
+
+    // pointer labels below
+    const labels = [];
+    if (s.prevIdx === i) labels.push({t:'prev', c:C.amber});
+    if (s.currIdx === i) labels.push({t:'curr', c:C.accent});
+    if (s.nxtIdx  === i) labels.push({t:'nxt',  c:C.teal});
+    labels.forEach((lb,li) => {
+      ctx.save();
+      ctx.fillStyle = lb.c; ctx.font = 'bold 11px monospace';
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(lb.t, x + (labels.length>1 ? (li===0?-14:14) : 0), ROW_Y + NR + 6 + li*14);
+      ctx.restore();
+    });
+
+    // forward arrow
+    if (i < n-1) {
+      const arrowColor = (isRevRegion && s.phase!=='init' && s.phase!=='walk') ? C.purple : C.border2;
+      drawArrowH(ctx, x, ROW_Y, nodeX(i+1), arrowColor);
+    } else {
+      // null
+      ctx.save();
+      ctx.strokeStyle = C.muted; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(x+NR+4, ROW_Y); ctx.lineTo(x+NR+36, ROW_Y); ctx.stroke();
+      ctx.fillStyle=C.muted; ctx.font='10px monospace'; ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText('∅', x+NR+8, ROW_Y-8);
+      ctx.restore();
+    }
+  }
+
+  // bracket over reversal region
+  if (s.phase !== 'init') {
+    const bx1 = nodeX(LEFT-1) - NR - 2;
+    const bx2 = nodeX(RIGHT-1) + NR + 2;
+    const by  = ROW_Y - NR - 22;
+    ctx.save();
+    ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.moveTo(bx1, by+8); ctx.lineTo(bx1, by); ctx.lineTo(bx2, by); ctx.lineTo(bx2, by+8);
+    ctx.stroke();
+    ctx.fillStyle = C.amber; ctx.font = '11px monospace'; ctx.setLineDash([]);
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText(`reverse [${LEFT}..${RIGHT}]`, (bx1+bx2)/2, by-2);
+    ctx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  BEFORE / AFTER ROW
+// ─────────────────────────────────────────────
+function renderBeforeAfter(s) {
+  const bn = document.getElementById('before-nodes');
+  const an = document.getElementById('after-nodes');
+  bn.innerHTML = ORIG_VALUES.map((v,i) => {
+    const inRange = i >= LEFT-1 && i <= RIGHT-1;
+    return `<div class="arr-node ${inRange?'rev':'keep'}">${v}</div>`;
+  }).join('<span style="color:var(--muted);align-self:center;font-size:12px;margin:0 2px">→</span>');
+  an.innerHTML = s.list.map((node,i) => {
+    const inRange = i >= LEFT-1 && i <= RIGHT-1;
+    return `<div class="arr-node ${inRange?'rev':'keep'}">${node.val}</div>`;
+  }).join('<span style="color:var(--muted);align-self:center;font-size:12px;margin:0 2px">→</span>');
+}
+
+// ─────────────────────────────────────────────
+//  APPLY STATE
+// ─────────────────────────────────────────────
+function applyState(idx) {
+  steps.forEach((_,i) => {
+    const tr = document.getElementById('tr-'+i);
+    if (tr) tr.classList.remove('highlighted');
+  });
+  document.getElementById('done-pill').style.display = 'none';
+
+  if (idx < 0) {
+    const s0 = steps[0];
+    drawCanvas(s0);
+    renderBeforeAfter(s0);
+    setPhase('init');
+    document.getElementById('pill-prev').textContent = 'prev → dummy';
+    document.getElementById('pill-curr').textContent = 'curr → [0]';
+    document.getElementById('pill-nxt').textContent  = 'nxt  → —';
+    document.getElementById('pill-iter').textContent = 'iter: 0';
+    setStats('—','—','—','—','—','—','—','—');
+    document.getElementById('step-label').textContent = 'Step — of —';
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('log').innerHTML = 'Select an example and press <strong style="color:var(--text)">Play</strong> to start.';
+    return;
+  }
+
+  const s = steps[idx];
+  drawCanvas(s);
+  renderBeforeAfter(s);
+
+  // phase banner
+  const phaseData = {
+    'init':      {color:'var(--muted)',   name:'Initialise',        desc:'Create dummy head, set prev = dummy'},
+    'walk':      {color:'var(--accent)',  name:'Walk to left−1',    desc:`Move prev step by step to position ${LEFT-1}`},
+    'walk-done': {color:'var(--teal)',    name:'Ready to reverse',  desc:`curr = node[${s.currIdx}] (position ${LEFT})`},
+    'detach':    {color:'var(--amber)',   name:'Detach nxt',        desc:`curr.next = nxt.next  (iteration ${s.iter})`},
+    'insert':    {color:'var(--purple)',  name:'Insert after prev', desc:`prev.next = nxt  (iteration ${s.iter})`},
+    'done':      {color:'var(--green)',   name:'Done ✓',            desc:`List reversed between positions ${LEFT}–${RIGHT}`},
+  };
+  const pd = phaseData[s.phase] || phaseData['init'];
+  setPhase(s.phase, pd.color, pd.name, pd.desc);
+
+  // pills
+  document.getElementById('pill-prev').textContent = `prev → ${s.prevIdx<0?'dummy':'['+s.prevIdx+'] val='+s.list[s.prevIdx]?.val}`;
+  document.getElementById('pill-curr').textContent = `curr → ${s.currIdx>=0?'['+s.currIdx+'] val='+s.list[s.currIdx]?.val:'—'}`;
+  document.getElementById('pill-nxt').textContent  = `nxt  → ${s.nxtIdx>=0?'['+s.nxtIdx+'] val='+s.list[s.nxtIdx]?.val:'—'}`;
+  document.getElementById('pill-iter').textContent = `iter: ${s.iter} / ${RIGHT-LEFT}`;
+
+  setStats(
+    s.prevIdx<0?'D':s.prevIdx, s.prevIdx<0?'dummy':('val '+s.list[s.prevIdx]?.val),
+    s.currIdx>=0?s.currIdx:'—', s.currIdx>=0?('val '+s.list[s.currIdx]?.val):'—',
+    s.nxtIdx>=0?s.nxtIdx:'—',  s.nxtIdx>=0?('val '+s.list[s.nxtIdx]?.val):'—',
+    s.iter, `of ${RIGHT-LEFT}`
+  );
+
+  document.getElementById('step-label').textContent = `Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pbar').style.width = ((idx+1)/steps.length*100).toFixed(1)+'%';
+
+  // log messages
+  let msg = '';
+  if (s.phase==='init') {
+    msg = `<span class="hi">Initialise.</span> Create a <span class="amb">dummy</span> node pointing to head. Set <span class="amb">prev = dummy</span>. We need to walk prev to node just before position <span class="acc">${LEFT}</span>.`;
+  } else if (s.phase==='walk') {
+    msg = `<span class="hi">Walking.</span> Move <span class="amb">prev</span> forward. Now prev = node[${s.prevIdx}] (val ${s.list[s.prevIdx]?.val}). Continue until prev reaches position ${LEFT-1}.`;
+  } else if (s.phase==='walk-done') {
+    msg = `<span class="hi">Reached position ${LEFT-1}.</span> <span class="amb">prev</span> is anchored at ${s.prevIdx<0?'dummy':'node['+s.prevIdx+']'}. <span class="acc">curr</span> = node[${s.currIdx}] (val ${s.list[s.currIdx]?.val}) — the start of the sublist to reverse. Begin <span class="tl">${RIGHT-LEFT}</span> front-insertion iteration(s).`;
+  } else if (s.phase==='detach') {
+    msg = `<span class="hi">Iteration ${s.iter} — Detach.</span> <span class="tl">nxt</span> = curr.next = node[${s.nxtIdx}] (val ${s.list[s.nxtIdx]?.val}). <span class="neg">Detach nxt:</span> set curr.next = nxt.next.`;
+  } else if (s.phase==='insert') {
+    msg = `<span class="hi">Iteration ${s.iter} — Insert.</span> <span class="sol">nxt.next = prev.next</span> (point nxt to current sub-head). <span class="sol">prev.next = nxt</span> (make nxt the new sub-head). val <span class="tl">${s.list[s.prevIdx+1]?.val}</span> is now at the front of the reversed section.`;
+  } else {
+    msg = `<span class="hi">Complete!</span> <span class="pos">Sublist from position ${LEFT} to ${RIGHT} is reversed.</span> Final list: <span class="tl">${s.list.map(x=>x.val).join(' → ')}</span>. Return dummy.next.`;
+    document.getElementById('done-pill').style.display = 'inline-block';
+  }
+  document.getElementById('log').innerHTML = msg;
+
+  const tr = document.getElementById('tr-'+idx);
+  if (tr) { tr.classList.add('highlighted'); tr.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function setPhase(phase, color='var(--muted)', name='—', desc='—') {
+  document.getElementById('phase-dot').style.background = color;
+  document.getElementById('phase-name').textContent = name;
+  document.getElementById('phase-name').style.color = color;
+  document.getElementById('phase-desc').textContent = desc;
+}
+
+function setStats(p, ps, c, cs, nx, nxs, it, its) {
+  document.getElementById('s-prev').textContent = p;
+  document.getElementById('s-prev-sub').textContent = ps;
+  document.getElementById('s-curr').textContent = c;
+  document.getElementById('s-curr-sub').textContent = cs;
+  document.getElementById('s-nxt').textContent = nx;
+  document.getElementById('s-nxt-sub').textContent = nxs;
+  document.getElementById('s-iter').textContent = it;
+  document.getElementById('s-iter-sub').textContent = its;
+}
+
+// ─────────────────────────────────────────────
+//  LOAD EXAMPLE
+// ─────────────────────────────────────────────
+function loadExample(i, btn) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const ex = EXAMPLES[i];
+  ORIG_VALUES = ex.values;
+  LEFT  = ex.left;
+  RIGHT = ex.right;
+  document.getElementById('example-desc').innerHTML = ex.desc;
+
+  // resize canvas
+  const needed = Math.max(860, START_X + ex.values.length * SPACING + 60);
+  document.getElementById('ll-canvas').width = needed;
+
+  steps = buildSteps(ex.values, ex.left, ex.right);
+  buildTableRows(steps);
+  cursor = -1;
+  applyState(-1);
+}
+
+// ─────────────────────────────────────────────
+//  PLAYBACK
+// ─────────────────────────────────────────────
+function stepForward() { if (cursor<steps.length-1){cursor++;applyState(cursor);} }
+function stepBack()    { if (cursor>0){cursor--;applyState(cursor);} else if(cursor===0){cursor=-1;applyState(-1);} }
+function resetAnim()   { stopPlay(); cursor=-1; applyState(-1); }
+function stopPlay()    { playing=false; clearTimeout(timer); document.getElementById('btn-play').textContent='▶ Play'; }
+function playPause()   {
+  if (playing){stopPlay();return;}
+  if (cursor>=steps.length-1){cursor=-1;applyState(-1);}
+  playing=true;
+  document.getElementById('btn-play').textContent='⏸ Pause';
+  tick();
+}
+function tick() {
+  if (!playing) return;
+  if (cursor>=steps.length-1){stopPlay();return;}
+  cursor++;applyState(cursor);
+  timer=setTimeout(tick, SPEEDS[document.getElementById('speed').value-1]);
+}
+function togglePin() {
+  const panel=document.getElementById('anim-panel'), btn=document.getElementById('pin-btn');
+  const p=panel.classList.toggle('pinned');
+  btn.classList.toggle('active',p);
+  btn.textContent = p ? '📌 Pinned while scrolling' : '📌 Pin while scrolling';
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-block').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn'); b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+// init
+loadExample(0, document.querySelector('.tab.active'));
+</script>
+
+<!-- AlgoCrux Progress Tracker -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const algoName = document.title.replace(' - AlgoCrux', '');
+
+  let currentUser = null;
+  let isCompleted = false;
+
+  const trackerUI = document.createElement('div');
+  trackerUI.innerHTML = `
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000;background:#14161f;border:1px solid #262a3d;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:'Inter',sans-serif;min-width:220px;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <div id="trackerIcon" style="width:32px;height:32px;border-radius:8px;background:#1a2140;display:flex;align-items:center;justify-content:center;font-size:14px">&#x23F3;</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#eef0fa">${algoName}</div>
+          <div id="trackerStatus" style="font-size:11px;color:#5c6189;margin-top:1px">Not completed</div>
+        </div>
+      </div>
+      <button id="markCompleteBtn" style="width:100%;padding:.6rem 1rem;border-radius:8px;border:1px solid #3c4a8c;background:#1a2140;color:#6c8fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>Mark as Complete</span>
+      </button>
+      <div id="trackerLogin" style="display:none;text-align:center;padding:.5rem 0">
+        <a href="../login.html" style="color:#6c8fff;font-size:13px;font-weight:600;text-decoration:none">Sign in to track progress</a>
+      </div>
+    </div>`;
+  document.body.appendChild(trackerUI);
+
+  const markBtn = document.getElementById('markCompleteBtn');
+  const trackerStatus = document.getElementById('trackerStatus');
+  const trackerIcon = document.getElementById('trackerIcon');
+  const trackerLogin = document.getElementById('trackerLogin');
+
+  function setCompletedState() {
+    isCompleted = true;
+    markBtn.innerHTML = '<span>&#x2705; Completed</span>';
+    markBtn.style.background = '#0d2318';
+    markBtn.style.borderColor = '#1a6b3a';
+    markBtn.style.color = '#4ade80';
+    markBtn.style.cursor = 'default';
+    trackerStatus.textContent = 'Completed!'; trackerStatus.style.color = '#4ade80';
+    trackerIcon.innerHTML = '&#x2705;'; trackerIcon.style.background = '#0d2318';
+    trackerIcon.style.border = '1px solid #1a6b3a'; trackerIcon.style.color = '#4ade80';
+  }
+
+  function setLoggedOutState() {
+    markBtn.style.display = 'none'; trackerLogin.style.display = 'block';
+    trackerStatus.textContent = 'Sign in to track';
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { setLoggedOutState(); return; }
+    currentUser = user; markBtn.style.display = 'flex'; trackerLogin.style.display = 'none';
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists() && (userDoc.data().completedAnimations || []).includes(algoId)) {
+      setCompletedState();
+    }
+  });
+
+  markBtn.addEventListener('click', async () => {
+    if (!currentUser || isCompleted) return;
+    markBtn.disabled = true;
+    markBtn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(108,143,255,.3);border-top-color:#6c8fff;border-radius:50%;animation:spin .8s linear infinite"></div><span>Saving...</span>';
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+      if (userDoc.exists()) {
+        await updateDoc(userRef, { completedAnimations: arrayUnion(algoId), lastActive: new Date().toISOString(), ['activityMap.' + today]: increment(1) });
+      } else {
+        await setDoc(userRef, { name: currentUser.displayName || currentUser.email.split('@')[0], email: currentUser.email, createdAt: new Date().toISOString(), completedAnimations: [algoId], totalTimeSpent: 0, lastActive: new Date().toISOString(), activityMap: { [today]: 1 } });
+      }
+      setCompletedState();
+    } catch (err) { markBtn.disabled = false; markBtn.innerHTML = '<span>Mark as Complete</span>'; }
+  });
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+ ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let pageLoadTime = Date.now();
+  let hiddenTime = 0;
+  let lastHidden = null;
+  let alreadySaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  // Track tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      lastHidden = Date.now();
+    } else if (lastHidden) {
+      hiddenTime += Date.now() - lastHidden;
+      lastHidden = null;
+    }
+  });
+
+  function getActiveSeconds() {
+    const total = Date.now() - pageLoadTime;
+    const active = total - hiddenTime;
+    return Math.max(0, Math.floor(active / 1000));
+  }
+
+  async function getCurrentTotal() {
+    if (!uid) return 0;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? (snap.data().totalTimeSpent || 0) : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function saveTime() {
+    if (alreadySaved || !uid) return;
+    const seconds = getActiveSeconds();
+    if (seconds < 5) return;
+
+    alreadySaved = true;
+    const currentTotal = await getCurrentTotal();
+    const newTotal = currentTotal + seconds;
+
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: newTotal,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      alreadySaved = false;
+    }
+  }
+
+  // Save when leaving page
+  window.addEventListener('beforeunload', () => saveTime());
+
+  // Auto-save every 20 seconds, then RESET timer
+  setInterval(() => {
+    if (!uid || document.hidden || alreadySaved) return;
+    const seconds = getActiveSeconds();
+    if (seconds >= 20) {
+      saveTime().then(() => {
+        // CRITICAL: Reset everything after save so we only count NEW time
+        pageLoadTime = Date.now();
+        hiddenTime = 0;
+        lastHidden = null;
+        alreadySaved = false;
+      });
+    }
+  }, 20000);
+</script>
+
+<!-- ===== BOOKMARK BUTTON ===== -->
+<style>
+.algo-bookmark{
+  position:fixed; bottom:2rem; right:2rem; z-index:100;
+  width:48px; height:48px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s ease; font-size:18px;
+}
+.algo-bookmark:hover{transform:scale(1.1); color:var(--amber); border-color:var(--amber);}
+.algo-bookmark.active{color:var(--amber); background:var(--amber-bg); border-color:var(--amber);}
+</style>
+<button class="algo-bookmark" id="algoBookmark" title="Bookmark this algorithm">&#x2606;</button>
+<script type="module">
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  const auth = getAuth(); const db = getFirestore();
+  const btn = document.getElementById('algoBookmark');
+  const algoId = window.location.pathname.split('/').pop().replace('.html','');
+  let isBookmarked = false;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const bm = snap.data().bookmarks || [];
+      isBookmarked = bm.includes(algoId);
+      btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+      btn.classList.toggle('active', isBookmarked);
+    }
+  });
+  btn.addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const bm = new Set(data.bookmarks || []);
+    if (bm.has(algoId)) bm.delete(algoId); else bm.add(algoId);
+    await setDoc(ref, { bookmarks: Array.from(bm) }, { merge: true });
+    isBookmarked = !isBookmarked;
+    btn.innerHTML = isBookmarked ? '&#x2605;' : '&#x2606;';
+    btn.classList.toggle('active', isBookmarked);
+  });
+</script>
+<!-- ===== TIME TRACKER ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let uid = null;
+  let startTime = Date.now();
+  let hasSaved = false;
+
+  onAuthStateChanged(auth, (user) => {
+    uid = user ? user.uid : null;
+  });
+
+  async function saveActivity() {
+    if (hasSaved || !uid) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds < 1) return;
+    hasSaved = true;
+    const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+    const algoId = window.location.pathname.split('/').pop().replace('.html','');
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const data = snap.exists() ? snap.data() : {};
+      const currentTotal = data.totalTimeSpent || 0;
+      const dates = data.activityDates || [];
+      dates.push(today);
+      const completed = new Set(data.completedAnimations || []);
+      completed.add(algoId);
+      await setDoc(doc(db, 'users', uid), {
+        totalTimeSpent: currentTotal + seconds,
+        activityDates: dates,
+        completedAnimations: Array.from(completed),
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Save error:', err);
+      hasSaved = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a, button');
+    if (!link) return;
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (href === window.location.pathname) return;
+    e.preventDefault();
+    saveActivity().then(() => {
+      window.location.href = href;
+    }).catch(() => {
+      window.location.href = href;
+    });
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!hasSaved && uid) {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      if (seconds >= 1) {
+        const today = (function(){var _d=new Date();return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');})();
+        const algoId = window.location.pathname.split('/').pop().replace('.html','');
+        const data = JSON.stringify({ uid, seconds, today, algoId });
+        navigator.sendBeacon && navigator.sendBeacon('https://us-central1-algocrux8344.cloudfunctions.net/saveActivity', data);
+      }
+    }
+  });
+</script>
+
+<!-- ===== NOTES SYSTEM ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJZq_QDHd_2ZI3kKaeE16rS9zsbdny29E",
+    authDomain: "algocrux8344.firebaseapp.com",
+    projectId: "algocrux8344",
+    storageBucket: "algocrux8344.firebasestorage.app",
+    messagingSenderId: "915570389436",
+    appId: "1:915570389436:web:cd97f604b5beb2e515fbb9",
+    measurementId: "G-FFQ8CW124S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const algoId = window.location.pathname.split('/').pop().replace('.html', '');
+  const LOCAL_KEY = 'algocrux_notes_' + algoId;
+
+  const notesHeader = document.getElementById('notesHeader');
+  const notesBody = document.getElementById('notesBody');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const textarea = document.getElementById('notesTextarea');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveText = document.getElementById('saveText');
+  const saveDot = document.getElementById('saveDot');
+  const charCount = document.getElementById('charCount');
+  const noteIndicator = document.getElementById('noteIndicator');
+
+  let currentUser = null;
+  let saveTimer = null;
+  let isSaving = false;
+
+  // Toggle notes panel
+  notesHeader.addEventListener('click', () => {
+    const isOpen = notesBody.classList.toggle('open');
+    notesHeader.classList.toggle('open', isOpen);
+    toggleIcon.innerHTML = isOpen ? '&#x25B2;' : '&#x25BC;';
+    if (isOpen) textarea.focus();
+  });
+
+  // Update char count
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+    setSaveStatus('unsaved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNotes(), 1500);
+  });
+
+  function setSaveStatus(status) {
+    saveStatus.className = 'save-status ' + status;
+    if (status === 'saved') {
+      saveText.textContent = 'Saved';
+      saveDot.innerHTML = '&#x2705;';
+      noteIndicator.classList.add('visible');
+    } else if (status === 'saving') {
+      saveText.textContent = 'Saving...';
+      saveDot.innerHTML = '&#x23F3;';
+    } else if (status === 'error') {
+      saveText.textContent = 'Error saving';
+      saveDot.innerHTML = '&#x274C;';
+    } else {
+      saveText.textContent = 'Unsaved changes';
+      saveDot.innerHTML = '&#x25CF;';
+    }
+  }
+
+  async function saveNotes() {
+    if (isSaving) return;
+    isSaving = true;
+    setSaveStatus('saving');
+
+    try {
+      if (currentUser) {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        await setDoc(notesRef, {
+          text: textarea.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save error:', err);
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      setSaveStatus('error');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function loadNotes() {
+    let text = '';
+
+    if (currentUser) {
+      try {
+        const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+        const snap = await getDoc(notesRef);
+        if (snap.exists()) text = snap.data().text || '';
+      } catch (err) { console.error('Load error:', err); }
+    }
+
+    if (!text) text = localStorage.getItem(LOCAL_KEY) || '';
+
+    textarea.value = text;
+    const len = text.length;
+    charCount.textContent = len + ' char' + (len !== 1 ? 's' : '');
+
+    if (text.trim()) {
+      noteIndicator.classList.add('visible');
+      setSaveStatus('saved');
+    } else {
+      setSaveStatus('unsaved');
+    }
+  }
+
+  async function syncLocalNotes() {
+    const localText = localStorage.getItem(LOCAL_KEY);
+    if (!localText || !currentUser) return;
+
+    try {
+      const notesRef = doc(db, 'users', currentUser.uid, 'notes', algoId);
+      const snap = await getDoc(notesRef);
+      const cloudText = snap.exists() ? (snap.data().text || '') : '';
+
+      if (localText.length > cloudText.length) {
+        await setDoc(notesRef, {
+          text: localText,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      localStorage.removeItem(LOCAL_KEY);
+    } catch (err) { console.error('Sync error:', err); }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) await syncLocalNotes();
+    await loadNotes();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value.trim()) {
+      localStorage.setItem(LOCAL_KEY, textarea.value);
+      if (currentUser && !isSaving) saveNotes();
+    }
+  });
+</script>
+</body>
+</html>
