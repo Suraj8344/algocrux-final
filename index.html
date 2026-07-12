@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="promo-config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AlgoCrux — Data Structures & Algorithm Animations</title>
@@ -4511,6 +4512,7 @@
   // resolves) so premium content never flashes unlocked. The auth/module
   // script below removes this once it confirms an active subscription.
   (function(){
+    if (typeof window.isAlgocruxPromoActive === 'function' && window.isAlgocruxPromoActive()) return;
     const FREE_IDS = new Set(['kadanes-algorithm', 'bubble-sort', 'next-permutation']);
     document.querySelectorAll('.algo-card').forEach(card => {
       const algoId = card.querySelector('.bookmark-btn')?.dataset.id;
@@ -4878,10 +4880,11 @@
   }
 
   function applyContentLocks() {
+    const promoActive = typeof window.isAlgocruxPromoActive === 'function' && window.isAlgocruxPromoActive();
     document.querySelectorAll('.algo-card').forEach(card => {
       const algoId = card.querySelector('.bookmark-btn')?.dataset.id;
       if (!algoId) return;
-      const locked = !isSubscribed && !FREE_IDS.has(algoId);
+      const locked = !isSubscribed && !FREE_IDS.has(algoId) && !promoActive;
       card.classList.toggle('locked', locked);
     });
   }

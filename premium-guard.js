@@ -1,24 +1,20 @@
 /* =====================================================================
    premium-guard.js
    -----------------------------------------------------------------------
-   THE FIX: previously a question page (questions/<category>/*.html) rendered its
-   full content the moment it loaded — nothing on the page itself checked
-   whether the visitor was signed in or subscribed. Any entry point that
-   linked straight to a question file (the Patterns Map in chart.html,
-   the dashboard's recent-activity list, search, or just a typed/bookmarked
-   URL) bypassed premium checking entirely.
-
-   This script is loaded as the very first thing in <head> on every
-   question page (a plain, blocking <script src="...">, NOT type=module,
-   so it runs before the rest of <head>/<body> is parsed) and:
+   Runs as the very first thing in <head> on every question/algorithm
+   page. It:
      1. Hides the page instantly so nothing can flash on screen.
-     2. Confirms the visitor is signed in (Firebase Auth).
-     3. Looks up their Firestore user doc and checks
-        subscriptionActive && subscriptionExpiry > Date.now() — the same
-        source of truth index.html already uses for the algo gallery.
-     4. Reveals the page only if the question is free OR the visitor has
-        an active subscription; otherwise redirects to login.html /
-        pricing.html before any question content is visible.
+     2. During the promo window (see promo-config.js), skips the paywall
+        entirely — still requires sign-in, but treats everyone as
+        subscribed.
+     3. Outside the promo window: confirms sign-in, then checks Firestore
+        (subscriptionActive && subscriptionExpiry > Date.now()) — the
+        same source of truth index.html's algo gallery uses.
+     4. Reveals the page only if free / promo-active / subscribed;
+        otherwise redirects to login.html or pricing.html.
+
+   Depends on promo-config.js being loaded first (see the <script> tags
+   injected right after <head> in each page).
    ===================================================================== */
 (function () {
   // 1) Hide immediately, before anything else renders.
@@ -48,10 +44,6 @@
     measurementId: "G-FFQ8CW124S"
   };
 
-  // Root-relative path to this file's project root. Derived from the src
-  // attribute used to load THIS script (e.g. "../../premium-guard.js" or
-  // "../premium-guard.js"), so it automatically matches however deep the
-  // current page is nested — no hardcoded folder depth needed.
   // NOTE: document.currentScript is only valid during this script's own
   // synchronous execution — it becomes null once we `await` below — so it
   // must be read and cached here, up front, not inside the async callbacks.
@@ -66,6 +58,10 @@
   }
   function goPricing() {
     window.location.replace(ROOT + 'pricing.html');
+  }
+
+  function promoActive() {
+    return typeof window.isAlgocruxPromoActive === 'function' && window.isAlgocruxPromoActive();
   }
 
   (async function run() {
@@ -85,7 +81,7 @@
           return;
         }
 
-        if (FREE_IDS.has(algoId)) {
+        if (FREE_IDS.has(algoId) || promoActive()) {
           reveal();
           return;
         }
@@ -105,12 +101,13 @@
         }
       });
     } catch (e) {
-      // If Firebase itself fails to load, fail closed for paid content.
+      // If Firebase itself fails to load, fail closed for paid content
+      // (unless the promo is active, in which case fail open).
       console.error('premium-guard: init failed', e);
-      if (!FREE_IDS.has(algoId)) {
-        goPricing();
-      } else {
+      if (FREE_IDS.has(algoId) || promoActive()) {
         reveal();
+      } else {
+        goPricing();
       }
     }
   })();

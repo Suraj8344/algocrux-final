@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="promo-config.js"></script>
 <!-- skill:chrome -->
 <style>
 /* Credit line — bottom-right */
@@ -140,7 +141,6 @@
   .leaf-ul{opacity:0;transition:opacity .15s}
   .dim{opacity:.13;transition:opacity .2s}
   .leaf-hit.locked .lname{fill:var(--muted2)}
-  .locktag{font-family:var(--mono);font-size:9.5px;fill:var(--muted2)}
 </style>
 </head>
 <body>
@@ -572,14 +572,6 @@ search.addEventListener('input',()=>{
     a.classList.toggle('dim', !n.includes(q));
   });
 });
-
-/* ---------- premium gating (UX layer) ----------
-   The real access-control check lives in premium-guard.js on each
-   question page itself (so it can't be bypassed by a direct/typed URL).
-   This layer just gives an honest preview here on the map: it marks
-   non-free nodes as locked and, on click, sends the visitor straight to
-   sign-in / pricing instead of letting the tab open and then bounce —
-   so a non-premium user never even sees a flash of the question page. */
 </script>
 
 <script type="module">
@@ -603,13 +595,14 @@ search.addEventListener('input',()=>{
 
   // Same free list as index.html's algo gallery / premium-guard.js — keep in sync.
   const FREE_IDS = new Set(['kadanes-algorithm', 'bubble-sort', 'next-permutation']);
+  const promoActive = () => typeof window.isAlgocruxPromoActive === 'function' && window.isAlgocruxPromoActive();
   let isSubscribed = false;
   let isSignedIn = false;
 
   function applyLocks() {
     document.querySelectorAll('.leaf-hit').forEach(a => {
       const id = a.getAttribute('data-id') || '';
-      const locked = !FREE_IDS.has(id) && !isSubscribed;
+      const locked = !FREE_IDS.has(id) && !isSubscribed && !promoActive();
       a.classList.toggle('locked', locked);
     });
   }
