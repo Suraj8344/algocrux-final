@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company DSA Questions — AlgoCrux</title>
+<meta id="metaDesc" name="description" content="Company-specific LeetCode-style DSA question list with difficulty, frequency, topics, and direct links to AlgoCrux's animated walkthroughs.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc; --purple-bg:#1e0f33;
+    --red:#f87171; --red-bg:#2a1111;
+    --green:#4ade80; --green-bg:#0d2318;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+    --font-smooth: antialiased;
+    --font-feature: "cv02","cv03","cv04","cv11";
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65; min-height:100vh; overflow-x:hidden;
+    -webkit-font-smoothing: var(--font-smooth); -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: var(--font-feature); text-rendering: optimizeLegibility;
+  }
+  a{color:inherit; text-decoration:none}
+  ::selection{background:var(--accent-dim); color:#fff}
+
+  nav{position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:1rem 2.5rem; backdrop-filter:blur(20px) saturate(1.2); background:rgba(10,11,16,.82); border-bottom:1px solid var(--border); transition: background 0.3s ease;}
+  nav.scrolled{background:rgba(10,11,16,.95); box-shadow: 0 4px 30px rgba(0,0,0,.3);}
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-0.03em;}
+  .brand .mark{width:30px; height:30px; position:relative; flex-shrink:0; background:linear-gradient(135deg,var(--accent),var(--teal)); border-radius:8px; transform:rotate(12deg); box-shadow:0 4px 16px rgba(108,143,255,.35);}
+  .brand .mark::after{content:''; position:absolute; inset:5px; border-radius:4px; background:var(--bg); transform:rotate(-12deg) scale(.85);}
+  .navlinks{display:flex; gap:2rem; font-size:14px; color:var(--muted); font-weight:500;}
+  .navlinks a{position:relative; padding:4px 0; transition: color 0.2s ease;}
+  .navlinks a:hover{color:var(--text);}
+  .navlinks a.current{color:var(--accent)}
+  @media(max-width:760px){.navlinks{display:none}}
+  .nav-right a{color:var(--muted);font-size:14px;font-weight:500}
+
+  .btn{font-family:var(--sans); font-weight:600; font-size:14px; padding:.8rem 1.4rem; border-radius:12px; border:1px solid transparent; cursor:pointer; transition:all .2s cubic-bezier(.2,.8,.2,1); display:inline-flex; align-items:center; gap:8px;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff; box-shadow:0 6px 24px rgba(108,143,255,.3)}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-ghost{background:var(--surface); border-color:var(--border2); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent); transform:translateY(-2px)}
+
+  section{max-width:1180px; margin:0 auto; padding:2.5rem 2.5rem}
+  .divider{border:none; border-top:1px solid var(--border); max-width:1180px; margin:0 auto}
+  footer{max-width:1180px; margin:3rem auto 0; padding:3rem 2.5rem 2.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; color:var(--muted2); font-size:13.5px; border-top:1px solid var(--border);}
+
+  .pill{font-family:var(--mono); font-size:12px; padding:7px 16px; border-radius:24px; background:var(--surface); border:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all .2s ease; font-weight:500;}
+  .pill:hover{color:var(--text); border-color:var(--border2)}
+  .pill.active{background:var(--accent-bg); color:var(--accent); border-color:var(--accent-dim)}
+  .diff{font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap}
+  .diff-easy{background:var(--green-bg); color:var(--green)}
+  .diff-medium{background:var(--amber-bg); color:var(--amber)}
+  .diff-hard{background:var(--red-bg); color:var(--red)}
+
+  /* ===== COMPANY BANNER ===== */
+  .banner{max-width:1180px; margin:2rem auto 0; padding:0 2.5rem}
+  .breadcrumb{font-size:13px; color:var(--muted2); margin-bottom:1.2rem}
+  .breadcrumb a{color:var(--muted)}
+  .breadcrumb a:hover{color:var(--accent)}
+  .banner-card{background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:2rem; display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;}
+  .banner-logo{width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700; font-size:26px; flex-shrink:0;}
+  .banner-name{font-family:var(--display); font-weight:700; font-size:1.6rem; letter-spacing:-0.02em; margin-bottom:.3rem;}
+  .banner-meta{color:var(--muted); font-size:13.5px}
+  .curated-note{margin-top:.6rem; font-size:12.5px; color:var(--amber); background:var(--amber-bg); border:1px solid #4a2a13; display:inline-block; padding:4px 10px; border-radius:8px;}
+
+  /* stats row */
+  .stat-row{display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.5rem}
+  .stat-box{flex:1; min-width:130px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.1rem 1.3rem;}
+  .stat-box b{font-family:var(--display); font-size:1.4rem; display:block; margin-bottom:2px;}
+  .stat-box span{font-size:11px; color:var(--muted2); text-transform:uppercase; letter-spacing:.06em;}
+
+  /* progress */
+  .progress-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.5rem; margin-top:1.5rem}
+  .progress-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:.8rem}
+  .progress-head h3{font-family:var(--display); font-size:1rem; font-weight:600}
+  .pbar{height:10px; border-radius:6px; background:var(--bg2); overflow:hidden; border:1px solid var(--border); margin-bottom:1rem;}
+  .pbar i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--teal)); width:0%; transition:width .4s ease}
+  .pgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:1rem}
+  .pgrid div{text-align:center}
+  .pgrid b{display:block; font-family:var(--mono); font-size:1rem}
+  .pgrid span{font-size:10.5px; color:var(--muted2); text-transform:uppercase; letter-spacing:.05em}
+
+  /* controls */
+  .cw-controls{display:flex; flex-direction:column; gap:1rem; margin:1rem 0}
+  .cw-search{position:relative; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:.85rem 1.1rem; max-width:460px;}
+  .cw-search:focus-within{border-color:var(--accent-dim); box-shadow:0 0 0 4px rgba(108,143,255,.1)}
+  .cw-search input{background:transparent; border:none; outline:none; color:var(--text); font-family:var(--sans); font-size:14.5px; width:100%;}
+  .controls-line{display:flex; gap:.6rem; flex-wrap:wrap; align-items:center}
+  select#topicFilter{
+    font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:24px;
+    background:var(--surface); border:1px solid var(--border); color:var(--muted); cursor:pointer;
+  }
+
+  /* table */
+  #qTableWrap{overflow-x:auto; border:1px solid var(--border); border-radius:16px; background:var(--surface);}
+  table{width:100%; border-collapse:collapse; min-width:760px}
+  thead th{text-align:left; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted2); padding:.9rem 1rem; border-bottom:1px solid var(--border); white-space:nowrap;}
+  tbody td{padding:.85rem 1rem; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13.5px;}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--surface2)}
+  .qtitle{font-weight:600; margin-bottom:4px}
+  .qtopics{display:flex; gap:5px; flex-wrap:wrap}
+  .topic-chip{font-size:10px; background:var(--bg2); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px;}
+  .qcell-actions{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+  .icon-btn{
+    font-family:var(--mono); font-size:11px; padding:5px 9px; border-radius:8px;
+    background:var(--bg2); border:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all .15s ease;
+    display:inline-flex; align-items:center;
+  }
+  .icon-btn:hover{border-color:var(--accent-dim); color:var(--text)}
+  .icon-btn.on{background:var(--accent-bg); border-color:var(--accent-dim); color:var(--accent)}
+  .qbtn{font-family:var(--mono); font-size:11px; padding:5px 10px; border-radius:8px; white-space:nowrap;}
+  .qbtn-open{background:var(--teal-bg); border:1px solid #0e3d38; color:var(--teal)}
+  .qbtn-open:hover{border-color:var(--teal)}
+  .qbtn-soon{background:var(--bg2); border:1px solid var(--border); color:var(--muted2); cursor:default;}
+  .load-more-wrap{display:flex; justify-content:center; margin:1.5rem 0}
+  .empty-state{text-align:center; padding:3rem 1rem; color:var(--muted2); font-size:14px}
+  #companyNotFound{display:none; text-align:center; padding:5rem 1.5rem}
+  #companyNotFound h2{font-family:var(--display); margin-bottom:.6rem}
+  #companyNotFound p{color:var(--muted); margin-bottom:1.5rem}
+
+  @media(max-width:760px){
+    nav{padding:1rem 1.25rem}
+    section, .banner{padding-left:1.25rem;padding-right:1.25rem}
+    .pgrid{grid-template-columns:repeat(2,1fr)}
+    footer{flex-direction:column;text-align:center;padding:2rem 1.25rem}
+  }
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand"><span class="mark"></span>AlgoCrux</a>
+  <div class="navlinks">
+    <a href="index.html#structures">Data Structures</a>
+    <a href="index.html#algorithms">Algorithms</a>
+    <a href="company-wise.html" class="current">Company Wise DSA</a>
+    <a href="chart.html">Patterns Map</a>
+    <a href="pricing.html" style="color:var(--accent)">Pricing</a>
+  </div>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1rem">
+    <a href="login.html">Sign In</a>
+    <a href="register.html" class="btn btn-primary" style="padding:.5rem 1.1rem;font-size:13px">Get Started</a>
+  </div>
+</nav>
+
+<div id="companyNotFound">
+  <h2>Company not found</h2>
+  <p>We couldn't find that company. Head back to the full directory.</p>
+  <a href="company-wise.html" class="btn btn-primary">Back to Company Wise DSA</a>
+</div>
+
+<div id="companyContent" style="display:none">
+  <div class="banner">
+    <div class="breadcrumb"><a href="company-wise.html">Company Wise DSA</a> / <span id="companyBreadcrumb"></span></div>
+    <div class="banner-card">
+      <div class="banner-logo" id="companyLogo"></div>
+      <div>
+        <div class="banner-name" id="companyName"></div>
+        <div class="banner-meta" id="companyMeta"></div>
+        <div class="curated-note" id="curatedNote" style="display:none">Curated list — this company isn't in the reference dataset yet, so questions were hand-picked from topics it's known to ask.</div>
+      </div>
+    </div>
+
+    <div class="progress-card">
+      <div class="progress-head">
+        <h3>Your preparation progress</h3>
+        <span id="pgPct" style="font-family:var(--mono);color:var(--accent);font-size:.9rem">0%</span>
+      </div>
+      <div class="pbar"><i id="pgBar"></i></div>
+      <div class="pgrid">
+        <div><b id="pgSolved">0</b><span>Solved</span></div>
+        <div><b id="pgRemaining">0</b><span>Remaining</span></div>
+        <div><b id="pgEasy">—</b><span>Easy %</span></div>
+        <div><b id="pgMedium">—</b><span>Medium %</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="cw-controls">
+      <div class="cw-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="qSearch" type="text" placeholder="Search questions or topics..." autocomplete="off">
+      </div>
+      <div class="controls-line">
+        <div class="filter-row" id="diffFilterRow" style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <span class="pill active" data-df="all">All</span>
+          <span class="pill" data-df="Easy">Easy</span>
+          <span class="pill" data-df="Medium">Medium</span>
+          <span class="pill" data-df="Hard">Hard</span>
+        </div>
+        <select id="topicFilter">
+          <option value="all">All Topics</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="qTableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Difficulty</th>
+            <th>Frequency</th>
+            <th>Acceptance</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="qTableBody"></tbody>
+      </table>
+    </div>
+    <p class="empty-state" id="qEmpty" style="display:none">No questions match your filters.</p>
+  </section>
+</div>
+
+<footer>
+  <div class="brand" style="font-size:1rem"><span class="mark" style="width:22px;height:22px"></span>AlgoCrux</div>
+  <div>Company Wise DSA - your progress is saved locally in this browser.</div>
+</footer>
+
+<script src="assets/company-data.js"></script>
+<script src="assets/company-wise.js"></script>
+<script>
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 8);
+  });
+  CompanyWise.initDetailPage();
+  // small enhancements: breadcrumb + meta tags once company resolves
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('c');
+    const c = slug ? COMPANY_DATA[slug] : null;
+    if (c) {
+      document.getElementById('companyBreadcrumb').textContent = c.name;
+      document.getElementById('metaDesc').setAttribute('content',
+        `${c.name} interview questions on AlgoCrux: ${c.total} DSA problems across Easy/Medium/Hard, with topics, frequency, and animated walkthroughs where available.`);
+    }
+  })();
+</script>
+</body>
+</html>

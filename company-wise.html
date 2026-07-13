@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Wise DSA — AlgoCrux</title>
+<meta name="description" content="Practice LeetCode-style DSA questions organized by company — Google, Amazon, Microsoft, Adobe, Goldman Sachs and 30+ more. Track your progress, bookmark questions, and jump straight into AlgoCrux's animated walkthroughs.">
+<meta property="og:title" content="Company Wise DSA — AlgoCrux">
+<meta property="og:description" content="LeetCode-style interview questions organized by company, cross-linked with AlgoCrux's animated algorithm walkthroughs.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#0d0f17;
+    --surface:#14161f; --surface2:#1b1e2c; --surface3:#22263a;
+    --border:#262a3d; --border2:#343a57;
+    --text:#eef0fa; --muted:#8a8fb5; --muted2:#5c6189;
+    --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3c4a8c;
+    --teal:#2dd4bf; --teal-bg:#0c2624;
+    --amber:#fbbf24; --amber-bg:#2a1e06;
+    --purple:#c084fc; --purple-bg:#1e0f33;
+    --red:#f87171; --red-bg:#2a1111;
+    --green:#4ade80; --green-bg:#0d2318;
+    --display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+    --font-smooth: antialiased;
+    --font-feature: "cv02","cv03","cv04","cv11";
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108,143,255,.14), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45,212,191,.08), transparent),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65; min-height:100vh; overflow-x:hidden;
+    -webkit-font-smoothing: var(--font-smooth);
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: var(--font-feature);
+    text-rendering: optimizeLegibility;
+  }
+  a{color:inherit; text-decoration:none}
+  ::selection{background:var(--accent-dim); color:#fff}
+
+  /* ===== NAV (shared with rest of site) ===== */
+  nav{
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 2.5rem; backdrop-filter:blur(20px) saturate(1.2);
+    background:rgba(10,11,16,.82); border-bottom:1px solid var(--border);
+    transition: background 0.3s ease;
+  }
+  nav.scrolled{background:rgba(10,11,16,.95); box-shadow: 0 4px 30px rgba(0,0,0,.3);}
+  .brand{display:flex; align-items:center; gap:.6rem; font-family:var(--display); font-weight:700; font-size:1.2rem; letter-spacing:-0.03em; text-shadow: 0 0 20px rgba(108,143,255,.15);}
+  .brand .mark{width:30px; height:30px; position:relative; flex-shrink:0; background:linear-gradient(135deg,var(--accent),var(--teal)); border-radius:8px; transform:rotate(12deg); box-shadow:0 4px 16px rgba(108,143,255,.35);}
+  .brand .mark::after{content:''; position:absolute; inset:5px; border-radius:4px; background:var(--bg); transform:rotate(-12deg) scale(.85);}
+  .navlinks{display:flex; gap:2rem; font-size:14px; color:var(--muted); font-weight:500; letter-spacing:0.01em;}
+  .navlinks a{position:relative; padding:4px 0; transition: color 0.2s ease;}
+  .navlinks a::after{content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--teal)); border-radius:2px; transition:width 0.3s ease;}
+  .navlinks a:hover{color:var(--text);}
+  .navlinks a:hover::after{width:100%;}
+  .navlinks a.current{color:var(--accent)}
+  .navlinks a.current::after{width:100%}
+  @media(max-width:760px){.navlinks{display:none}}
+  .nav-search{position:relative; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.6rem .9rem; width:280px; color:var(--muted2); transition:all .2s ease;}
+  .nav-search:focus-within{border-color:var(--accent-dim); box-shadow:0 0 0 4px rgba(108,143,255,.1), 0 0 20px rgba(108,143,255,.08); background:var(--surface2);}
+  .nav-search input{background:transparent; border:none; outline:none; color:var(--text); font-family:var(--sans); font-size:14px; width:100%; font-weight:400;}
+  .nav-search input::placeholder{color:var(--muted2); font-weight:400;}
+  .nav-search kbd{font-family:var(--mono); font-size:10px; color:var(--muted2); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; flex-shrink:0;}
+  @media(max-width:900px){.nav-search{width:160px}}
+  @media(max-width:640px){.nav-search{display:none}}
+
+  .btn{font-family:var(--sans); font-weight:600; font-size:14px; padding:.9rem 1.6rem; border-radius:12px; border:1px solid transparent; cursor:pointer; transition:all .2s cubic-bezier(.2,.8,.2,1); display:inline-flex; align-items:center; gap:8px; letter-spacing:0.01em;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#5a7af0); color:#fff; box-shadow:0 6px 24px rgba(108,143,255,.3)}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px rgba(108,143,255,.45)}
+  .btn-ghost{background:var(--surface); border-color:var(--border2); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent); transform:translateY(-2px)}
+
+  section{max-width:1180px; margin:0 auto; padding:3rem 2.5rem}
+  .section-head{margin-bottom:2rem; max-width:680px}
+  .section-tag{font-family:var(--mono); font-size:12px; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; margin-bottom:.6rem; display:block; font-weight:500;}
+  section h2{font-family:var(--display); font-weight:700; font-size:clamp(1.7rem,3.2vw,2.3rem); letter-spacing:-0.03em; margin-bottom:.6rem; text-wrap: balance;}
+  section .sub{color:var(--muted); font-size:15.5px; line-height:1.65; max-width:640px;}
+  .divider{border:none; border-top:1px solid var(--border); max-width:1180px; margin:0 auto}
+  footer{max-width:1180px; margin:3rem auto 0; padding:3rem 2.5rem 2.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; color:var(--muted2); font-size:13.5px; border-top:1px solid var(--border); letter-spacing:0.01em;}
+
+  .pill{font-family:var(--mono); font-size:12px; padding:7px 16px; border-radius:24px; background:var(--surface); border:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all .2s ease; font-weight:500; letter-spacing:0.02em;}
+  .pill:hover{color:var(--text); border-color:var(--border2)}
+  .pill.active{background:var(--accent-bg); color:var(--accent); border-color:var(--accent-dim)}
+  .diff{font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px}
+  .diff-e,.diff-easy{background:var(--green-bg); color:var(--green)}
+  .diff-m,.diff-medium{background:var(--amber-bg); color:var(--amber)}
+  .diff-h,.diff-hard{background:var(--red-bg); color:var(--red)}
+
+  /* ===== COMPANY-WISE HERO ===== */
+  .cw-hero{max-width:1180px; margin:0 auto; padding:4rem 2.5rem 2rem;}
+  .cw-hero .eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; color:var(--teal); background:var(--teal-bg); border:1px solid #0e3d38; padding:6px 14px; border-radius:24px; margin-bottom:1.5rem; font-weight:500; letter-spacing:0.04em;}
+  .cw-hero .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal)}
+  .cw-hero h1{font-family:var(--display); font-weight:700; font-size:clamp(2.2rem,4.5vw,3.2rem); line-height:1.1; letter-spacing:-0.04em; margin-bottom:1rem; max-width:820px; text-wrap:balance;}
+  .cw-hero h1 .grad{background:linear-gradient(120deg,var(--accent),var(--teal) 70%); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .cw-hero p.lead{color:var(--muted); font-size:16.5px; max-width:640px; line-height:1.7;}
+
+  /* ===== GLOBAL DASHBOARD STRIP ===== */
+  .dash-strip{display:grid; grid-template-columns:repeat(6,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-top:2.2rem;}
+  .dash-cell{background:var(--surface); padding:1.1rem 1.3rem;}
+  .dash-cell b{font-family:var(--display); font-size:1.5rem; display:block; letter-spacing:-0.02em; margin-bottom:2px;}
+  .dash-cell span{font-size:11px; color:var(--muted2); text-transform:uppercase; letter-spacing:.07em; font-weight:500;}
+  @media(max-width:900px){.dash-strip{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.dash-strip{grid-template-columns:repeat(2,1fr)}}
+
+  /* ===== SEARCH + FILTERS ===== */
+  .cw-controls{display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem}
+  .cw-search{position:relative; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:.9rem 1.2rem; max-width:520px;}
+  .cw-search:focus-within{border-color:var(--accent-dim); box-shadow:0 0 0 4px rgba(108,143,255,.1)}
+  .cw-search input{background:transparent; border:none; outline:none; color:var(--text); font-family:var(--sans); font-size:14.5px; width:100%;}
+  .cw-search input::placeholder{color:var(--muted2)}
+  .filter-row{display:flex; gap:.5rem; flex-wrap:wrap;}
+  .az-row{display:flex; gap:.3rem; flex-wrap:wrap; margin-bottom:.5rem}
+  .az-btn{font-family:var(--mono); font-size:11px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:var(--surface); border:1px solid var(--border); color:var(--muted2); cursor:pointer; transition:all .15s ease;}
+  .az-btn:hover,.az-btn.active{color:var(--accent); border-color:var(--accent-dim); background:var(--accent-bg)}
+
+  /* ===== COMPANY CARDS ===== */
+  .company-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem}
+  @media(max-width:980px){.company-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.company-grid{grid-template-columns:1fr}}
+  .company-card{
+    display:block; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.5rem;
+    position:relative; transition:transform .22s cubic-bezier(.2,.8,.2,1), border-color .2s, box-shadow .25s;
+  }
+  .company-card:hover{border-color:var(--accent-dim); box-shadow:0 24px 50px -22px rgba(108,143,255,.35); transform:translateY(-5px)}
+  .cc-top{display:flex; align-items:center; gap:.85rem; margin-bottom:1.1rem}
+  .cc-logo{width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700; font-size:17px; flex-shrink:0;}
+  .cc-name{font-family:var(--display); font-weight:600; font-size:1.05rem; letter-spacing:-0.01em;}
+  .cc-count{font-size:12px; color:var(--muted2); font-family:var(--mono)}
+  .cc-diffs{display:flex; gap:6px; margin-bottom:1.1rem}
+  .cc-diffs span{flex:1; text-align:center; font-size:11px; font-weight:700; padding:5px 0; border-radius:8px; font-family:var(--mono)}
+  .cc-bar{height:6px; border-radius:4px; background:var(--bg2); overflow:hidden; margin-bottom:.5rem; border:1px solid var(--border)}
+  .cc-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--teal)); width:0%; transition:width .4s ease}
+  .cc-foot{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--muted2)}
+  .cc-foot .go{font-family:var(--mono); color:var(--accent); display:flex; align-items:center; gap:4px}
+  .company-card.curated .cc-count::after{content:' · curated list'}
+
+  .load-more-wrap{display:flex; justify-content:center; margin-top:2rem}
+  .empty-state{text-align:center; padding:3rem 1rem; color:var(--muted2); font-size:14px}
+
+  @media(max-width:640px){
+    nav{padding:1rem 1.25rem}
+    section{padding:2.5rem 1.25rem}
+    .cw-hero{padding:2.5rem 1.25rem 1.5rem}
+    footer{flex-direction:column;text-align:center;padding:2rem 1.25rem}
+    .nav-search{width:100%;max-width:200px}
+  }
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand"><span class="mark"></span>AlgoCrux</a>
+  <div class="navlinks">
+    <a href="index.html#structures">Data Structures</a>
+    <a href="index.html#algorithms">Algorithms</a>
+    <a href="company-wise.html" class="current">Company Wise DSA</a>
+    <a href="chart.html">Patterns Map</a>
+    <a href="pricing.html" style="color:var(--accent)">Pricing</a>
+  </div>
+  <div class="nav-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="siteSearch" type="text" placeholder="Search algorithms, structures..." autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1rem">
+    <a href="login.html" style="color:var(--muted);font-size:14px;font-weight:500">Sign In</a>
+    <a href="register.html" class="btn btn-primary" style="padding:.5rem 1.1rem;font-size:13px">Get Started</a>
+  </div>
+</nav>
+
+<!-- ============ HERO + GLOBAL DASHBOARD ============ -->
+<header class="cw-hero">
+  <span class="eyebrow" id="cwEyebrow">36 companies - real interview data</span>
+  <h1>Practice DSA the way <span class="grad">interviewers actually ask it.</span></h1>
+  <p class="lead">Every question below is tagged to a real company from curated LeetCode interview-frequency data. Wherever AlgoCrux already has an animated walkthrough, you'll jump straight into it — no duplicate content, no dead ends.</p>
+
+  <div class="dash-strip" id="dashStrip">
+    <div class="dash-cell"><b id="dTotalCompanies">-</b><span>Companies</span></div>
+    <div class="dash-cell"><b id="dTotalQuestions">-</b><span>Questions</span></div>
+    <div class="dash-cell"><b id="dSolved">0</b><span>Solved</span></div>
+    <div class="dash-cell"><b id="dBookmarked">0</b><span>Bookmarked</span></div>
+    <div class="dash-cell"><b id="dRevision">0</b><span>Revision</span></div>
+    <div class="dash-cell"><b id="dToday">0</b><span>Solved Today</span></div>
+  </div>
+</header>
+
+<hr class="divider">
+
+<!-- ============ COMPANY DIRECTORY ============ -->
+<section id="companies">
+  <div class="section-head">
+    <span class="section-tag">Company Wise DSA</span>
+    <h2>Pick a company, work the list</h2>
+    <p class="sub">Prioritized for VIT Pune placement season - Google, Amazon, Microsoft and the funded-startup + service-company circuit, alongside the full reference set.</p>
+  </div>
+
+  <div class="cw-controls">
+    <div class="cw-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="companySearch" type="text" placeholder="Search company, question, or topic..." autocomplete="off">
+    </div>
+    <div class="az-row" id="azRow"></div>
+    <div class="filter-row" id="diffFilterRow">
+      <span class="pill active" data-df="all">All Difficulty</span>
+      <span class="pill" data-df="Easy">Easy</span>
+      <span class="pill" data-df="Medium">Medium</span>
+      <span class="pill" data-df="Hard">Hard</span>
+    </div>
+  </div>
+
+  <div class="company-grid" id="companyGrid"></div>
+  <p class="empty-state" id="emptyState" style="display:none">No companies match your search. Try a different name or clear filters.</p>
+</section>
+
+<hr class="divider">
+
+<section style="text-align:center">
+  <div class="section-head" style="margin:0 auto 1.5rem;text-align:center;max-width:520px">
+    <span class="section-tag">Reference</span>
+    <h2>Where this data comes from</h2>
+    <p class="sub" style="margin:0 auto">Question sets are cross-referenced from the community-maintained <a href="https://github.com/liquidslr/leetcode-company-wise-problems" target="_blank" rel="noopener" style="color:var(--accent)">leetcode-company-wise-problems</a> repository, matched against AlgoCrux's own animated walkthroughs wherever one already exists.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="brand" style="font-size:1rem"><span class="mark" style="width:22px;height:22px"></span>AlgoCrux</div>
+  <div>Company Wise DSA - your progress is saved locally in this browser.</div>
+</footer>
+
+<script src="assets/company-data.js"></script>
+<script src="assets/company-wise.js"></script>
+<script>
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 8);
+  });
+  CompanyWise.initHubPage();
+</script>
+</body>
+</html>
