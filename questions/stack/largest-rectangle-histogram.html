@@ -98,18 +98,18 @@
     --text: #e8eaf6;
     --muted: #8b90b8;
     --muted2: #5c6189;
-    --accent: #6c8fff;
+    --accent: #7784c8;
     --accent-bg: #1a2140;
     --accent-dim: #3a4a7a;
-    --green: #4ade80;
+    --green: #68bd88;
     --green-bg: #0d2318;
-    --red: #f87171;
+    --red: #d98686;
     --red-bg: #2a1111;
-    --amber: #fbbf24;
+    --amber: #e1b86a;
     --amber-bg: #2a1e06;
-    --purple: #c084fc;
+    --purple: #a99acb;
     --purple-bg: #1e0f33;
-    --teal: #2dd4bf;
+    --teal: #78aaa5;
     --teal-bg: #0d2522;
     --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
     --sans: 'Inter', system-ui, sans-serif;
@@ -220,8 +220,8 @@
     transition: height .3s ease, background .2s, border-color .2s, color .2s, box-shadow .2s, opacity .2s;
   }
   .bar.instk   { background: var(--accent-bg); border-color: var(--accent);  color: var(--accent); }
-  .bar.cur     { box-shadow: 0 0 0 3px rgba(251,191,36,.30); border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
-  .bar.popping { box-shadow: 0 0 0 3px rgba(192,132,252,.40); border-color: var(--purple); color: var(--purple); background: var(--purple-bg); }
+  .bar.cur     { box-shadow: 0 0 0 3px rgba(225,184,106,.30); border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .bar.popping { box-shadow: 0 0 0 3px rgba(169,154,203,.40); border-color: var(--purple); color: var(--purple); background: var(--purple-bg); }
   .bar.inbest  { background: var(--green-bg); border-color: var(--green); color: var(--green); }
   .bar-idx { font-size: 9px; color: var(--muted2); font-family: var(--mono); margin-top: 4px; }
   .bar-col { display: flex; flex-direction: column; align-items: center; }
@@ -229,12 +229,12 @@
   /* rectangle overlay marker */
   .rect-overlay {
     position: absolute; bottom: 0; border-radius: 5px 5px 0 0;
-    background: rgba(192,132,252,.18); border: 1.5px dashed var(--purple);
+    background: rgba(169,154,203,.18); border: 1.5px dashed var(--purple);
     pointer-events: none; transition: all .25s ease; z-index: 2;
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: 700; color: var(--purple); font-family: var(--mono);
   }
-  .rect-overlay.best { background: rgba(74,222,128,.16); border-color: var(--green); color: var(--green); }
+  .rect-overlay.best { background: rgba(104,189,136,.16); border-color: var(--green); color: var(--green); }
 
   /* ── STACK TRACK ── */
   .arr-wrap { margin-bottom: 1.1rem; }
@@ -252,7 +252,7 @@
     transition: all .2s;
   }
   .scell .lvl { font-size: 9px; color: var(--muted); font-weight: 500; }
-  .scell.top { box-shadow: 0 0 0 3px rgba(45,212,191,.22); border-color: var(--teal); }
+  .scell.top { box-shadow: 0 0 0 3px rgba(120,170,165,.22); border-color: var(--teal); }
   .stack-empty { color: var(--muted2); font-size: 12px; font-family: var(--mono); border: 1.5px dashed var(--border2); border-radius: 6px; height: 46px; display: flex; align-items: center; justify-content: center; padding: 0 16px; }
 
   /* DETAIL CARDS */
@@ -387,7 +387,7 @@
   .notes-body{padding:1.25rem;display:none}
   .notes-body.open{display:block}
   .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
-  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(119,132,200,.12)}
   .notes-body textarea::placeholder{color:var(--muted2)}
   .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
   .notes-footer .save-status{display:flex;align-items:center;gap:6px}
@@ -411,12 +411,12 @@
   .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
   .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
   .lc-banner .lc-btn{
-    background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+    background:linear-gradient(135deg,#7784c8,#78aaa5);
     color:#fff; padding:.55rem 1.1rem; border-radius:10px;
     font-weight:600; font-size:13px; text-decoration:none;
     transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
   }
-  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(119,132,200,.4);}
   @media(max-width:640px){
     .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
     .lc-banner .lc-btn{width:100%; justify-content:center;}
@@ -443,6 +443,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
   <!-- ALGOCRUX-PRACTICE-ARENA -->
   <link rel="stylesheet" href="../practice/practice.css">
+<link rel="stylesheet" href="../../animation-design-system.css?v=20260719-3" data-algocrux-design-system>
+<link rel="stylesheet" href="../../lesson-shell.css?v=2" data-algocrux-lesson-shell>
+<script src="../../lesson-shell.js?v=2" defer data-algocrux-lesson-shell></script>
 </head>
 <body>
 

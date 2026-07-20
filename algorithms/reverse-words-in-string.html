@@ -15,15 +15,15 @@
     --border2: #3d4266;
     --text: #e8eaf6;
     --muted: #8b90b8;
-    --accent: #6c8fff;
+    --accent: #7784c8;
     --accent-bg: #1a2140;
-    --green: #4ade80;
+    --green: #68bd88;
     --green-bg: #0d2318;
-    --red: #f87171;
+    --red: #d98686;
     --red-bg: #2a1111;
-    --amber: #fbbf24;
+    --amber: #e1b86a;
     --amber-bg: #2a1e06;
-    --purple: #c084fc;
+    --purple: #a99acb;
     --purple-bg: #1e0f33;
     --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
     --sans: 'Inter', system-ui, sans-serif;
@@ -513,7 +513,7 @@
   .notes-body{padding:1.25rem;display:none}
   .notes-body.open{display:block}
   .notes-body textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s}
-  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(108,143,255,.12)}
+  .notes-body textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(119,132,200,.12)}
   .notes-body textarea::placeholder{color:var(--muted2)}
   .notes-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;font-size:12px;color:var(--muted2)}
   .notes-footer .save-status{display:flex;align-items:center;gap:6px}
@@ -529,6 +529,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch.png">
+<link rel="stylesheet" href="../animation-design-system.css?v=20260719-3" data-algocrux-design-system>
+<link rel="stylesheet" href="../lesson-shell.css?v=2" data-algocrux-lesson-shell>
+<script src="../lesson-shell.js?v=2" defer data-algocrux-lesson-shell></script>
 </head>
 <body>
 
@@ -554,12 +557,12 @@
 .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
 .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
 .lc-banner .lc-btn{
-  background:linear-gradient(135deg,#6c8fff,#2dd4bf);
+  background:linear-gradient(135deg,#7784c8,#78aaa5);
   color:#fff; padding:.55rem 1.1rem; border-radius:10px;
   font-weight:600; font-size:13px; text-decoration:none;
   transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
 }
-.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+.lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(119,132,200,.4);}
 @media(max-width:640px){
   .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;}
   .lc-banner .lc-btn{width:100%; justify-content:center;}

@@ -88,9 +88,9 @@
 <style>
   :root {
     --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3248; --border2: #3d4266;
-    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #6c8fff; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
-    --green: #4ade80; --green-bg: #0d2318; --red: #f87171; --red-bg: #2a1111; --amber: #fbbf24; --amber-bg: #2a1e06;
-    --purple: #c084fc; --purple-bg: #1e0f33; --teal: #2dd4bf; --teal-bg: #0d2522;
+    --text: #e8eaf6; --muted: #8b90b8; --muted2: #5c6189; --accent: #7784c8; --accent-bg: #1a2140; --accent-dim: #3c4a8c;
+    --green: #68bd88; --green-bg: #0d2318; --red: #d98686; --red-bg: #2a1111; --amber: #e1b86a; --amber-bg: #2a1e06;
+    --purple: #a99acb; --purple-bg: #1e0f33; --teal: #78aaa5; --teal-bg: #0d2522;
     --mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; --sans: 'Inter', system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -198,10 +198,13 @@
   .lc-banner .lc-icon{ width:36px; height:36px; border-radius:8px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#000; flex-shrink:0; }
   .lc-banner .lc-text{flex:1; color:#8a8fb5; line-height:1.5;}
   .lc-banner .lc-text b{color:#eef0fa; font-weight:600;}
-  .lc-banner .lc-btn{ background:linear-gradient(135deg,#6c8fff,#2dd4bf); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
-  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,143,255,.4);}
+  .lc-banner .lc-btn{ background:linear-gradient(135deg,#7784c8,#78aaa5); color:#fff; padding:.55rem 1.1rem; border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; transition:all .2s ease; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .lc-banner .lc-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(119,132,200,.4);}
   @media(max-width:640px){ .lc-banner{flex-direction:column; align-items:flex-start; gap:.6rem;} .lc-banner .lc-btn{width:100%; justify-content:center;} }
 </style>
+<link rel="stylesheet" href="../../animation-design-system.css?v=20260719-3" data-algocrux-design-system>
+<link rel="stylesheet" href="../../lesson-shell.css?v=2" data-algocrux-lesson-shell>
+<script src="../../lesson-shell.js?v=2" defer data-algocrux-lesson-shell></script>
 </head>
 <body>
 

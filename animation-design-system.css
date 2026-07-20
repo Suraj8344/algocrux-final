@@ -1,0 +1,78 @@
+/* AlgoCrux animation design system — shared visual layer for interactive lessons */
+:root {
+  --ac-bg: #0f1117; --ac-surface: #1a1d27; --ac-surface-2: #22263a;
+  --ac-border: #2e3248; --ac-border-strong: #3d4266;
+  --ac-text: #e8eaf6; --ac-muted: #8b90b8; --ac-muted-2: #5c6189;
+  --ac-blue: #6c8fff; --ac-blue-bg: #1a2140; --ac-violet: #c084fc;
+  --ac-green: #4ade80; --ac-amber: #fbbf24; --ac-red: #f87171;
+  --ac-radius: 12px; --ac-radius-sm: 9px; --ac-shadow: 0 16px 36px -26px rgba(0,0,0,.85);
+  /* aliases used by the legacy standalone lesson pages */
+  --bg:#0f1117; --bg2:#131722; --surface:#1a1d27; --surface2:#22263a;
+  --border:#2e3248; --border2:#3d4266; --text:#e8eaf6; --muted:#8b90b8; --dim:#5c6189;
+  --accent:#6c8fff; --accent-bg:#1a2140; --accent-dim:#3a4a7a; --teal:#78aaa5;
+  --purple:#a99acb; --green:#4ade80; --amber:#f0b84a;
+}
+body { background:var(--ac-bg)!important; color:var(--ac-text)!important; line-height:1.6; }
+body::before,body::after { filter:saturate(.55)!important; opacity:.28!important; }
+header, .header, .topbar, .navbar { background:rgba(26,29,39,.88)!important; border-color:var(--ac-border)!important; box-shadow:none!important; }
+main, .main, .container, .page-container { max-width:1120px; }
+section { scroll-margin-top:24px; }
+.card,.panel,.box,.content-card,.info-card,.concept,.anim-panel,.complex-card,.note-card,.iteration-panel,.controls,.control-panel,.visualization,.visualizer,.algorithm-card,.algo-card {
+  background:linear-gradient(145deg,rgba(31,34,46,.92),rgba(22,24,33,.92))!important;
+  border:1px solid var(--ac-border)!important; border-radius:var(--ac-radius)!important;
+  box-shadow:var(--ac-shadow)!important;
+}
+.card:hover,.panel:hover,.content-card:hover,.info-card:hover,.algorithm-card:hover,.algo-card:hover { border-color:var(--ac-border-strong)!important; transform:translateY(-2px); box-shadow:0 20px 42px -28px rgba(0,0,0,.95)!important; }
+button,.btn,.button,.control-btn,.play-btn,.reset-btn,.next-btn,.prev-btn,.lc-btn,.gfg-btn {
+  border-radius:var(--ac-radius-sm)!important; border:1px solid var(--ac-border-strong)!important;
+  background:var(--ac-surface-2)!important; color:var(--ac-text)!important; transition:transform .18s ease,border-color .18s ease,background .18s ease!important;
+}
+button:hover,.btn:hover,.button:hover,.control-btn:hover,.play-btn:hover,.reset-btn:hover,.next-btn:hover,.prev-btn:hover { transform:translateY(-1px); border-color:#6976ab!important; }
+.btn-primary,.primary,.play-btn,.lc-btn { background:linear-gradient(135deg,#6c8fff,#6576c5)!important; color:#fff!important; border-color:#7182d0!important; box-shadow:0 10px 20px -15px rgba(75,91,170,.8)!important; }
+.badge,.tag,.pill { border-radius:999px!important; border:1px solid var(--ac-border)!important; box-shadow:none!important; }
+.badge.medium,.difficulty-medium { background:#2a1e06!important; color:var(--ac-amber)!important; }.badge.easy,.difficulty-easy { background:#0d2318!important; color:var(--ac-green)!important; }.badge.hard,.difficulty-hard { background:#2a1111!important; color:var(--ac-red)!important; }.badge.greedy,.pattern-badge { background:#1e0f33!important; color:var(--ac-violet)!important; }
+pre,code,.code-block,.code-container { background:#12151e!important; border-color:var(--ac-border)!important; border-radius:var(--ac-radius-sm)!important; }
+pre { padding:1rem 1.15rem!important; box-shadow:inset 0 1px rgba(255,255,255,.025); }
+input,select,textarea { background:#161923!important; color:var(--ac-text)!important; border-color:var(--ac-border-strong)!important; border-radius:8px!important; }
+input:focus,select:focus,textarea:focus { outline:none!important; border-color:#7080ce!important; box-shadow:0 0 0 3px rgba(108,143,255,.13)!important; }
+.complexity-grid,.complexity-cards,.complexity-container { gap:12px!important; }
+.complex-card .big,.complexity-value { color:#95d3c9!important; }
+.note,.note-card,.callout { border-left:3px solid #7887d4!important; background:linear-gradient(90deg,rgba(108,143,255,.10),rgba(31,34,46,.84))!important; }
+.warning,.common-mistake { border-left-color:var(--ac-amber)!important; }.tip,.interview-tip { border-left-color:var(--ac-green)!important; }
+.progress,.progress-bar,.slider-track { background:var(--ac-surface-2)!important; }.progress-fill,.progress-bar-fill { background:linear-gradient(90deg,#7081d1,#9a8bc7)!important; box-shadow:none!important; }
+.graph-node,.node,.tree-node { box-shadow:0 6px 14px -10px rgba(0,0,0,.95),inset 0 1px rgba(255,255,255,.25)!important; filter:saturate(.72)!important; }
+.edge,.graph-edge,.link { box-shadow:none!important; filter:saturate(.6)!important; }
+[class*="glow"],[class*="bloom"] { opacity:.28!important; filter:saturate(.5)!important; }
+@media(max-width:680px){ main,.main,.container,.page-container { padding-left:16px!important;padding-right:16px!important; }.complexity-grid,.complexity-cards { grid-template-columns:1fr!important; } }
+@media(prefers-reduced-motion:reduce){ *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+
+/* Shared account / project-shell treatment */
+.login-card,.auth-card {
+  background:linear-gradient(145deg,rgba(30,34,45,.96),rgba(18,20,28,.96))!important;
+  border-color:rgba(151,161,198,.17)!important;
+  box-shadow:0 28px 58px -38px rgba(0,0,0,.92)!important;
+}
+.login-card::before,.auth-card::before { background:radial-gradient(360px circle at 50% 0%,rgba(117,132,196,.055),transparent 65%)!important; }
+.brand .mark { background:linear-gradient(135deg,#7784cd,#8f91ba)!important; box-shadow:0 6px 16px -10px rgba(68,78,139,.75)!important; }
+.login-card input,.auth-card input { background:#151821!important; border-color:#30364a!important; }
+.login-card .google-btn,.auth-card .google-btn { background:#202431!important; border-color:#353c52!important; }
+
+/* Graph / BFS lesson layout (shared by the standalone graph pages) */
+.wrap { max-width:1080px!important; }
+.practice { background:linear-gradient(135deg,rgba(29,34,47,.92),rgba(21,25,35,.92))!important; border:1px solid var(--ac-border)!important; border-radius:var(--ac-radius)!important; box-shadow:var(--ac-shadow)!important; }
+.concept-card,.panel,.cx-card { background:linear-gradient(145deg,#1d202b,#181b25)!important; border-color:#303549!important; box-shadow:0 14px 28px -25px rgba(0,0,0,.9)!important; }
+.concept-card { border-radius:14px!important; }.panel { border-radius:16px!important; }.cx-card { border-radius:13px!important; }
+.stat,.log-box,.code-block { background:#181b25!important; border-color:#303549!important; box-shadow:none!important; }
+.notes { background:linear-gradient(135deg,rgba(119,132,196,.10),rgba(25,28,38,.86))!important; border-color:rgba(142,152,198,.19)!important; box-shadow:var(--ac-shadow)!important; }
+.btn.primary { background:linear-gradient(135deg,#6f7dc8,#6572b6)!important; border-color:#7482ca!important; box-shadow:0 9px 18px -14px rgba(68,77,143,.85)!important; }
+.mini-btn,.copy-btn,.btn:not(.primary) { background:#222633!important; border-color:#353b50!important; }
+.progress-fill { background:linear-gradient(90deg,#7181cd,#9a8ec0)!important; box-shadow:none!important; }
+.cell { box-shadow:inset 0 1px rgba(255,255,255,.14),0 5px 10px -9px rgba(0,0,0,.9)!important; filter:saturate(.72)!important; }
+
+/* Legacy component names — explicit cascade control for standalone lessons */
+.practice .tag,.badge.b-teal,.badge.b-accent { color:#8eafb9!important; background:rgba(120,170,165,.10)!important; border-color:rgba(120,170,165,.22)!important; }
+.badge.b-purple,.heap-kind,.pattern-badge { color:#b4a7c9!important; background:rgba(169,154,203,.10)!important; border-color:rgba(169,154,203,.22)!important; }
+.badge.b-amber { color:#e1b86a!important; background:rgba(225,184,106,.10)!important; border-color:rgba(225,184,106,.22)!important; }
+h1 .accent,.concept-card code,.tok-type,.log-box .l-teal,.copy-btn:hover { color:#8eafb9!important; }
+.cell.just-rotten { box-shadow:0 0 0 2px rgba(225,184,106,.62),0 9px 18px -13px rgba(0,0,0,.95)!important; }
+input[type=range]::-webkit-slider-thumb { background:#7784c8!important; box-shadow:0 0 0 4px rgba(119,132,200,.13)!important; }
